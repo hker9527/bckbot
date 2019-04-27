@@ -1,0 +1,25 @@
+{
+  "name": "bckbot",
+  "version": "1.0.0",
+  "description": "Good Bot",
+  "main": "index.js",
+  "dependencies": {
+    "deepai": "^1.0.0",
+    "discord.js": "^11.4.2",
+    "minimist": "^1.2.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "sightengine": "^1.2.1",
+    "sqlite": "^3.0.1",
+    "sqlite3": "^4.0.4",
+    "table": "^5.2.1",
+    "twemoji": "^11.0.1",
+    "vorpal": "^1.12.0",
+    "xml2json": "^0.11.2",
+    "ytdl-core": "^0.15.2"
+  },
+  "devDependencies": {},
+  "scripts": {},
+  "author": "bckps7336",
+  "license": "ISC"
+}
