@@ -174,8 +174,8 @@ module.exports = {
         {
             full: "Mania",
             icon: "https://i.ppy.sh/bf55b75bd40964972041d66bb0d741a779293279/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f7368617265642f6d6f64652f6d616e69612e706e67",
-            scoretext: ["320", "300", "100", "200", "50", ":x:"],
-            score: ["countgeki", "count300", "count100", "countkatu", "count50", "countmiss"],
+            scoretext: ["320", "300", "200", "100", "50", ":x:"],
+            score: ["countgeki", "count300", "countkatu", "count100", "count50", "countmiss"],
             text: "[Mania :musical_keyboard:]",
             get color() {
                 var ca = [0xECCD00, 0xD8BED7, 0xCC6688];

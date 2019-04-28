@@ -60,7 +60,7 @@ module.exports = {
         let r = await db.get(sql);
         if (base.isValid(r)) {
             user = r.osu_id;
-        } else {
+        } else if (!user) {
             return message.reply("請先使用 b!link [ID] 配對Osu! ID, or specify ID.");
         }
 
@@ -72,8 +72,7 @@ module.exports = {
         });
 
         if (!list.length) {
-            msg.edit("無法獲取賬號 " + osu_id + " 訊息，請檢查賬號可用性。");
-            return;
+            return msg.edit("無法獲取賬號 `" + user + "` 訊息，請檢查賬號可用性。");
         }
 
         var user_info = list[0];

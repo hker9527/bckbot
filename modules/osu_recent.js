@@ -8,6 +8,56 @@ const RichEmbed = require("discord.js").RichEmbed;
 var db;
 sqlite.open("osu.db", {Promise}).then(d => db = d).catch(e => {throw e;});
 
+function modEnum(s) {
+    return Math.pow(2, osu.mod.indexOf(s));
+}
+
+function mania_pp(stars, od, object_count, mods = 0, score = 1000000) {
+    const keyMods = [...new Array(9)].map((a, i) => modEnum((i + 1) + "K"));
+
+    if (mods & 487555072) { // keyMods
+        let mod_key_count = keyMods.filter(a => mods & a)[0] + 1;
+        let key_count = (od < 5 ? 4 : (od > 6 ? 7 : parseInt(od)));
+        let score_multiplier = 0.9;
+        if (mod_key_count == key_count) {
+            score_multiplier = 1;
+        } else if (mod_key_count < key_count) {
+            score_multiplier = 0.9 - (key_count - mod_key_count) * 0.04;
+        }
+        score *= score_multiplier;
+    }
+
+    let perfect_window = 64 - 3 * od;
+    let base_strain = Math.pow(5 * Math.max(1, stars / 0.2) - 4, 2.2) / 135;
+    base_strain *= 1 + 0.1 * Math.min(1, object_count / 1500);
+    base_strain *= (score < 500000 ? 0 :
+                    (score < 600000 ? (score - 500000) / 100000 * 0.3 :
+                     (score < 700000 ? (score - 600000) / 100000 * 0.25 + 0.3 :
+                      (score < 800000 ? (score - 700000) / 100000 * 0.2 + 0.55 :
+                       (score < 900000 ? (score - 800000) / 100000 * 0.15 + 0.75 :
+                        ((score - 900000) / 100000 * 0.1 + 0.9))))));
+    let window_factor = Math.max(0, 0.2 - (perfect_window - 34) * 0.006667);
+    let score_factor = Math.pow(Math.max(0, (score - 960000)) / 40000, 1.1);
+    let base_acc = window_factor * base_strain * score_factor;
+    let acc_factor = Math.pow(base_acc, 1.1);
+    let strain_factor = Math.pow(base_strain, 1.1);
+    let final_pp = Math.pow(acc_factor + strain_factor, 1 / 1.1);
+
+    final_pp *= 0.8;
+
+    if (mods & modEnum("EZ")) {
+        final_pp *= 0.5;
+    } else if (mods & modEnum("NF")) {
+        final_pp *= 0.9;
+    }
+
+    return final_pp;
+}
+
+function sec2str(s) {
+    return parseInt(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+}
+
 module.exports = {
     trigger: ["rs", "rt", "rc", "rm"],
     event: "message",
@@ -85,6 +135,7 @@ module.exports = {
                     beatmap: bmap.artist + " - " + bmap.title + " [" + bmap.version + "]",
                     star: base.round(bmap.difficultyrating, 2),
                     bpm: bmap.bpm,
+                    length: bmap.total_length,
                     diff: {
                         CS: bmap.diff_size,
                         AR: bmap.diff_approach,
@@ -137,13 +188,14 @@ module.exports = {
                 var fc_oppai    = await osu.oppai({b: b, acc: osu.mode[m].acc(userRecent),                                                                      m: m, mod: osu.parseOsuMod(userRecent.enabled_mods).join("")});
                 var ss_oppai    = await osu.oppai({b: b,                                                                                                        m: m, mod: osu.parseOsuMod(userRecent.enabled_mods).join("")});
 
-                ret.score.pp = oppai.pp;
-                ret.score.pp_fc = fc_oppai.pp;
-                ret.score.pp_ss = ss_oppai.pp;
+                ret.score.pp    = base.round(oppai.pp);
+                ret.score.pp_fc = base.round(fc_oppai.pp);
+                ret.score.pp_ss = base.round(ss_oppai.pp);
 
-                ret.score.pp_aim = oppai.aim_pp;
-                ret.score.pp_speed = oppai.speed_pp;
-                ret.score.pp_acc = oppai.acc_pp;
+                ret.score.pp_aim    = base.round(oppai.aim_pp);
+                ret.score.pp_speed  = base.round(oppai.speed_pp);
+                ret.score.pp_acc    = base.round(oppai.acc_pp);
+
                 if (userRecent.enabled_mods & (2 | 16 | 64 | 256)) {
                     ret.bmeta.star = "**" + base.round(oppai.stars, 2) + "**";
                     ret.bmeta.diff = {
@@ -153,10 +205,16 @@ module.exports = {
                         OD: (oppai.od != ret.bmeta.diff.OD ? "**" + base.round(oppai.od, 1) + "**" : ret.bmeta.diff.OD),
                     }
                 }
+            } else if (m == 3) { // mania pp
+                let object_count = ["countgeki", "count300", "countkatu", "count100", "count50", "countmiss"].map(a => parseInt(userRecent[a])).reduce((a, b) => a + b, 0);
+                ret.score.pp    = base.round(mania_pp(bmap.difficultyrating, ret.bmeta.diff.OD, object_count, userRecent.enabled_mods, ret.score.score));
+                ret.score.pp_fc = "--.--";
+                ret.score.pp_ss = base.round(mania_pp(bmap.difficultyrating, ret.bmeta.diff.OD, object_count, userRecent.enabled_mods));
             }
-            if (userRecord && Object.keys(userRecord).length && userRecord.date == userRecent.date) { // recent == best
+
+            if (userRecord && Object.keys(userRecord).length && Math.abs(userRecord.date - userRecent.date) < 10 * 1000) { // recent == best
                 ret.score._pp = ret.score.pp;
-                ret.score.pp = "__" + base.round(userRecord.pp, 2) + "__";
+                ret.score.pp = "__" + base.round(userRecord.pp) + "__";
                 ret.score.newRecord = true;
             }
             if (userRecent.rank == "F" && m < 2) {
@@ -176,22 +234,42 @@ module.exports = {
                     date.setHours(date.getHours() + 8);
                     return date.toISOString();
                 })())
-                .addField("Metadata", ret.bmeta.star + osu.diffEmoji(ret.bmeta.star) + "\t" + ret.bmeta.bpm + "<:osuMetaBPM:546037644929269761>", true) // <:osuMetaTL:546037644954435614>
+                .addField("Metadata", ret.bmeta.star + osu.diffEmoji(ret.bmeta.star) + "\t" + ret.bmeta.bpm + "<:osuMetaBPM:546037644929269761>" + sec2str(ret.bmeta.length) + "<:osuMetaTL:546037644954435614>", true)
                 .addField("Mods", ret.score.mod, true)
                 .addField(ret.score.noteDesc, ret.score.note, true)
-                .addField("Score", (ret.score.newRecord ? ":new: " : "") + (ret.score.userBoardPos > -1 ? "__**r#" + ret.score.userBoardPos + "**__" : "") + ret.score.score.toLocaleString() + osu.rankEmoji(ret.score.rank) + ret.score.acc, true)
-                .addField("Combo", ret.score.combo + (ret.score.rank == "F" ? " (" + ret.score.complete + " C)" : ""), true)
+                .addField("Score", (ret.score.newRecord ? ":new: " : "") + (ret.score.userBoardPos > -1 ? "__**r#" + ret.score.userBoardPos + "**__" : "") + (ret.score.newRecord ? "__" : "") + ret.score.score.toLocaleString() + (ret.score.newRecord ? "__" : "") + osu.rankEmoji(ret.score.rank) + ret.score.acc, true)
+                .addField("Combo", ret.score.combo + (ret.score.rank == "F" ? " (" + (ret.score.complete || "???") + " C)" : ""), true)
                 .addField("Difficulty", (() => {
-                    var o = "";
+                    var o = [];
                     for (var i in ret.bmeta.diff) {
-                        o += i + ret.bmeta.diff[i] + " ";
+                        if (m == 3) {
+                            switch (i) {
+                                case "AR":
+                                    break;
+                                case "CS":
+                                    o.push(ret.bmeta.diff[i] + "K");
+                                    break;
+                                default:
+                                    o.push(i + ret.bmeta.diff[i]);
+                                    break;
+                            }
+                        } else {
+                            o.push(i + ret.bmeta.diff[i]);
+                        }
                     }
-                    return o;
+                    return o.join(" ");
                 })(), true);
 
             if (base.isValid(ret.score.pp)) {
-                embed.addField("PP", ["🈶 " + (typeof ret.score.pp == "string" ? ret.score.pp : base.round(ret.score.pp, 2)) + "pp", "🈴 " + base.round(ret.score.pp_fc, 2) + "PP", "🈵 " + base.round(ret.score.pp_ss, 2) + "**PP**"].join("\n"), true)
-                     .addField("Acc / Aim / Speed PP", [ret.score.pp_acc, ret.score.pp_aim, ret.score.pp_speed].map(a => {fpp = ret.score._pp | ret.score.pp; return base.rod(a, fpp, 8) + " " + (a | 0) + " " + ((a / fpp * 100) | 0) + "%"}).join("\n"), true);
+                embed.addField("PP",
+                        ["🈶 " + ret.score.pp + "pp",
+                         "🈴 " + ret.score.pp_fc + "PP",
+                         "🈵 " + ret.score.pp_ss + "**PP**"
+                     ].join("\n"), true);
+                if (m < 2) {
+                     embed.addField("Acc / Aim / Speed PP",
+                     [ret.score.pp_acc, ret.score.pp_aim, ret.score.pp_speed].map(a => {fpp = ret.score._pp | ret.score.pp; return base.rod(a, fpp, 8) + " " + (a | 0) + " " + ((a / fpp * 100) | 0) + "%"}).join("\n"), true);
+                 }
             }
 
 
