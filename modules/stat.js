@@ -1,17 +1,17 @@
 const base = require("./_base.js");
 const request = require("request-promise");
-const RichEmbed = require("discord.js").RichEmbed;
+const MessageEmbed = require("discord.js").MessageEmbed;
 const os = require("os");
 
 module.exports = {
     trigger: ["stat"],
     event: "message",
     argv: ["client.pings", "client.ping", "CredInfo.osu_api"],
-    action: async function(trigger, message, p, _p, k) {
-        var embed = new RichEmbed()
+    action: async function(trigger, message, LocalStorage, p, _p, k) {
+        var embed = new MessageEmbed()
             .setColor(3447003)
             .setAuthor("Server Statistics")
-            .addField("CPU Load", os.loadavg().map(function(d) {
+            .addField("CPU Load", os.loadavg().map(function (d) {
                 return (d / os.cpus().length * 100).toFixed(2) + "%";
             }).toString());
 
@@ -24,4 +24,4 @@ module.exports = {
             })
         })
     }
-}
+};

@@ -4,7 +4,7 @@ const pixiv = require("./pixiv.js");
 const fs = require("fs");
 
 async function _req(n) {
-    return JSON.parse(xml2json(await base._req("http://rakuen.thec.me/PixivRss/" + n + "-50")));
+    return JSON.parse(xml2json(await base._req("https://rakuen.thec.me/PixivRss/" + n + "-30")));
 }
 
 var dict = {
@@ -34,23 +34,30 @@ var data = {
     female: null,
     female18: null
 };
+
+async function worker() {
+    for (let type of Object.keys(dict)) {
+        data[type] = await _req(dict[type]);
+        data[type].rss.channel.lastBuildDate = +new Date(data[type].rss.channel.lastBuildDate.replace(" +8000", ""));
+    }
+}
+
 module.exports = {
     trigger: Object.keys(dict).map(a => "p" + a),
     event: "message",
-    argv: null,
-    action: async function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    init: worker,
+    interval: {
+        f: worker,
+        t: 86400 * 1000
+    },
+    action: async function (trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = base.parseArgv(txt);
 
-        let type = trigger.substr(3);
-
-        if (data[type] == null || data[type].rss.channel.lastBuildDate < +new Date() - 86400 * 1000) {
-            data[type] = await _req(dict[type]);
-            data[type].rss.channel.lastBuildDate = +new Date(data[type].rss.channel.lastBuildDate.replace(" +8000", ""));
-        }
+        let type = trigger.substr(1);
 
         let picLink = base.randArr(data[type].rss.channel.item).link;
 
-        message.channel.send({embed: await pixiv.genEmbed(await pixiv.fetchInfo(picLink.match(/illust_id=(\d*)/)[1]), true, message.channel.nsfw)});
+        message.channel.send({embed: await pixiv.genEmbed(picLink.match(/illust_id=(\d*)/)[1], true, message.channel.nsfw)});
     }
-}
+};

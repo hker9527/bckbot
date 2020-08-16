@@ -5,13 +5,13 @@ const fs = require("fs");
 module.exports = {
     trigger: ["neko"],
     event: "message",
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    action: function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = txt.split(" ");
 
         if (base.isValid(argv[0])) {
             if (/^\d+$/.test(argv[0])) {
-                var len = String(argv[0]).length
+                var len = String(argv[0]).length;
                 var string = String(argv[0]).split("").map((a) => {return "neko/" + a + ".png"}).join(" ");
                 var output = "/tmp/" + base.random(0, 100000) + ".png";
                 exec("montage " + [string, "-tile", len + "x1", "-geometry", "+0+0", "-background", "none", output].join(" "), () => {
@@ -26,4 +26,4 @@ module.exports = {
             message.reply("Please specify number!");
         }
     }
-}
+};

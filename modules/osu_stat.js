@@ -1,20 +1,19 @@
 const base = require("./_base.js");
-const RichEmbed = require("discord.js").RichEmbed;
+const MessageEmbed = require("discord.js").MessageEmbed;
 const osu = require("./_osu.js");
 const math = require("./_math.js");
 const sqlite = require("sqlite");
 const API_KEY = require("../cred.js").osu_api;
 
 var db;
-sqlite.open("osu.db", {Promise}).then(d => db = d).catch(e => {throw e;});
+sqlite.open("data.db", {Promise}).then(d => db = d).catch(e => {throw e;});
 
 function _avg(values) {
     var sum = values.reduce(function(sum, value) {
         return sum + value;
     }, 0);
 
-    var avg = sum / values.length;
-    return avg;
+    return sum / values.length;
 }
 
 function sd(values) {
@@ -22,34 +21,32 @@ function sd(values) {
 
     var squareDiffs = values.map(function(value) {
         var diff = value - avg;
-        var sqrDiff = diff * diff;
-        return sqrDiff;
+        return diff * diff;
     });
 
     var avgSquareDiff = _avg(squareDiffs);
 
-    var stdDev = Math.sqrt(avgSquareDiff);
-    return stdDev;
+    return Math.sqrt(avgSquareDiff);
 }
 
 module.exports = {
     trigger: Object.keys(osu.modeTrigger),
     event: "message",
-    action: async function(trigger, message) {
-        let txt = base.extArgv(message.content);
+    action: async function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message);
         let argv = base.parseArgv(txt);
 
-        let m = osu.parseOsuMode(trigger.substr(2));
+        let m = osu.parseOsuMode(trigger);
 
-        let sql = "select * from users where chat_id = \'";
+        let sql = "select * from osu_user where id = \'";
 
         let user;
 
-        if (base.isValid(argv._[0])) { // specify user
-            if (argv._[0].substr(0, 2) == "<@") { // mention
-                sql += argv._[0].match(/<@\!?(\d*)>/)[1];
+        if (base.isValid(argv[0])) { // specify user
+            if (argv[0].substr(0, 2) === "<@") { // mention
+                sql += argv[0].match(/<@\!?(\d*)>/)[1];
             } else {
-                user = argv._.join(" ");
+                user = argv.join(" ");
             }
         } else { // Not given, use himself
             sql += message.author.id;
@@ -89,7 +86,7 @@ module.exports = {
         var pp = bp.map(a => a.pp);
         //pp.pop();
 
-        var embed = new RichEmbed()
+        var embed = new MessageEmbed()
             .setAuthor("Osu! " + osu.mode[m].full, osu.mode[m].icon)
             .setColor(osu.mode[m].color)
             .setTitle("用戶: " + osu_name)
@@ -103,9 +100,9 @@ module.exports = {
             .addField("SS / SS+ / S / S+ / A", [user_info["count_rank_ss"], user_info["count_rank_ssh"], user_info["count_rank_s"], user_info["count_rank_sh"], user_info["count_rank_a"]].join(" / "), true)
             .addField("計分分數 / 總分數", parseInt(user_info["ranked_score"]).toExponential(2) + " / " + parseInt(user_info["total_score"]).toExponential(2) + " (1:" + base.round(parseInt(user_info["total_score"]) / parseInt(user_info["ranked_score"]), 3) + ")" , true)
             .addField("PP差: ", base.round(pp[0], 1) + " - " + base.round(pp[pp.length - 1], 1) + " = " + base.round(pp[0] - pp[pp.length - 1], 1) + " (" + base.round(sd(pp), 2) + " S.D)", true)
-            .setURL("https://osu.ppy.sh/users/" + osu_id)
+            .setURL("https://osu.ppy.sh/users/" + osu_id);
         return msg.edit({
             embed
         });
     }
-}
+};

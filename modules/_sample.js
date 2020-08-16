@@ -3,9 +3,8 @@ const base = require("./_base.js");
 module.exports = {
     trigger: [""],
     event: "message",
-    argv: null,
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    action: function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = base.parseArgv(txt);
     }
-}
+};

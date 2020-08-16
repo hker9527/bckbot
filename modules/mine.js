@@ -3,21 +3,16 @@ const base = require("./_base.js");
 const num = "　１２３４５６７８９".split("");
 const bomb = "Ｘ";
 
-function r(l, h) {
-    return (Math.random() * (h - l) + l) | 0;
-}
-
 module.exports = {
     trigger: ["mine"],
     event: "message",
-    argv: null,
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    action: function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = base.parseArgv(txt);
 
-        var [_h, _w, _n] = [argv._[0], argv._[1], argv._[2]];
+        var [_h, _w, _n] = [argv[0], argv[1], argv[2]];
         if (_h && _w && _h > 3 && _w > 3 && _h * _w < 200) {
-            var [h, w] = [_h, _w];
+            var [h, w] = [parseInt(_h), parseInt(_w)];
         } else {
             var [h, w] = [base.random(5, 10), base.random(5, 10)]; // max: 200?
         }
@@ -55,4 +50,4 @@ module.exports = {
 
         return message.channel.send(mineArr.map(a => a.map(b => "||" + b + "||").join("")).join("\n"));
     }
-}
+};

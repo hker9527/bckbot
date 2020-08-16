@@ -109,17 +109,15 @@ async function main() {
                         star: star.length,
                         name: name
                     };
-                    if (a.indexOf("rateup") != -1) {
-                        let _p = parseFloat(pc).toString(); // sanitize trailing 0s
-                        let _ps = (parseFloat(_p) / 100).toString(); // divide
-                        let prec = 3;
 
-                        chance[(_i == 0 ? "19" : "10")][id] = round(_ps.substr(0, _p.length + 2 + prec), 2 + prec);
-                    } else {
-                        chance[(_i == 0 ? "19" : "10")][id] = null;
-                    }
+                    let _p = parseFloat(pc).toString(); // sanitize trailing 0s
+                    let _ps = (parseFloat(_p) / 100).toString(); // divide
+                    let prec = 3;
+
+                    chance[(_i == 0 ? "19" : "10")][id] = round(_ps.substr(0, _p.length + 2 + prec), 2 + prec);
                 }
 
+                /*
                 let nCount = [0, 0, 0], prob = [0, 0, 0];
                 Object.keys(chance[(_i == 0 ? "19" : "10")]).map(a => {
                     let _star = output.id[a].star - 1;
@@ -137,7 +135,7 @@ async function main() {
                     if (chance[(_i == 0 ? "19" : "10")][i] == null) {
                         chance[(_i == 0 ? "19" : "10")][i] = ((_t.gacha_id > 70000 && _i == 1 ? 1 : starProb[_i][_star]) - prob[_star]) / nCount[_star];
                     }
-                }
+                }*/
                 _i++;
             }
 

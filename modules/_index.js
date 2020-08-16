@@ -1,6 +1,8 @@
-const fs = require("fs")
+const fs = require("fs");
 
 const cd = __dirname + "/";
+
+var fileCmd = {};
 
 var cmd = {
     message: {},
@@ -12,7 +14,7 @@ var cmd = {
 function getModules(cb, base = false) {
     fs.readdir(cd, (e, f) => {
         if (e) throw e;
-        var f = f.filter(a => {
+        f = f.filter(a => {
             return a.split(".")[1] == "js" && (base ? a.substr(0, 1) != "_" : true) && a != "_index.js";
         })
 
@@ -53,12 +55,14 @@ function unload(file, cb = () => {}) {
 function load(file, cb = () => {}) {
     return handle(file, (i) => {
         tmp = require(i);
-        for (var j in tmp.trigger) {
-            cmd[tmp.event][tmp.trigger[j]] = {
-                action: tmp.action,
-                argv: tmp.argv
+        for (var j of tmp.trigger) {
+            var o = {
+                module: file.slice(0, -3),
+                ...tmp
             };
+            cmd[tmp.event][j] = o;
         }
+        fileCmd[i] = o;
     }, cb);
 }
 
@@ -72,8 +76,9 @@ function reload(file, cb = () => {}) {
 
 module.exports = {
     cmd,
+    fileCmd,
     getModules,
     load,
     reload,
     unload
-}
+};

@@ -3,22 +3,23 @@ const base = require("./_base.js");
 module.exports = {
     trigger: ["dice", "d"],
     event: "message",
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    action: async function (trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = base.parseArgv(txt);
 
-        if (!base.isValid(argv._[0]) || !argv._[0].match(/(\d*)d(\d*)([+-]\d*)?/)) {
-            message.reply("Format: __n__d__f__[+-o]\nn: Number of dices\tf: Faces\to: Offset");
+        let re = /^(\d*)d(\d*)([+-]\d*)?$/;
+        let tmp;
+        if (!base.isValid(argv[0]) || !(tmp = argv[0].match(re))) {
+            return message.reply("Format: __n__d__f__[+-o]\nn: Number of dice\tf: Faces\to: Offset");
         } else { // ndf+o
-            [_, n, f, o] = argv._[0].match(/(\d*)d(\d*)([+-]\d*)?/).map(a => {
-                return parseInt(a)
-            });
-            if (n > 500) return message.reply("Too much number!");
-            res = 0;
+            [_, n, f, o] = tmp.map(a => parseInt(a));
+            if (n > 500) return message.reply("Too much dice!");
+            let res = 0;
             for (var i = 0; i < n; i++) {
-                res += base.random(1, f) + (!isNaN(o) ? o : 0);
+                res += base.random(1, f);
             }
-            return message.reply("\nRolling a " + f + "-faced dice for " + n + " times.\nResult: `" + res + "`");
+            res += (!isNaN(o) ? o : 0);
+            return message.reply("\nRolling a " + f + "-faced dice for " + n + " times" + (!isNaN(o) ? " with " + o + " offset" : "") + ".\nResult: `" + res + "`");
         }
     }
-}
+};

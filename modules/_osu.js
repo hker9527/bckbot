@@ -1,5 +1,9 @@
+const osuParser = require("osu-parser");
 const base = require("./_base.js");
-const error = require("./error.js");
+const error = {
+    ERR_EMPTY_RESP: "Empty Response",
+    ERR_ARGV: "Invalid Argument"
+};
 const BASE_URL = "https://osu.ppy.sh/api/";
 const portals = {
     getBeatmaps: "get_beatmaps",
@@ -32,7 +36,7 @@ function formatter(o) {
             case "title":
                 continue;
             default:
-                let tmp = parseFloat(o[i])
+                let tmp = parseFloat(o[i]);
                 if (!isNaN(tmp)) {
                     o[i] = tmp;
                 }
@@ -55,7 +59,7 @@ async function _req(portal, argv) {
 }
 
 function _oppai(argv) {
-    if (typeof argv.b == "undefined") throw new Error(error.ERR_ARGV)
+    if (typeof argv.b == "undefined") throw new Error(error.ERR_ARGV);
 
     return new Promise((res, rej) => {
         exec("oppai ./.osu/" + [
@@ -75,19 +79,100 @@ function _oppai(argv) {
     })
 }
 
+function _osuParse(id) {
+    return new Promise((res, rej) => {
+        osuParser.parseFile(base.DIR + ".osu/" + id + ".osu", (e, d) => {
+            if (e) rej(e);
+            res(d);
+        });
+    })
+}
+
+async function osuParse (id) {
+    return await _osuParse(id);
+}
+
+var mod = ["NF", "EZ", "NV", "HD", "HR", "SD", "DT", "RX", "HT", "NC", "FL", "AT", "SO", "AP", "PF", "4K", "5K", "6K", "7K", "8K", "FI", "Random", 'Ci', "TP", "9K", "10K", "1K", "3K", "2K"];
+
+function modEnum(s) {
+    return Math.pow(2, mod.indexOf(s));
+}
+
+async function mania_pp(stars, bdata, mods = 0, score = 1000000) {
+    const keyMods = [...new Array(9)].map((a, i) => modEnum((i + 1) + "K"));
+
+    let object_count = bdata.hitObjects.length;
+
+    if (bdata.Mode != 3) { // converted maps
+        // https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Mania/Beatmaps/ManiaBeatmapConverter.cs#L40
+        let p = bdata.hitObjects.filter(a => a.endTime).length / object_count; // percentSliderOrSpinner
+        let cs = Math.round(parseFloat(bdata.CircleSize));
+        let od = Math.round(parseFloat(bdata.OverallDifficlty));
+
+        let key_count;
+        if (p < 0.2) {
+            key_count = 7;
+        } else if (p < 0.3 || cs >= 5) {
+            key_count = od > 5 ? 7 : 6;
+        } else if (p > 0.6) {
+            key_count = od > 4 ? 5 : 4;
+        } else {
+            key_count = Math.max(4, Math.min(od + 1, 7));
+        }
+
+        // https://osu.ppy.sh/help/wiki/Game_Modifiers#xk
+        if (mods & 487555072) { // keyMods
+            let mod_key_count = keyMods.filter(a => mods & a)[0] + 1;
+
+            if (mod_key_count == key_count) score *= 1; // key mods
+            else if (mod_key_count < key_count) score *= 0.9 - (key_count - mod_key_count) * 0.04;
+        }
+    }
+    //if (mods & modEnum("HT")) score *= 1 / 0.5;
+
+    let perfect_window = 64 - 3 * parseFloat(bdata.OverallDifficulty);
+    let base_strain = Math.pow(5 * Math.max(1, stars / 0.2) - 4, 2.2) / 135;
+    base_strain *= 1 + 0.1 * Math.min(1, object_count / 1500);
+    base_strain *= (score < 500000 ? 0 :
+                    (score < 600000 ? (score - 500000) / 100000 * 0.3 :
+                     (score < 700000 ? (score - 600000) / 100000 * 0.25 + 0.3 :
+                      (score < 800000 ? (score - 700000) / 100000 * 0.2 + 0.55 :
+                       (score < 900000 ? (score - 800000) / 100000 * 0.15 + 0.75 :
+                        ((score - 900000) / 100000 * 0.1 + 0.9))))));
+    let window_factor = Math.max(0, 0.2 - (perfect_window - 34) * 0.006667);
+    let score_factor = Math.pow(Math.max(0, (score - 960000)) / 40000, 1.1);
+    let base_acc = window_factor * base_strain * score_factor;
+    let acc_factor = Math.pow(base_acc, 1.1);
+    let strain_factor = Math.pow(base_strain, 1.1);
+    let final_pp = Math.pow(acc_factor + strain_factor, 1 / 1.1);
+
+    final_pp *= 0.8;
+
+    if (mods & modEnum("EZ")) {
+        final_pp *= 0.5;
+    }
+
+    if (mods & modEnum("NF")) {
+        final_pp *= 0.9;
+    }
+
+    return final_pp;
+}
+
 module.exports = {
+    error: error,
     diffEmoji: function (diff) {
         diff = parseFloat(diff.toString().replace(/\*/g, ""));
 
-        if (diff > 6.75) {
+        if (diff > 6.5) {
             return "<:osuDiffEP:545909651703595043>"
-        } else if (diff > 5.25) {
+        } else if (diff > 5.3) {
             return "<:osuDiffEX:545909651506462720>"
-        } else if (diff > 3.75) {
+        } else if (diff > 4) {
             return "<:osuDiffIN:545909651573571594>"
-        } else if (diff > 2.25) {
+        } else if (diff > 2.7) {
             return "<:osuDiffHD:545909651540017152>"
-        } else if (diff > 1.5) {
+        } else if (diff > 2) {
             return "<:osuDiffNM:545909651342884877>"
         } else {
             return "<:osuDiffEZ:545909651414319115>"
@@ -127,7 +212,8 @@ module.exports = {
         "m": 3,
         "mania": 3
     },
-    mod: ["NF", "EZ", "NV", "HD", "HR", "SD", "DT", "RX", "HT", "NC", "FL", "AT", "SO", "AP", "PF", "4K", "5K", "6K", "7K", "8K", "FI", "Random", 'Ci', "TP", "9K", "10K", "1K", "3K", "2K"],
+    modEnum: modEnum,
+    mod: mod,
     mode: [
         {
             full: "Standard",
@@ -191,14 +277,14 @@ module.exports = {
     },
     parseOsuMod: function(m) {
         if (m == 0) return ["None"];
-        var o = []
+        var o = [];
 
         for (var i in this.mod) {
             if (m & Math.pow(2, i)) {
                 o.push(this.mod[i]);
             }
         }
-        if (o.indexOf("NC") > -1) {
+        if (o.includes("NC")) {
             return o.filter(a => {
                 return a != "DT"
             });
@@ -207,30 +293,32 @@ module.exports = {
         return o;
     },
     getBeatmaps: async (argv) => {
-        if (typeof argv.s == "undefined" && typeof argv.b == "undefined") throw new Error(error.ERR_ARGV)
+        if (typeof argv.s == "undefined" && typeof argv.b == "undefined") throw new Error(error.ERR_ARGV);
         return await _req(portals.getBeatmaps, argv);
     },
     getUser: async (argv) => {
-        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV)
+        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV);
         return await _req(portals.getUser, argv);
     },
     getUserBest: async (argv) => {
-        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV)
+        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV);
         argv.limit = argv.limit || 100;
         return await _req(portals.getUserBest, argv);
     },
     getUserRecent: async (argv) => {
-        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV)
+        if (typeof argv.u == "undefined") throw new Error(error.ERR_ARGV);
         return await _req(portals.getUserRecent, argv);
     },
     getScores: async (argv) => {
-        if (typeof argv.b == "undefined") throw new Error(error.ERR_ARGV)
+        if (typeof argv.b == "undefined") throw new Error(error.ERR_ARGV);
         return await _req(portals.getScores, argv);
     },
-    fetchBeatmap: async (b) => {
-        return await base._req(base.randArr(beatmap_mirrors) + b);
+    fetchBeatmap: async (b, i = 0) => {
+        return await base._req(beatmap_mirrors[i] + b);
     },
     oppai: async (argv) => {
         return JSON.parse(await _oppai(argv));
-    }
+    },
+    osuParse: osuParse,
+    mania_pp: mania_pp
 };

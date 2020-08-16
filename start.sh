@@ -6,7 +6,7 @@ exist () {
 }
 
 for i in convert montage wget oppai; do
-	exist "$i" || (echo "$i not found"; exit)
+	exist $i || { echo "$i not found"; exit 1; }
 done
 
 for i in osu.db cred.js; do
@@ -18,13 +18,5 @@ done
 
 npm i
 
-for i in "pc/jp.json pc/tw.json"; do
-	if [ ! -f "$i" ]; then
-		cd pc
-		node index.js
-		cd ..
-	fi
-done
-
 git pull
-node index.js
+node index.js $@

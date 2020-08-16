@@ -3,9 +3,9 @@ const base = require("./_base.js");
 module.exports = {
     trigger: ["cho", "choice", "choices"],
     event: "message",
-    action: function(trigger, message) {
+    action: function(trigger, message, LocalStorage) {
         try {
-            let txt = base.extArgv(message.content);
+            let txt = base.extArgv(message);
             let argv = base.parseArgv(txt);
 
             function shuffleArray(array) {
@@ -15,7 +15,6 @@ module.exports = {
                 }
             }
 
-            argv = argv._;
             argv = argv.filter((v, i, a) => a.indexOf(v) === i);
 
             if (argv.length < 3) {
@@ -44,4 +43,4 @@ module.exports = {
             base.pmError(message, e.stack);
         }
     }
-}
+};

@@ -9,7 +9,10 @@ function timeFormat() {
 }
 
 function round(i, d = 2) {
-    return Math.round(i * Math.pow(10, d)) / Math.pow(10, d);
+    return parseFloat(
+        String(Math.round(i * Math.pow(10, d)) / Math.pow(10, d))
+            .substr(0, String(i | 0).length + 1 + d)
+    );
 }
 
 function report(msg) {
@@ -29,6 +32,7 @@ function isValid(a) {
 }
 
 module.exports = {
+    DIR: __dirname.split("/").slice(0, -1).join("/") + "/", // absolute path of bot
     author_tag: "<@" + CredInfo.author_id + ">",
     timeFormat,
 	round,
@@ -90,10 +94,11 @@ module.exports = {
 
     parseArgv: function(t, d = " ") {
         a = t.split(d).filter((a) => {return a.length});
-        return require("minimist")(a);
+        return a;
     },
 
-    extArgv: function(t) {
+    extArgv: function (_t, clean = false) {
+        let t = clean ? _t.cleanContent : _t.content;
         return t.split(" ").slice(1).join(" ");
     },
 
@@ -105,8 +110,11 @@ module.exports = {
         const options = {
             method: "GET",
             uri: url,
-            json: json
-        }
+            json: json,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36'
+            }
+        };
 
     	return request(options);
     },
@@ -116,7 +124,7 @@ module.exports = {
     },
 
     pm: async function (_msg, txt) {
-        return _msg.client.channels.find(u => u.id == CredInfo.error_chid).send(txt);
+        return (await _msg.client.channels.fetch(CredInfo.error_chid)).send(txt);
     },
 
     pmError: async function (_msg, e) {
@@ -126,9 +134,8 @@ module.exports = {
                 "Original message:\t`" + _msg.content + "`",
                 "Error stack: ",
                 "```",
-                e.stack,
-                "```"
-            ].join("\n").substr(0, 2000));
+                e.stack
+            ].join("\n").substr(0, 1997) + "```");
     },
 
     rod: function (v, m = 100, l = 10) {
@@ -139,4 +146,4 @@ module.exports = {
                 "░".repeat(v <= 0 ? l : math.a(math.d(m - v, pv), 0.5) | 0)
     	).substr(0, l);
     }
-}
+};

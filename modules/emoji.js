@@ -6,23 +6,22 @@ const fs = require("fs");
 module.exports = {
     trigger: ["emolist", "emo", "emoji"],
     event: "message",
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.cleanContent);
+    action: function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message, true);
         let argv = base.parseArgv(txt);
 
         switch (trigger) {
-            case "b!emolist":
+            case "emolist":
                 emos = message.guild.emojis.keyArray();
 
                 if (!emos.length) {
                     return message.reply("No emojis found!", () => {});
                 }
 
-                for (var j in emos) {
-                    id = emos[j];
+                for (var id of emos) {
                     path = "emoji/" + id + ".png";
                     if (!fs.existsSync(path)) {
-                        execSync("wget -O " + path + " --quiet \"" + "https://cdn.discordapp.com/emojis/" + id + ".png" + "\"")
+                        execSync("wget -O " + path + " --quiet \"" + "https://cdn.discordapp.com/emojis/" + id + ".png" + "\"");
                         execSync("convert -background transparent -gravity center " + path + " -resize 72x72 -extent 72x72 " + path);
                     }
                 }
@@ -44,20 +43,19 @@ module.exports = {
             default:
                 emos = [];
 
-                for (var i in argv._) {
-                    res = argv._[i].match(/<:.{2,32}:(\d{18})>/g)
+                for (var i in argv) {
+                    res = argv[i].match(/<:.{2,32}:(\d{18})>/g);
                     if (res) { // custom emoji
-                        for (var j in res) {
-                            id = res[j].match(/<:.{2,32}:(\d{18})>/)[1];
+                        for (var id of res.map(a => a.match(/<:.{2,32}:(\d{18})>/)[1])) {
                             path = "emoji/" + id + ".png";
                             if (!fs.existsSync(path)) {
-                                execSync("wget -O " + path + " --quiet \"" + "https://cdn.discordapp.com/emojis/" + id + ".png" + "\"")
+                                execSync("wget -O " + path + " --quiet \"" + "https://cdn.discordapp.com/emojis/" + id + ".png" + "\"");
                                 execSync("convert -background transparent -gravity center " + path + " -resize 72x72 -extent 72x72 " + path);
                             }
                             emos.push(id);
                         }
                     } else { // built-in emoji?
-                        res = twemoji.parse(argv._[i]).match(/72x72\/.{2,45}.png/g);
+                        res = twemoji.parse(argv[i]).match(/72x72\/.{2,45}.png/g);
                         if (res) {
                             emos = emos.concat(res.map(a => {
                                 return a.replace("72x72/", "").replace(".png", "")
@@ -84,4 +82,4 @@ module.exports = {
                 break;
         }
     }
-}
+};

@@ -1,5 +1,5 @@
 const base = require("./_base.js");
-const RichEmbed = require("discord.js").RichEmbed;
+const MessageEmbed = require("discord.js").MessageEmbed;
 
 const help_msg = {
 	"雜項": {
@@ -31,22 +31,21 @@ const help_msg = {
 		"b!m | b!mania [osu_id]": "Mania資料",
 		"b!rs | b!rt | b!rc | b!rm [osu_id]": "最近都在玩什麼奇怪的東西？"
 	}
-}
+};
 
-var embed = new RichEmbed();
+var embed = new MessageEmbed();
 
 for (var k in help_msg) {
 	embed.addField("**__" + k + "__**", "-".repeat(16));
 	for (var l in help_msg[k]) {
-		embed.addField(l, help_msg[k][l], );
+		embed.addField(l, help_msg[k][l], false);
 	}
 }
 
 module.exports = {
-    trigger: ["help"],
-    event: "message",
-    argv: null,
-    action: function(trigger, message) {
-        message.reply({embed});
-    }
-}
+	trigger: ["help"],
+	event: "message",
+	action: function (trigger, message, LocalStorage) {
+		message.reply({embed});
+	}
+};

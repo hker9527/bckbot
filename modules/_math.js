@@ -32,11 +32,12 @@ module.exports = {
         function cb(x, y, i, o) {
             return (x * f) * (y * f) / (f * f);
         }
+
         return Array.prototype.reduce.call(arguments, cb, 1);
     },
 
-    d: function(l, r) {
+    d: function (l, r) {
         var f = _cf(l, r);
         return (l * f) / (r * f);
     }
-}
+};

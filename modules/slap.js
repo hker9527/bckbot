@@ -4,20 +4,20 @@ const atk_tools = ["碎凌吟", "軒轅劍", "盤古斧", "雷罰劍", "閻魔�
 module.exports = {
     trigger: ["slap", "slaps"],
     event: "message",
-    action: function(trigger, message) {
-        let txt = base.extArgv(message.content);
+    action: function(trigger, message, LocalStorage) {
+        let txt = base.extArgv(message);
         let argv = base.parseArgv(txt);
 
-        if (base.isValid(argv._[0])) {
-            victim = argv._.shift();
-            atkTool = argv._.join(" ");
+        if (base.isValid(argv[0])) {
+            victim = argv.shift();
+            atkTool = argv.join(" ");
 
             if (!atkTool.length) {
                 atkTool = base.randArr(atk_tools);
             }
-            return message.channel.send(message.author + " 使用了 " + atkTool + " 來攻擊 " + victim + "，造成了 " + base.urandom(base.arr2obj([base.random(50, 100), base.random(100, 300), base.random(300, 600), base.random(600, 1000)], [0.1, 0.6, 0.2, 0.1])) + " 點傷害");
+            return message.channel.send(message.author.toString() + " 使用了 " + atkTool + " 來攻擊 " + victim + "，造成了 " + base.urandom(base.arr2obj([base.random(50, 100), base.random(100, 300), base.random(300, 600), base.random(600, 1000)], [0.1, 0.6, 0.2, 0.1])) + " 點傷害");
         } else {
             return message.reply("請指示要攻擊的對象");
         }
     }
-}
+};
