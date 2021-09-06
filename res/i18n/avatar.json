@@ -1,0 +1,8 @@
+{
+	"memberNotFound": {
+		"en": "Member not found!"
+	},
+	"avatarNotFound": {
+		"en": "The user has no avatar!"
+	}
+}

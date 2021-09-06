@@ -1,0 +1,312 @@
+// import osuParser from "osu-parser";
+import * as utils from "@app/modules/_utils";
+const beatmap_mirrors = [
+	"https://old.ppy.sh/osu/",
+	"https://bloodcat.com/osu/b/"
+];
+
+import { exec } from "child_process";
+import { Dictionary } from "@app/types/Dictionary";
+import Osu, { OsuUserRecent } from "osu.ts";
+import { Singleton } from "@app/modules/_Singleton";
+import { open } from "sqlite";
+import { Database } from "sqlite3";
+import { ModuleActionArgument } from "@app/types/Module";
+
+// export const _oppai = (argv) => {
+// 	if (typeof argv.b == "undefined") throw new Error(error.ERR_ARGV);
+
+// 	return new Promise((res, rej) => {
+// 		exec("oppai ./.osu/" + [
+// 			argv.b + ".osu",
+// 			(argv.mod ? "+" + argv.mod : ""),
+// 			(argv.acc ? argv.acc + "%" : ""),
+// 			(argv.miss ? argv.miss + "xm" : ""),
+// 			(argv[100] ? argv[100] + "x100" : ""),
+// 			(argv[50] ? argv[50] + "x50" : ""),
+// 			(argv.m == 1 ? "-taiko" : ""),
+// 			(argv.cb ? argv.cb + "x" : ""),
+// 			"-ojson"
+// 		].filter(a => a.length).join(" "), (e, so, se) => {
+// 			if (e) rej(e);
+// 			res(so);
+// 		});
+// 	});
+// };
+
+// export const osuParse = async (id) => {
+// 	return new Promise((res, rej) => {
+// 		osuParser.parseFile(utils.DIR + ".osu/" + id + ".osu", (e, d) => {
+// 			if (e) rej(e);
+// 			res(d);
+// 		});
+// 	});
+// };
+
+// const MODS = ["NF", "EZ", "NV", "HD", "HR", "SD", "DT", "RX", "HT", "NC", "FL", "AT", "SO", "AP", "PF", "4K", "5K", "6K", "7K", "8K", "FI", "Random", 'Ci', "TP", "9K", "10K", "1K", "3K", "2K"];
+
+// export const modEnum = (s) => {
+// 	return Math.pow(2, MODS.indexOf(s));
+// };
+
+// export const mania_pp = async (stars: number, bdata, mods = 0, score = 1000000) => {
+// 	const keyMods = [...new Array(9)].map((a, i) => modEnum((i + 1) + "K"));
+
+// 	let object_count = bdata.hitObjects.length;
+
+// 	if (bdata.Mode != 3) { // converted maps
+// 		// https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Mania/Beatmaps/ManiaBeatmapConverter.cs#L40
+// 		let p = bdata.hitObjects.filter(a => a.endTime).length / object_count; // percentSliderOrSpinner
+// 		let cs = Math.round(parseFloat(bdata.CircleSize));
+// 		let od = Math.round(parseFloat(bdata.OverallDifficlty));
+
+// 		let key_count;
+// 		if (p < 0.2) {
+// 			key_count = 7;
+// 		} else if (p < 0.3 || cs >= 5) {
+// 			key_count = od > 5 ? 7 : 6;
+// 		} else if (p > 0.6) {
+// 			key_count = od > 4 ? 5 : 4;
+// 		} else {
+// 			key_count = Math.max(4, Math.min(od + 1, 7));
+// 		}
+
+// 		// https://osu.ppy.sh/help/wiki/Game_Modifiers#xk
+// 		if (mods & 487555072) { // keyMods
+// 			let mod_key_count = keyMods.filter(a => mods & a)[0] + 1;
+
+// 			if (mod_key_count == key_count) score *= 1; // key mods
+// 			else if (mod_key_count < key_count) score *= 0.9 - (key_count - mod_key_count) * 0.04;
+// 		}
+// 	}
+// 	//if (mods & modEnum("HT")) score *= 1 / 0.5;
+
+// 	let perfect_window = 64 - 3 * parseFloat(bdata.OverallDifficulty);
+// 	let base_strain = Math.pow(5 * Math.max(1, stars / 0.2) - 4, 2.2) / 135;
+// 	base_strain *= 1 + 0.1 * Math.min(1, object_count / 1500);
+// 	base_strain *= (score < 500000 ? 0 :
+// 		(score < 600000 ? (score - 500000) / 100000 * 0.3 :
+// 			(score < 700000 ? (score - 600000) / 100000 * 0.25 + 0.3 :
+// 				(score < 800000 ? (score - 700000) / 100000 * 0.2 + 0.55 :
+// 					(score < 900000 ? (score - 800000) / 100000 * 0.15 + 0.75 :
+// 						((score - 900000) / 100000 * 0.1 + 0.9))))));
+// 	let window_factor = Math.max(0, 0.2 - (perfect_window - 34) * 0.006667);
+// 	let score_factor = Math.pow(Math.max(0, (score - 960000)) / 40000, 1.1);
+// 	let base_acc = window_factor * base_strain * score_factor;
+// 	let acc_factor = Math.pow(base_acc, 1.1);
+// 	let strain_factor = Math.pow(base_strain, 1.1);
+// 	let final_pp = Math.pow(acc_factor + strain_factor, 1 / 1.1);
+
+// 	final_pp *= 0.8;
+
+// 	if (mods & modEnum("EZ")) {
+// 		final_pp *= 0.5;
+// 	}
+
+// 	if (mods & modEnum("NF")) {
+// 		final_pp *= 0.9;
+// 	}
+
+// 	return final_pp;
+// };
+
+
+// export const diffEmoji = function (_diff: string) {
+// 	const diff = parseFloat(_diff.toString().replace(/\*/g, ""));
+
+// 	if (diff > 6.5) {
+// 		return "<:osuDiffEP:545909651703595043>";
+// 	} else if (diff > 5.3) {
+// 		return "<:osuDiffEX:545909651506462720>";
+// 	} else if (diff > 4) {
+// 		return "<:osuDiffIN:545909651573571594>";
+// 	} else if (diff > 2.7) {
+// 		return "<:osuDiffHD:545909651540017152>";
+// 	} else if (diff > 2) {
+// 		return "<:osuDiffNM:545909651342884877>";
+// 	} else {
+// 		return "<:osuDiffEZ:545909651414319115>";
+// 	}
+// };
+
+// export const rankEmoji = {
+// 	"XH": "<:osuRankXH:545909540026318848>",
+// 	"SH": "<:osuRankSH:545909540047028244>",
+// 	"X": "<:osuRankX:545909539866804247>",
+// 	"S": "<:osuRankS:545909540067999764>",
+// 	"A": "<:osuRankA:545909540038901771>",
+// 	"B": "<:osuRankB:545909540223451136>",
+// 	"C": "<:osuRankC:545909540114268160>",
+// 	"D": "<:osuRankD:545909539883712542>",
+// 	"F": "<:osuRankF:546039653837307904>"
+// };
+
+// export const modeTrigger = {
+// 	"s": 0,
+// 	"std": 0,
+// 	"standard": 0,
+// 	"t": 1,
+// 	"tk": 1,
+// 	"taiko": 1,
+// 	"c": 2,
+// 	"ctb": 2,
+// 	"m": 3,
+// 	"mania": 3
+// };
+// export const parseOsuMode = function (s) {
+// 	return this.modeTrigger[s];
+// };
+// export const parseOsuMod = function (m) {
+// 	if (m == 0) return ["None"];
+// 	var o = [];
+
+// 	for (var i in this.mod) {
+// 		if (m & Math.pow(2, i)) {
+// 			o.push(this.mod[i]);
+// 		}
+// 	}
+// 	if (o.includes("NC")) {
+// 		return o.filter(a => {
+// 			return a != "DT";
+// 		});
+// 	}
+
+// 	return o;
+// };
+
+// export const oppai = async (obj) => {
+// 	return JSON.parse(await _oppai(argv));
+// };
+
+export enum Modes {
+	Standard,
+	Taiko,
+	CTB,
+	Mania
+};
+
+export const getModeStrings = () => {
+	return ["s", "t", "c", "m"];
+};
+
+export const parseModeString = (m: string) => {
+	return getModeStrings().indexOf(m) as Modes;
+};
+
+type OsuMode = {
+	icon: string,
+	scoreText: Dictionary<string>,
+	text: string,
+	color: number,
+	acc: (record: OsuUserRecent) => number;
+};
+
+export const modes: OsuMode[] = [
+	{
+		icon: "https://i.ppy.sh/f8b581f28db6b637343cdb6f351653b120dee167/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f7368617265642f6d6f64652f6f73752e706e67",
+		scoreText: {
+			"300": "count300", "100": "count100", "50": "count50", ":x:": "countmiss"
+		},
+		text: "[STD]",
+		color: 0xFF66AA,
+		acc: (record: OsuUserRecent) => {
+			return (+record.count50 * 50 + +record.count100 * 100 + +record.count300 * 300) / (+record.countmiss + +record.count50 + +record.count100 + +record.count300) / 3;
+		}
+	},
+	{
+		icon: "https://i.ppy.sh/996a535f73b2d6eb62aa707984fb25a4685ee5b0/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f7368617265642f6d6f64652f7461696b6f2e706e67",
+		scoreText: {
+			"良": "count300", "可": "count100", "不可": "countmiss"
+		},
+		text: "[Taiko :drum:]",
+		get color() {
+			const ca = [0x488FAD, 0xEA4525];
+			return utils.randomArrayElement(ca);
+		},
+		acc: (record: OsuUserRecent) => {
+			return (+record.count100 * .5 + +record.count300) / (+record.countmiss + +record.count100 + +record.count300) * 100;
+		}
+	},
+	{
+		icon: "https://i.ppy.sh/faf037998e655ae49f63d048793bde88d6e190aa/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f7368617265642f6d6f64652f63617463682e706e67",
+		scoreText: {
+			"300": "count300", "100": "count100", "50": "count50", ":x:": "countmiss"
+		},
+		get text() {
+			const icons = [":green_apple:", ":apple:", ":pear:", ":tomato:", ":eggplant:", ":tangerine:", ":lemon:", ":banana:", ":watermelon:", ":grapes:", ":strawberry:", ":melon:", ":cherries:", ":peach:", ":pineapple:"];
+			return "[CTB " + utils.randomArrayElement(icons) + "]";
+		},
+		get color() {
+			const ca = [0x388F68, 0xFC9B10, 0xF07336];
+			return utils.randomArrayElement(ca);
+		},
+		acc: (record: OsuUserRecent) => {
+			return (+record.count50 + +record.count100 + +record.count300) / (+record.countkatu + +record.count50 + +record.count100 + +record.countmiss + +record.count300) * 100;
+		}
+	},
+	{
+		icon: "https://i.ppy.sh/bf55b75bd40964972041d66bb0d741a779293279/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f7368617265642f6d6f64652f6d616e69612e706e67",
+		scoreText: { "320": "countgeki", "300": "count300", "200": "countkatu", "100": "count100", "50": "count50", ":x:": "countmiss" },
+		text: "[Mania :musical_keyboard:]",
+		get color() {
+			const ca = [0xECCD00, 0xD8BED7, 0xCC6688];
+			return utils.randomArrayElement(ca);
+		},
+		acc: (record: OsuUserRecent) => {
+			return (+record.count50 * 50 + +record.count100 * 100 + +record.count300 * 300 + +record.countgeki * 300 + +record.countkatu * 200) / (+record.countmiss + +record.count50 + +record.count100 + +record.count300 + +record.countkatu + +record.countgeki) / 3;
+		}
+	}
+];
+
+export const init = async () => {
+	if (!Singleton.osuClient)
+		Singleton.osuClient = new Osu(process.env.osu_api!);
+	if (!Singleton.db)
+		Singleton.db = await open({
+			filename: "data.db",
+			driver: Database,
+		});
+	return true;
+};
+
+export const fetchOsuUser = async (obj: ModuleActionArgument) => {
+	let discord_id, user_id;
+	if (obj.argv!.id) { // Provided target
+		if (obj.message.mentions.users.size) { // Pinged somebody
+			discord_id = obj.message.mentions.users.first()!.id;
+		} else {
+			user_id = obj.argv!.id;
+		}
+	} else {
+		discord_id = obj.message.author.id;
+	}
+
+	if (discord_id) {
+		const result = await Singleton.db!.get("select * from osu_user where discord_id = ?", discord_id);
+		if (result) {
+			user_id = result.user_id;
+		} else {
+			if (obj.argv!.id) { // The specified ping has no related item
+				throw new Error("That user has not linked his osu account before!");
+			} else { // The author has no related item
+				throw new Error(
+					"請先使用 b!link [ID] 配對Osu! ID, or specify ID."
+				);
+			}
+		}
+	}
+
+	const user = await Singleton.osuClient!.users.get(user_id);
+
+	if (!user) {
+		throw new Error(
+			"無法獲取賬號 `" + user_id + "` 訊息，請檢查賬號可用性。"
+		);
+	}
+
+	return user;
+};
+
+export const fetchBeatmap = async (b: string, i = 0) => {
+	return await utils._req(beatmap_mirrors[i] + b);
+};

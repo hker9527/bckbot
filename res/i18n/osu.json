@@ -1,0 +1,30 @@
+{
+	"modeName0": {
+		"en": "Standard"
+	},
+	"modeName1": {
+		"en": "Taiko"
+	},
+	"modeName2": {
+		"en": "CTB"
+	},
+	"modeName3": {
+		"en": "Mania"
+	},
+	"link.exists": {
+		"en": "You have already linked your Osu! account"
+	},
+	"link.linked": {
+		"en": "Linked !discord_id! with !osu_id!."
+	},
+	"error": {
+		"en": "Unable to retrieve account information with id `!id!`."
+	},
+	"stat.notLinked": {
+		"en": "That user has not linked his osu account before!"
+	},
+
+	"stat.retrieving": {
+		"en": "Retrieiving..."
+	}
+}
