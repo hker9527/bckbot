@@ -262,11 +262,15 @@ try {
 										time: 15000
 									});
 									collector.on('collect', async () => {
-										await msg.delete();
+										try {
+											await msg.delete();
+										} catch (e) {}
 									});
 									const reaction = await msg.react('🗑️');
 									collector.on('end', async () => {
-										await reaction.remove();
+										try {
+											await reaction.remove();
+										} catch (e) { }
 									});
 								}
 								if (!stealth) accepted = true;
