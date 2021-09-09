@@ -100,7 +100,7 @@ export const randomString = (length: number) => {
 	return o.substr(0, length);
 };
 
-export const randomArrayElement = (array: any[]) => {
+export const randomArrayElement = <T>(array: Array<T>) => {
 	return array.length === 1 ? array[0] : array[random(0, array.length - 1)];
 };
 
@@ -147,3 +147,6 @@ export const rod = function (value: number, max = 100, length = 10) {
 		"░".repeat(value <= 0 ? length : new Decimal(max - value).dividedBy(pv).add(0.5).floor().toNumber())
 	).substr(0, length);
 }
+export const enumStringKeys = (e: any) => {
+	return Object.keys(e).filter(value => isNaN(Number(value)));
+};
