@@ -13,7 +13,7 @@ interface KonachanPost {
     creator_id:            number;
     author:                string;
     change:                number;
-    source:                string;
+    source:                string | null;
     score:                 number;
     md5:                   string;
     file_size:             number;

@@ -15,11 +15,11 @@ interface YanderePost {
     approver_id:           null;
     author:                string;
     change:                number;
-    source:                string;
+    source:                string | null;
     score:                 number;
     md5:                   string;
     file_size:             number;
-    file_ext:              "jpg" | "png";
+    file_ext:              string;
     file_url:              string;
     is_shown_in_index:     boolean;
     preview_url:           string;

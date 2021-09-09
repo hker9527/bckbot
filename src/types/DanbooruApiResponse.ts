@@ -13,7 +13,7 @@ interface DanbooruPost {
     up_score:               number;
     down_score:             number;
     score:                  number;
-    source:                 string;
+    source:                 string | null;
     md5:                    string;
     rating:                 Rating;
     is_note_locked:         boolean;
