@@ -4,7 +4,9 @@
 //
 //   "Set quicktype target language"
 
-export interface KonachanApiResponse {
+export type KonachanApiResponse = KonachanPost[];
+
+interface KonachanPost {
     id:                    number;
     tags:                  string;
     created_at:            number;
@@ -44,13 +46,13 @@ export interface KonachanApiResponse {
     flag_detail?:          null;
 }
 
-export enum Rating {
+enum Rating {
     Explicit = "e",
     Questionable = "q",
     Safe = "s",
 }
 
-export enum Status {
+enum Status {
     Active = "active",
     Pending = "pending",
 }

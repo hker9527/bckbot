@@ -4,7 +4,9 @@
 //
 //   "Set quicktype target language"
 
-export interface DanbooruApiResponse {
+export type DanbooruApiResponse = DanbooruPost[];
+
+interface DanbooruPost {
     id:                     number;
     created_at:             string;
     updated_at:             string;
@@ -56,7 +58,7 @@ export interface DanbooruApiResponse {
     preview_file_url?:      string;
 }
 
-export enum Rating {
+enum Rating {
     Explicit = "e",
     Questionable = "q",
     Safe = "s",

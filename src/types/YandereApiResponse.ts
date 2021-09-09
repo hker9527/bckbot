@@ -4,7 +4,9 @@
 //
 //   "Set quicktype target language"
 
-export interface YandereApiResponse {
+export type YandereApiResponse = YanderePost[];
+
+interface YanderePost {
     id:                    number;
     tags:                  string;
     created_at:            number;
@@ -52,7 +54,7 @@ export interface YandereApiResponse {
     flag_detail?:          FlagDetail;
 }
 
-export interface FlagDetail {
+interface FlagDetail {
     post_id:    number;
     reason:     string;
     created_at: string;
@@ -60,13 +62,13 @@ export interface FlagDetail {
     flagged_by: string;
 }
 
-export enum Rating {
+enum Rating {
     Explicit = "e",
     Questionable = "q",
     Safe = "s",
 }
 
-export enum Status {
+enum Status {
     Active = "active",
     Pending = "pending",
 }
