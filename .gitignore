@@ -42,3 +42,4 @@ yarn.lock
 
 old/**/*
 *.tsbuildinfo
+db.json
