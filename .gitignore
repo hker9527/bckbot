@@ -35,11 +35,13 @@ bower_components
 Thumbs.db
 
 # Ignore built ts files
+bin
 bin/**/*
 
 # ignore yarn.lock
 yarn.lock
 
+old
 old/**/*
 *.tsbuildinfo
 db.json
