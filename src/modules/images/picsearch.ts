@@ -1,10 +1,10 @@
-import * as utils from "../_utils";
+import * as utils from "@app/utils";
 import { MessageEmbed, TextChannel } from "discord.js";
-import { ArgumentRequirement, Module, ModuleActionArgument } from "@app/types/Module";
-import { KonachanApiResponse } from "@app/types/KonachanApiResponse";
-import { YandereApiResponse } from "@app/types/YandereApiResponse";
-import { DanbooruApiResponse } from "@app/types/DanbooruApiResponse";
-import { SankakuApiResponse } from "@app/types/SankakuApiResponse";
+import { ArgumentRequirement, Module, ModuleActionArgument } from "@type/Module";
+import { KonachanApiResponse } from "@type/KonachanApiResponse";
+import { YandereApiResponse } from "@type/YandereApiResponse";
+import { DanbooruApiResponse } from "@type/DanbooruApiResponse";
+import { SankakuApiResponse } from "@type/SankakuApiResponse";
 
 enum ApiPortal {
 	kon = "https://konachan.com/post.json",

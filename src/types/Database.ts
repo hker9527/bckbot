@@ -1,4 +1,4 @@
-import { Languages } from "@app/modules/i18n";
+import { Languages } from "@app/i18n";
 import { Dictionary } from "./Dictionary";
 
 export type Database = {

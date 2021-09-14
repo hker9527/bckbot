@@ -1,5 +1,5 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@app/types/Module";
-import * as utils from "../_utils";
+import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
+import * as utils from "@app/utils";
 
 export const module: Module = {
 	trigger: ["dice", "d"],

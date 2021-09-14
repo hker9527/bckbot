@@ -1,8 +1,7 @@
-import { Module, ModuleActionArgument } from "@app/types/Module";
-import { ScamApiResponse } from "@app/types/ScamApiResponse";
+import { Module, ModuleActionArgument } from "@type/Module";
+import { ScamApiResponse } from "@type/ScamApiResponse";
 import * as linkify from 'linkifyjs';
 import fetch from "node-fetch";
-import * as i18n from "../i18n";
 
 export const module: Module = {
 	trigger: ["*scam"],

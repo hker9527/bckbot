@@ -1,6 +1,6 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@app/types/Module";
-import * as utils from "../_utils";
-import * as i18n from "../i18n";
+import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
+import * as utils from "@app/utils";
+import * as i18n from "@app/i18n";
 
 enum Answer {
 	Good,

@@ -46,7 +46,9 @@
 	},
 	"_moduleAliases": {
 		"@root": ".",
+		"@res": "res",
 		"@app": "bin",
-		"@res": "res"
+		"@type": "bin/types",
+		"@module": "bin/modules"
 	}
 }

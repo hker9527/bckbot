@@ -1,4 +1,4 @@
-import { Module, ModuleActionArgument } from "@app/types/Module";
+import { Module, ModuleActionArgument } from "@type/Module";
 
 export const module: Module = {
 	trigger: ["invite"],

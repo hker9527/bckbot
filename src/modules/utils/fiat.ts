@@ -1,6 +1,6 @@
-import { Dictionary } from "@app/types/Dictionary";
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@app/types/Module";
-import * as utils from "../_utils";
+import { Dictionary } from "@type/Dictionary";
+import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
+import * as utils from "@app/utils";
 
 const CURRENCY = ["TWD", "HKD", "JPY", "USD"];
 const data: Dictionary<Dictionary<number>> = utils.arr2obj(CURRENCY, [...new Array(CURRENCY.length)].map(a => ({})));

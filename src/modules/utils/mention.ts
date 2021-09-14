@@ -1,5 +1,5 @@
-import { Module, ModuleActionArgument } from "@app/types/Module";
-import * as utils from "../_utils";
+import { Module, ModuleActionArgument } from "@type/Module";
+import * as utils from "@app/utils";
 
 export const module: Module = {
 	trigger: ["*mention"],

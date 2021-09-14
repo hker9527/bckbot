@@ -1,14 +1,13 @@
 import "module-alias/register";
 import { Message } from "discord.js";
-import vorpal from "vorpal";
 import glob from "glob";
-import * as utils from "@app/modules/_utils";
+import * as utils from "@app/utils";
 import dotenvSafe from "dotenv-safe";
-import { Singleton } from "./modules/_Singleton";
-import * as i18n from "./modules/i18n";
-import { Events } from "./types/Events";
-import { ArgumentRequirement, Module, ModuleActionArgument } from "./types/Module";
-import { Dictionary } from "./types/Dictionary";
+import { Singleton } from "@app/Singleton";
+import * as i18n from "@app/i18n";
+import { Events } from "@type/Events";
+import { ArgumentRequirement, Module, ModuleActionArgument } from "@type/Module";
+import { Dictionary } from "@type/Dictionary";
 
 dotenvSafe.config();
 
