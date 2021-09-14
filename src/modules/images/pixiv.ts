@@ -8,7 +8,7 @@ export const pimg = (url: string) => {
 	return url.replace("i.pximg.net", "i.pixiv.cat");
 };
 
-export const fetchInfo = async (illust_id: number) => {
+export const fetchInfo = async (illust_id: string) => {
 	try {
 		const res = await utils.req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as PixivApiResponse;
 
@@ -41,7 +41,7 @@ export const fetchInfo = async (illust_id: number) => {
 	}
 };
 
-export const genEmbed = async (illust_id: number, show_image = true, nsfw = false) => {
+export const genEmbed = async (illust_id: string, show_image = true, nsfw = false) => {
 	const illust = await fetchInfo(illust_id);
 	if (illust === null) {
 		return null;
@@ -74,16 +74,16 @@ export const module: Module = {
 	action: async (obj: ModuleActionArgument) => {
 		const stealth = obj.trigger[0] === "*";
 
-		let illust_id = NaN;
+		let illust_id = "";
 		if (stealth) { // auto detection
 			const tmp = obj.message.content.match(/(artworks\/|illust_id=)(\d{1,8})/);
-			if (tmp) illust_id = parseInt(tmp[2], 10);
+			if (tmp) illust_id = tmp[2];
 		} else if (obj.argv!.id) {
 			const tmp = obj.argv!.id.match(/(\d{1,8})/)!;
-			if (tmp) illust_id = parseInt(tmp[1], 10);
+			if (tmp) illust_id = tmp[1];
 		}
 
-		if (!isNaN(illust_id)) {
+		if (!isNaN(parseInt(illust_id))) {
 			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw);
 			if (embed) {
 				try {
