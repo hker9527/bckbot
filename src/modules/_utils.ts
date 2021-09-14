@@ -4,6 +4,7 @@ import { Dictionary } from "../types/Dictionary";
 import { Singleton } from './_Singleton';
 import { Decimal } from "decimal.js";
 import fetch from 'node-fetch';
+import { Languages } from "./i18n";
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -17,7 +18,7 @@ export const round = (number: number, precision: number = 2) => {
 
 export const msg2str = (message: Message) => {
 	return [
-		(message.guild ? message.guild.name : "PrivateMessage") + 
+		(message.guild ? message.guild.name : "PrivateMessage") +
 		(message.channel instanceof DMChannel ? "" : `(${(message.channel as TextChannel).name})`),
 		"\t",
 		message.author.username,
@@ -39,10 +40,43 @@ declare global {
 	interface Number {
 		inRange(a: number, b: number): boolean;
 	}
+
+	interface Array<T> {
+		unique(): Array<T>;
+	}
 }
 
 Number.prototype.inRange = function (a: number, b: number) {
-    return this.valueOf() > a && this.valueOf() < b;
+	return this.valueOf() > a && this.valueOf() < b;
+};
+
+// Prevent being read from loops 
+// For example:
+// for (let key in array) { ... }
+
+Object.defineProperty(Array.prototype, "unique", {
+	enumerable: false,
+	writable: true
+});
+
+Array.prototype.unique = function () {
+	return [...new Set(this)];
+}
+
+declare module "discord.js" {
+	interface Message {
+		getLocale(): Languages;
+	}
+}
+
+Message.prototype.getLocale = function () {
+	const data = Singleton.db.data!;
+	if (data.language.channels[this.channelId]) {
+		return data.language.channels[this.channelId];
+	} else if (this.guildId && data.language.guilds[this.guildId]) {
+		return data.language.guilds[this.guildId];
+	}
+	return Languages.English;
 };
 
 export const random = (low: number, high: number) => {
@@ -78,7 +112,7 @@ export const urandom = (object: Dictionary<Decimal | number>) => {
 			if (sumProb.lessThan(rand)) {
 				return opt[i];
 			} else {
-				sumProb =sumProb.minus(object[opt[i - 1]]);
+				sumProb = sumProb.minus(object[opt[i - 1]]);
 			}
 		}
 
@@ -99,7 +133,7 @@ export const randomArrayElement = <T>(array: Array<T>) => {
 };
 
 export const parseArgv = (text: string, delimiter: string = " ") => {
-	return text.split(delimiter).filter((a) => { return a.length });
+	return text.split(delimiter).filter((a) => { return a.length; });
 };
 
 export const extArgv = (message: Message, clean: boolean = false) => {
@@ -140,7 +174,7 @@ export const rod = function (value: number, max = 100, length = 10) {
 		"▒".repeat(value <= 0 ? 0 : new Decimal(length - (max - value)).dividedBy(pv).mod(1).toNumber() < 0.5 ? 1 : 0) +
 		"░".repeat(value <= 0 ? length : new Decimal(max - value).dividedBy(pv).add(0.5).floor().toNumber())
 	).substr(0, length);
-}
+};
 export const enumStringKeys = (e: any) => {
 	return Object.keys(e).filter(value => isNaN(Number(value)));
 };
