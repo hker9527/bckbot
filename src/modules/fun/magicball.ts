@@ -21,6 +21,6 @@ export const module: Module = {
 
 		const msg = await obj.message.channel.send("🤔\t...");
 		await utils.delay(1000);
-		return await msg.edit(emoji[type] + "\t" + (await i18n.getString("magicball", `answer${type === Answer.Good ? utils.random(0, 9) : (type === Answer.Fair ? utils.random(10, 14) : utils.random(15, 19))}`, i18n.Languages.English)));
+		return await msg.edit(`${emoji[type]}\t${i18n.getString("magicball", `answer${type === Answer.Good ? utils.random(0, 9) : (type === Answer.Fair ? utils.random(10, 14) : utils.random(15, 19))}`, obj.message.getLocale())}`);
 	}
 };

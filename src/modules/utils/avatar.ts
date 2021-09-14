@@ -16,7 +16,7 @@ export const module: Module = {
 			if (member) {
 				user = member.user;
 			} else {
-				return await obj.message.reply(await i18n.getString("avatar", "memberNotFound", i18n.Languages.English));
+				return await obj.message.reply(i18n.getString("avatar", "memberNotFound", obj.message.getLocale()));
 			}
 		}
 
@@ -27,7 +27,7 @@ export const module: Module = {
 		});
 
 		if (!avatarURL) {
-			return await obj.message.reply(await i18n.getString("avatar", "avatarNotFound", i18n.Languages.English));
+			return await obj.message.reply(i18n.getString("avatar", "avatarNotFound", obj.message.getLocale()));
 		}
 
 		const embed = new MessageEmbed()

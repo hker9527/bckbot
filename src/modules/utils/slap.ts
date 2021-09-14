@@ -12,7 +12,7 @@ export const module: Module = {
 	},
 	action: async (obj: ModuleActionArgument) => {
 		return obj.message.channel.send(
-			await i18n.getString("slap", "slap", i18n.Languages.English, {
+			i18n.getString("slap", "slap", obj.message.getLocale(), {
 				slapper: obj.message.author.toString(),
 				victim: obj.argv!.victim,
 				// TODO: Fix emoji that cannot display (message.react?)

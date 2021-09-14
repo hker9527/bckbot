@@ -9,7 +9,7 @@ export const module: Module = {
 		let txt = utils.extArgv(obj.message, true);
 		let argv = utils.parseArgv(txt);
 
-		return await obj.message.channel.send(await i18n.getString("roll", "roll", i18n.Languages.English, {
+		return await obj.message.channel.send(i18n.getString("roll", "roll", obj.message.getLocale(), {
 			points: utils.random(0, parseInt(argv[0] ?? 100, 10))
 		}));
 	}

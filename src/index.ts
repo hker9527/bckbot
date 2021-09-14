@@ -86,10 +86,10 @@ try {
 							try {
 								if (!_module.loaded) {
 									await message.reply(
-										await i18n.getString(
+										i18n.getString(
 											"index",
 											"stillLoading",
-											i18n.Languages.English
+											message.getLocale()
 										)
 									);
 									return;
@@ -113,10 +113,10 @@ try {
 											typeof argValue === "undefined"
 										) {
 											await message.reply(
-												await i18n.getString(
+												i18n.getString(
 													"index",
 													"argvError",
-													i18n.Languages.English,
+													message.getLocale(),
 													{
 														argName,
 														position: i,
