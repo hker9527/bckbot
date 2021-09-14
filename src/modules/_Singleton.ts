@@ -62,21 +62,21 @@ export const Singleton: {
 			})
 			.alias("quit");
 		
-		// (logger as any)
-		// 	.mode("eval")
-		// 	.delimiter("<eval>")
-		// 	.description("Enter evaluation mode.")
-		// 	.init(async (a: any) => {
-		// 		logger.log("You are now in evaluation mode.\n Type `exit` to exit.");
-		// 	})
-		// 	.action(async (a: Vorpal.Args) => {
-		// 		try {
-		// 			logger.log(eval(String(a)));
-		// 		} catch (e) {
-		// 			if (e instanceof Error)
-		// 				logger.log(e.toString());
-		// 		}
-		// 	});
+		(logger as any)
+			.mode("eval")
+			.delimiter("<eval>")
+			.description("Enter evaluation mode.")
+			.init(async (a: any) => {
+				logger.log("You are now in evaluation mode.\n Type `exit` to exit.");
+			})
+			.action(async (a: Vorpal.Args) => {
+				try {
+					logger.log(eval(String(a)));
+				} catch (e) {
+					if (e instanceof Error)
+						logger.log(e.toString());
+				}
+			});
 		
 			return logger;
 	})(),
