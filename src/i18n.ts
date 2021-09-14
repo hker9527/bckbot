@@ -1,5 +1,5 @@
 import * as glob from "glob-promise";
-import { Dictionary } from "../../types/Dictionary";
+import { Dictionary } from "@type/Dictionary";
 
 export enum Languages {
 	English = "en",
@@ -7,6 +7,8 @@ export enum Languages {
 	Cantonese = "hk",
 	Japanese = "jp"
 };
+
+type Namespaces = "avatar" | "index" | "magicball" | "migrate" | "osu" | "roll" | "scam" | "slap";
 
 type Translation = {
 	[Languages.English]: string;
@@ -18,11 +20,11 @@ type Translation = {
 const translations: Dictionary<Dictionary<Translation>> = {};
 let ready = false;
 
-export const getString = async (namespace: string, item: string, locale: Languages, obj?: Dictionary<string | number>) => {
+export const getString = (namespace: Namespaces, item: string, locale: Languages, obj?: Dictionary<string | number>) => {
 	if (!ready) {
-		const fileList = await glob.promise(`./res/i18n/*.json`);
+		const fileList = glob.sync(`./res/i18n/*.json`);
 		for (let file of fileList) {
-			const fileName = file.split("/").pop()!.slice(0, -5);
+			const fileName = file.split("/").pop()!.slice(0, -5) as Namespaces;
 			const tmp = require(`@root/${file}`) as Dictionary<Translation>;
 			translations[fileName] = {};
 			for (const key in tmp) {

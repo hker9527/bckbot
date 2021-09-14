@@ -2,10 +2,11 @@ import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from "disco
 import Vorpal from "vorpal";
 import osu from "osu.ts";
 import { LowSync, JSONFileSync } from 'lowdb';
-import { Database } from "@app/types/Database";
+import { Database } from "@type/Database";
 import Osu from "osu.ts";
-import { Dictionary } from "@app/types/Dictionary";
-import * as utils from "@app/modules/_utils";
+import { Dictionary } from "@type/Dictionary";
+import * as utils from "@app/utils";
+import {} from "@app/prototype";
 
 export const Singleton: {
 	logger: Vorpal,
@@ -114,7 +115,7 @@ export const Singleton: {
 				db.write();
 				_data = data;
 			}
-		}, 1000);
+		}, 5000);
 
 		return db;
 	})()

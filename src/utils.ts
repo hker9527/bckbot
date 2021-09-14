@@ -1,10 +1,9 @@
+import { Singleton } from '@app/Singleton';
+import { Dictionary } from "@type/Dictionary";
 import assert from "assert";
-import { DMChannel, Message, TextChannel } from "discord.js";
-import { Dictionary } from "../types/Dictionary";
-import { Singleton } from './_Singleton';
 import { Decimal } from "decimal.js";
+import { DMChannel, Message, TextChannel } from "discord.js";
 import fetch from 'node-fetch';
-import { Languages } from "./i18n";
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -34,49 +33,6 @@ export const report = (string: string) => {
 
 export const isValid = (variable: any) => {
 	return !(typeof variable == "undefined");
-};
-
-declare global {
-	interface Number {
-		inRange(a: number, b: number): boolean;
-	}
-
-	interface Array<T> {
-		unique(): Array<T>;
-	}
-}
-
-Number.prototype.inRange = function (a: number, b: number) {
-	return this.valueOf() > a && this.valueOf() < b;
-};
-
-// Prevent being read from loops 
-// For example:
-// for (let key in array) { ... }
-
-Object.defineProperty(Array.prototype, "unique", {
-	enumerable: false,
-	writable: true
-});
-
-Array.prototype.unique = function () {
-	return [...new Set(this)];
-}
-
-declare module "discord.js" {
-	interface Message {
-		getLocale(): Languages;
-	}
-}
-
-Message.prototype.getLocale = function () {
-	const data = Singleton.db.data!;
-	if (data.language.channels[this.channelId]) {
-		return data.language.channels[this.channelId];
-	} else if (this.guildId && data.language.guilds[this.guildId]) {
-		return data.language.guilds[this.guildId];
-	}
-	return Languages.English;
 };
 
 export const random = (low: number, high: number) => {
@@ -151,7 +107,6 @@ export const req2json = async (url: string) => {
 };
 
 export const pm = async (text: string) => {
-	assert(Singleton.client);
 	return (await Singleton.client!.channels.fetch(`${BigInt(process.env.error_chid!)}`) as TextChannel)!.send(text);
 };
 
