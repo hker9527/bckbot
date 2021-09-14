@@ -1,5 +1,5 @@
-import * as glob from "glob-promise";
-import { Dictionary } from "@type/Dictionary";
+import { Dictionary } from '@type/Dictionary';
+import * as glob from 'glob-promise';
 
 export enum Languages {
 	English = "en",

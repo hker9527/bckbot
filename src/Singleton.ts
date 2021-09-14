@@ -1,17 +1,15 @@
-import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from "discord.js";
-import Vorpal from "vorpal";
-import osu from "osu.ts";
-import { LowSync, JSONFileSync } from 'lowdb';
-import { Database } from "@type/Database";
-import Osu from "osu.ts";
-import { Dictionary } from "@type/Dictionary";
-import * as utils from "@app/utils";
-import {} from "@app/prototype";
+import * as utils from '@app/utils';
+import { Database } from '@type/Database';
+import { Dictionary } from '@type/Dictionary';
+import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from 'discord.js';
+import { JSONFileSync, LowSync } from 'lowdb';
+import Osu from 'osu.ts';
+import Vorpal from 'vorpal';
 
 export const Singleton: {
 	logger: Vorpal,
 	client: Client,
-	osuClient: osu,
+	osuClient: Osu,
 	db: LowSync<Database>
 } = {
 	logger: (() => {

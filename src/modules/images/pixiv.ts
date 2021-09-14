@@ -1,7 +1,7 @@
-import * as utils from "@app/utils";
-import {  MessageEmbed, TextChannel } from "discord.js";
-import { ArgumentRequirement, Module, ModuleActionArgument } from "@type/Module";
-import { PixivApiResponse } from "@type/PixivApiResponse";
+import * as utils from '@app/utils';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { PixivApiResponse } from '@type/PixivApiResponse';
+import { MessageEmbed, TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
 
 export const pimg = (url: string) => {

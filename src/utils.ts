@@ -1,8 +1,8 @@
 import { Singleton } from '@app/Singleton';
-import { Dictionary } from "@type/Dictionary";
-import assert from "assert";
-import { Decimal } from "decimal.js";
-import { DMChannel, Message, TextChannel } from "discord.js";
+import { Dictionary } from '@type/Dictionary';
+import assert from 'assert';
+import { Decimal } from 'decimal.js';
+import { DMChannel, Message, TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));

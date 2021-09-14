@@ -1,7 +1,6 @@
 // A heartful sorry for users...
-
-import { Module, ModuleActionArgument } from "@type/Module";
-import * as i18n from "@app/i18n";
+import * as i18n from '@app/i18n';
+import { Module, ModuleActionArgument } from '@type/Module';
 
 export const module: Module = {
 	trigger: ["rs", "rt", "rm", "rc"],

@@ -1,6 +1,6 @@
-import { MessageEmbed } from "discord.js";
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
-import * as i18n from "@app/i18n";
+import * as i18n from '@app/i18n';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { MessageEmbed } from 'discord.js';
 
 export const module: Module = {
 	trigger: ["ava", "avatar"],

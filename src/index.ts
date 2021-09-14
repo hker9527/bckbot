@@ -1,13 +1,14 @@
-import "module-alias/register";
-import { Message } from "discord.js";
-import glob from "glob";
-import * as utils from "@app/utils";
-import dotenvSafe from "dotenv-safe";
-import { Singleton } from "@app/Singleton";
-import * as i18n from "@app/i18n";
-import { Events } from "@type/Events";
-import { ArgumentRequirement, Module, ModuleActionArgument } from "@type/Module";
-import { Dictionary } from "@type/Dictionary";
+import 'module-alias/register';
+
+import * as i18n from '@app/i18n';
+import { Singleton } from '@app/Singleton';
+import * as utils from '@app/utils';
+import { Dictionary } from '@type/Dictionary';
+import { Events } from '@type/Events';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { Message } from 'discord.js';
+import dotenvSafe from 'dotenv-safe';
+import glob from 'glob';
 
 dotenvSafe.config();
 

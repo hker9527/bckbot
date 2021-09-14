@@ -1,5 +1,5 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
-import * as utils from "@app/utils";
+import * as utils from '@app/utils';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 
 function shuffleArray(array: any[]) {
 	for (let i = array.length - 1; i > 0; i--) {

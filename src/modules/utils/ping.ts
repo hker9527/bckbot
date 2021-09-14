@@ -1,4 +1,4 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
+import { Module, ModuleActionArgument } from '@type/Module';
 
 export const module: Module = {
 	trigger: ["ping"],

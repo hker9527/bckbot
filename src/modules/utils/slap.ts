@@ -1,7 +1,7 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
-import * as utils from "@app/utils";
-import * as i18n from "@app/i18n";
-import emoji from "node-emoji";
+import * as i18n from '@app/i18n';
+import * as utils from '@app/utils';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import emoji from 'node-emoji';
 
 export const module: Module = {
 	trigger: ["slap", "slaps"],

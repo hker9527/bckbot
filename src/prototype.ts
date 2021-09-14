@@ -1,6 +1,6 @@
-import { Message } from "discord.js";
-import { Languages } from "@app/i18n";
-import { Singleton } from "@app/Singleton";
+import { Languages } from '@app/i18n';
+import { Singleton } from '@app/Singleton';
+import { Message } from 'discord.js';
 
 export {}; // Turn this file into a module
 

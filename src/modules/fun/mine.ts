@@ -1,5 +1,5 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
-import * as utils from "@app/utils";
+import * as utils from '@app/utils';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 
 const num = "　１２３４５６７８９".split("");
 const bomb = "Ｘ";
