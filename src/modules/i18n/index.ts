@@ -31,11 +31,17 @@ export const getString = async (namespace: string, item: string, locale: Languag
 		}
 		ready = true;
 	}
+
 	let output = translations[namespace][item][locale] ?? translations[namespace][item].en;
 	if (obj) {
 		for (const key in obj) {
-			output = output!.replace(`!${key}!`, String(obj[key]));
+			output = output!.replace(new RegExp(`!${key}!`, "g"), String(obj[key]));
 		}
 	}
-	return output;
+
+	const missingArgumentCheck = output.match(/\!.+?\!/g);
+	if (missingArgumentCheck == null) {
+		return output;
+	}
+	throw new Error(`Missing argument(s) while fetching locale item ${namespace}.${item}: ${missingArgumentCheck.unique().map(placeholder => placeholder.slice(1, -1)).join(", ")}`);
 };
