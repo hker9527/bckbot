@@ -28,13 +28,7 @@ export const msg2str = (message: Message) => {
 };
 
 export const report = (string: string) => {
-	assert(Singleton.logger);
 	Singleton.logger.log(`${timeFormat()}\t${string}`);
-};
-
-export const quit = () => {
-	report("Bot closed.");
-	process.exit();
 };
 
 export const isValid = (variable: any) => {
