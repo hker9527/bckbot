@@ -5,7 +5,7 @@ export enum Languages {
 	English = "en",
 	Taiwanese = "tw",
 	Cantonese = "hk",
-	Japanese = "jp"
+	Japanese = "ja"
 };
 
 type Namespaces = "avatar" | "index" | "magicball" | "migrate" | "osu" | "roll" | "scam" | "slap";
@@ -20,6 +20,8 @@ type Translation = {
 const translations: Dictionary<Dictionary<Translation>> = {};
 let ready = false;
 
+// TODO: Use i18next
+// TODO: Use tagged templates
 export const getString = (namespace: Namespaces, item: string, locale: Languages, obj?: Dictionary<string | number>) => {
 	if (!ready) {
 		const fileList = glob.sync(`./res/i18n/*.json`);
