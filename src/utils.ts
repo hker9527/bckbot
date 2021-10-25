@@ -5,7 +5,7 @@ import { Decimal } from 'decimal.js';
 import { DMChannel, Message, TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 
-export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export const timeFormat = () => {
 	return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
