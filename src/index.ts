@@ -81,13 +81,12 @@ try {
 			// Build listener
 			client.on(event, async (message: Message) => {
 				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
-				if (event === "message" && message.channel.isText()) utils.report(utils.msg2str(message));
 
 				let accepted = false,
 					stealthExists = false,
 					result;
 				const messageArgs = message.content.split(" ");
-				const messageTrigger = messageArgs[0].substr(2);
+				const messageTrigger = messageArgs[0].startsWith("b!") ? messageArgs[0].substr(2) : null;
 
 				for (let _module of Object.values(eventModules[event])) {
 					const module = _module.module;
