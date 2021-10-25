@@ -29,7 +29,7 @@ try {
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
 
-		exec('git show -s --format="v.%h on %as"', (error, string) => {
+		exec('git show -s --format="v.%h on %ar"', (error, string) => {
             if (error) {
                 logger.log(error.message);
             } else {
