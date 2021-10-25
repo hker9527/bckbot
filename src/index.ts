@@ -10,6 +10,7 @@ import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module'
 import { Message } from 'discord.js';
 import dotenvSafe from 'dotenv-safe';
 import glob from 'glob';
+import { exec } from "child_process";
 
 injectPrototype();
 
@@ -27,6 +28,16 @@ try {
 
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
+
+		exec('git show -s --format="v.%h on %as"', (error, string) => {
+            if (error) {
+                logger.log(error.message);
+            } else {
+                client.user!.setActivity(string, {
+					type: 'WATCHING'
+				});
+            }
+        });
 
 		for (let event of events) {
 			// Pre-processing (init, interval)
