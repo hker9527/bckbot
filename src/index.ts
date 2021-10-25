@@ -1,6 +1,7 @@
 import 'module-alias/register';
 
 import * as i18n from '@app/i18n';
+import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
 import { Dictionary } from '@type/Dictionary';
@@ -9,6 +10,8 @@ import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module'
 import { Message } from 'discord.js';
 import dotenvSafe from 'dotenv-safe';
 import glob from 'glob';
+
+injectPrototype();
 
 dotenvSafe.config();
 
@@ -19,9 +22,7 @@ try {
 	const events = ["messageCreate", "messageDelete", "messageUpdate"];
 	const eventModules: Events = utils.arr2obj(
 		events,
-		events.map((e) => {
-			return {};
-		})
+		events.map(() => ({}))
 	);
 
 	client.on("ready", async () => {
@@ -220,7 +221,7 @@ try {
 	glob("./bin/modules/**/*.js", async (error, fileList) => {
 		if (error) throw error;
 		for (let file of fileList.filter((_file) => {
-			return _file.split("/").pop()![0] != "_" && !_file.includes("i18n");
+			return _file.split("/").pop()![0] != "_";
 		})) {
 			const fileName = file.split("/").pop()!;
 			const tmp = require(`@app/${file.slice(6)}`).module as Module;

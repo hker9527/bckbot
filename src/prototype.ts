@@ -1,8 +1,8 @@
 import { Languages } from '@app/i18n';
 import { Singleton } from '@app/Singleton';
-import { Message } from 'discord.js';
+import { Message, Channel, Guild } from 'discord.js';
 
-export {}; // Turn this file into a module
+export const injectPrototype = () => {}; // Turn this file into a module
 
 declare global {
 	interface Number {
@@ -35,14 +35,34 @@ declare module "discord.js" {
 	interface Message {
 		getLocale(): Languages;
 	}
+
+	interface Channel {
+		getLocale(): Languages;
+		setLocale(language: Languages): void;
+	}
+
+	interface Guild {
+		getLocale(): Languages;
+		setLocale(language: Languages): void;
+	}
 }
 
 Message.prototype.getLocale = function () {
-	const data = Singleton.db.data!;
-	if (data.language.channels[this.channelId]) {
-		return data.language.channels[this.channelId];
-	} else if (this.guildId && data.language.guilds[this.guildId]) {
-		return data.language.guilds[this.guildId];
-	}
-	return Languages.English;
+	return this.channel.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
 };
+
+Channel.prototype.getLocale = function () {
+	return Singleton.db.data!.language.channels[this.id];
+};
+
+Channel.prototype.setLocale = function (language) {
+	Singleton.db.data!.language.channels[this.id] = language;
+}
+
+Guild.prototype.getLocale = function () {
+	return Singleton.db.data!.language.guilds[this.id];
+};
+
+Guild.prototype.setLocale = function (language) {
+	Singleton.db.data!.language.guilds[this.id] = language;
+}
