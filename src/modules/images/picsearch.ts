@@ -6,14 +6,14 @@ import { SankakuApiResponse } from '@type/SankakuApiResponse';
 import { YandereApiResponse } from '@type/YandereApiResponse';
 import { MessageEmbed, TextChannel } from 'discord.js';
 
-enum ApiPortal {
+export enum ApiPortal {
 	kon = "https://konachan.com/post.json",
 	yan = "https://yande.re/post.json",
 	dan = "https://danbooru.donmai.us/posts.json",
 	san = "https://capi-v2.sankakucomplex.com/posts/keyset"
 };
 
-type ImageObject = {
+export type ImageObject = {
 	id: string,
 	rating: "s" | "q" | "e",
 	source: string | null,
@@ -23,10 +23,10 @@ type ImageObject = {
 	height: number;
 };
 
-export const fetchList = async (prov: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
-	let res = await utils.req2json(`${ApiPortal[prov]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join('+')}${nsfw ? "" : "+rating:s"}&limit=20`);
+export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
+	let res = await utils.req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join('+')}${nsfw ? "" : "+rating:s"}&limit=20`);
 
-	switch (prov) {
+	switch (provider) {
 		case "kon": {
 			const result = res as KonachanApiResponse;
 			return result.map(a => {
@@ -86,9 +86,9 @@ export const fetchList = async (prov: keyof typeof ApiPortal, tags: string[] = [
 	}
 };
 
-export const genEmbed = async (prov: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
+export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
 	const embed = new MessageEmbed()
-		.setAuthor("搜尋結果", "https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_" + prov.substr(0, 1).toUpperCase() + "-64.png")
+		.setAuthor("搜尋結果", "https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_" + provider[0].toUpperCase() + "-64.png")
 		.setColor(({
 			s: 0x7df28b,
 			q: 0xe4ea69,
@@ -99,7 +99,7 @@ export const genEmbed = async (prov: keyof typeof ApiPortal, imageObject: ImageO
 			yan: `https://yande.re/post/show/${imageObject.id}`,
 			dan: `https://danbooru.donmai.us/posts/${imageObject.id}`,
 			san: `https://sankaku.app/post/show/${imageObject.id}`
-		})[prov]})`, true)
+		})[provider]})`, true)
 		.addField("Dimensions", `${imageObject.width} x ${imageObject.height}`, true)
 		.addField("來源: ", (
 			typeof imageObject.source === "string" && imageObject.source.length > 0 ?
