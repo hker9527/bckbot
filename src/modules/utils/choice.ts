@@ -1,3 +1,4 @@
+import { getString } from "@app/i18n";
 import * as utils from '@app/utils';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 
@@ -18,7 +19,7 @@ export const module: Module = {
 		const argv = obj.argv!.choices.split(" ").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
 
 		if (argv.length < 2) {
-			return await obj.message.reply("Not enough choices");
+			return await obj.message.reply(getString("choice.notEnoughChoices", obj.message.getLocale()));
 		}
 
 		const last = argv.pop()!;
@@ -36,10 +37,12 @@ export const module: Module = {
 		}
 		o.push([last, pMax]);
 
-		return await obj.message.reply("Result: " + o.sort((a: Option, b: Option) => {
-			return b[1] - a[1];
-		}).map((a: Option) => {
-			return a[0] + " (" + utils.round(a[1] * 100, 3) + "%)";
-		}).join(" "));
+		return await obj.message.reply(getString("choice.result", obj.message.getLocale(), {
+			result: o.sort((a: Option, b: Option) => {
+				return b[1] - a[1];
+			}).map((a: Option) => {
+				return a[0] + " (" + utils.round(a[1] * 100, 3) + "%)";
+			}).join(" ")
+		}));
 	}
 };

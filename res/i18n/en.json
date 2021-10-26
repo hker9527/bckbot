@@ -3,6 +3,10 @@
 		"memberNotFound": "Member not found!",
 		"avatarNotFound": "The user has no avatar!"
 	},
+	"choice": {
+		"notEnoughChoices": "Not enough choices",
+		"result": "Result: {{result}}"
+	},
 	"index": {
 		"stillLoading": "Module is still loading!",
 		"argvError": "Required argument {{argName}} at position {{position}} not found{{\nUsage: `b!}}{{trigger}} {{usage}}`"
@@ -42,8 +46,6 @@
 		"stat.retrieving": "Retrieiving..."
 	},
 	"roll": "`{{points}}` points.",
-	"scam": {
-		"found": "Possibly hazardous link `{{link}}` found{{\nThreat type: `}}threatType{{`\nPlatform type: `}}threatType!`"
-	},
+	"scam": "🚨Possibly hazardous link `{{link}}` found! \nThreat type: `{{threatType}}`\nPlatform type: `{{platformType}}`",
 	"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
 }
