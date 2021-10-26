@@ -1,3 +1,4 @@
+import { getString } from "@app/i18n";
 import { Module, ModuleActionArgument } from '@type/Module';
 import { ScamApiResponse } from '@type/ScamApiResponse';
 import * as linkify from 'linkifyjs';
@@ -31,14 +32,21 @@ export const module: Module = {
 				body: JSON.stringify(body)
 			});
 
+			const json = await response.json() as ScamApiResponse;
 			try {
-				const json = await response.json() as ScamApiResponse;
 				if (json.matches) {
-					const txt = "";
-					return await obj.message.reply(JSON.stringify(json.matches));
+					const txts = [];
+					for (const match of json.matches) {
+						txts.push(getString("scam", obj.message.getLocale(), {
+							link: match.threat.url,
+							threatType: match.threatType,
+							platformType: match.platformType
+						}));
+					}
+					return await obj.message.reply(txts.join("\n"));
 				}
 			} catch (e) {
-				console.error(await response.json());
+				console.error(e);
 			}
 		}
 		return false;
