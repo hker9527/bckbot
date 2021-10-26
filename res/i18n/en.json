@@ -9,7 +9,7 @@
 	},
 	"index": {
 		"stillLoading": "Module is still loading!",
-		"argvError": "Required argument {{argName}} at position {{position}} not found{{\nUsage: `b!}}{{trigger}} {{usage}}`"
+		"argvError": "Required argument `{{argName}}` at position {{position}} not found!\nUsage: `b!{{trigger}} {{usage}}`"
 	},
 	"magicball": {
 		"answer0": "It is certain.",
