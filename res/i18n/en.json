@@ -1,0 +1,49 @@
+{
+	"avatar": {
+		"memberNotFound": "Member not found!",
+		"avatarNotFound": "The user has no avatar!"
+	},
+	"index": {
+		"stillLoading": "Module is still loading!",
+		"argvError": "Required argument {{argName}} at position {{position}} not found{{\nUsage: `b!}}{{trigger}} {{usage}}`"
+	},
+	"magicball": {
+		"answer0": "It is certain.",
+		"answer1": "It is decidedly so.",
+		"answer2": "Without a doubt.",
+		"answer3": "Yes - definitely.",
+		"answer4": "You may rely on it.",
+		"answer5": "As I see it, yes.",
+		"answer6": "Most likely.",
+		"answer7": "Outlook good.",
+		"answer8": "Yes.",
+		"answer9": "Signs point to yes.",
+		"answer10": "Reply hazy, try again.",
+		"answer11": "Ask again later.",
+		"answer12": "Better not tell you now.",
+		"answer13": "Cannot predict now.",
+		"answer14": "Concentrate and ask again.",
+		"answer15": "Don't count on it.",
+		"answer16": "My reply is no.",
+		"answer17": "My sources say no.",
+		"answer18": "Outlook not so good.",
+		"answer19": "Very doubtful."
+	},
+	"migrate": "The bot is currently migrating into a newer structure. As a result, some commands are disabled.\nYou can follow the progress at <https://github.com/hker9527/bckbot>",
+	"osu": {
+		"modeName0": "Standard",
+		"modeName1": "Taiko",
+		"modeName2": "CTB",
+		"modeName3": "Mania",
+		"link.exists": "You have already linked your Osu! account",
+		"link.linked": "Linked {{discord_id}} with {{osu_id}}.",
+		"error": "Unable to retrieve account information with id `{{id}}`.",
+		"stat.notLinked": "That user has not linked his osu account before!",
+		"stat.retrieving": "Retrieiving..."
+	},
+	"roll": "`{{points}}` points.",
+	"scam": {
+		"found": "Possibly hazardous link `{{link}}` found{{\nThreat type: `}}threatType{{`\nPlatform type: `}}threatType!`"
+	},
+	"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
+}

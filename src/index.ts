@@ -1,6 +1,5 @@
 import 'module-alias/register';
 
-import * as i18n from '@app/i18n';
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
@@ -11,9 +10,10 @@ import { Message } from 'discord.js';
 import dotenvSafe from 'dotenv-safe';
 import glob from 'glob';
 import { exec } from "child_process";
+import { getString, i18init } from "./i18n";
 
 injectPrototype();
-
+i18init();
 dotenvSafe.config();
 
 const { logger, client } = Singleton;
@@ -98,9 +98,8 @@ try {
 							try {
 								if (!_module.loaded) {
 									await message.reply(
-										i18n.getString(
-											"index",
-											"stillLoading",
+										getString(
+											"index.stillLoading",
 											message.getLocale()
 										)
 									);
@@ -125,9 +124,8 @@ try {
 											typeof argValue === "undefined"
 										) {
 											await message.reply(
-												i18n.getString(
-													"index",
-													"argvError",
+												getString(
+													"index.argvError",
 													message.getLocale(),
 													{
 														argName,
@@ -225,6 +223,22 @@ try {
 				}
 			});
 		}
+
+		client.on("interactionCreate", async (interaction) => {
+			const module = interaction.id.split(".")[0];
+
+			if (interaction.isCommand()) {
+
+			} else if (interaction.isButton()) {
+
+			} else if (interaction.isContextMenu()) {
+				
+			} else if (interaction.isMessageComponent()) {
+				
+			} else if (interaction.isSelectMenu()) {
+
+			}
+		});
 		utils.report(`Finished loading in ${+new Date() - +startTime}ms`);
 	});
 

@@ -17,7 +17,6 @@ const guildEmoji = "🇬";
 
 const flags: Record<string, Languages> = {
 	"🇺🇸": Languages.English,
-	"🇭🇰": Languages.Cantonese,
 	"🇹🇼": Languages.Taiwanese,
 	"🇯🇵": Languages.Japanese
 };
@@ -31,6 +30,7 @@ export const module: Module = {
 		"lang": [ArgumentRequirement.Optional]
 	},
 	action: async (obj: ModuleActionArgument) => {
+		// TODO: Limit access to admin or owner only
 		// TODO: Use action menu
 		/*
 			1. Detect language by channel history, or use language provided by user.

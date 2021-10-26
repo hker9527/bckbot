@@ -1,4 +1,4 @@
-import * as i18n from '@app/i18n';
+import { getString } from "@app/i18n";
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { MessageEmbed } from 'discord.js';
 
@@ -16,7 +16,7 @@ export const module: Module = {
 			if (member) {
 				user = member.user;
 			} else {
-				return await obj.message.reply(i18n.getString("avatar", "memberNotFound", obj.message.getLocale()));
+				return await obj.message.reply(getString("avatar.memberNotFound", obj.message.getLocale()));
 			}
 		}
 
@@ -27,7 +27,7 @@ export const module: Module = {
 		});
 
 		if (!avatarURL) {
-			return await obj.message.reply(i18n.getString("avatar", "avatarNotFound", obj.message.getLocale()));
+			return await obj.message.reply(getString("avatar.avatarNotFound", obj.message.getLocale()));
 		}
 
 		const embed = new MessageEmbed()

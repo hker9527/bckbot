@@ -1,8 +1,0 @@
-{
-	"stillLoading": {
-		"en": "Module is still loading!"
-	},
-	"argvError": {
-		"en": "Required argument !argName! at position !position! not found!\nUsage: `b!!trigger! !usage!`"
-	}
-}

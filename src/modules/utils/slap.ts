@@ -1,4 +1,4 @@
-import * as i18n from '@app/i18n';
+import { getString } from "@app/i18n";
 import * as utils from '@app/utils';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import emoji from 'node-emoji';
@@ -12,7 +12,7 @@ export const module: Module = {
 	},
 	action: async (obj: ModuleActionArgument) => {
 		return obj.message.channel.send(
-			i18n.getString("slap", "slap", obj.message.getLocale(), {
+			getString("slap", obj.message.getLocale(), {
 				slapper: obj.message.author.toString(),
 				victim: obj.argv!.victim,
 				// TODO: Fix emoji that cannot display (message.react?)
