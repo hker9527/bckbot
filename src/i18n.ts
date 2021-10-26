@@ -23,6 +23,6 @@ export const i18init = async () => {
 	});
 };
 
-export const getString = (key: string, lng: Languages, options?: Dictionary<any>) => {
-	return i18next.t(key, { lng, ...options });
+export const getString = (key: string, lng: Languages, options?: Dictionary<string | number>) => {
+	return i18next.t(key, { interpolation: { escapeValue: false }, lng, ...options });
 };
