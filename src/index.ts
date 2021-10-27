@@ -1,3 +1,6 @@
+import { config } from "dotenv-safe";
+config();
+
 import 'module-alias/register';
 
 import { injectPrototype } from '@app/prototype';
@@ -7,14 +10,12 @@ import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { Message } from 'discord.js';
-import dotenvSafe from 'dotenv-safe';
 import glob from 'glob';
 import { exec } from "child_process";
 import { getString, i18init } from "./i18n";
 
 injectPrototype();
 i18init();
-dotenvSafe.config();
 
 const { logger, client } = Singleton;
 
