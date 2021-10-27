@@ -39,13 +39,18 @@
 		"modeName1": "Taiko",
 		"modeName2": "CTB",
 		"modeName3": "Mania",
-		"link.exists": "You have already linked your Osu! account",
-		"link.linked": "Linked {{discord_id}} with {{osu_id}}.",
+		"link": {
+			"exists": "You have already linked your Osu! account",
+			"linked": "Linked {{discord_id}} with {{osu_id}}."
+		},
 		"error": "Unable to retrieve account information with id `{{id}}`.",
-		"stat.notLinked": "That user has not linked his osu account before!",
-		"stat.retrieving": "Retrieiving..."
+		"stat": {
+			"notLinked": "That user has not linked his osu account before!",
+			"retrieving": "Retrieiving..."
+		}
 	},
 	"roll": "`{{points}}` points.",
 	"scam": "🚨Possibly hazardous link `{{link}}` found! \nThreat type: `{{threatType}}`\nPlatform type: `{{platformType}}`",
-	"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
+	"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points.",
+	"mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. The 4 corners are always safe.\n{{mineField}}"
 }
