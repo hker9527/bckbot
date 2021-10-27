@@ -1,56 +1,71 @@
+import { getString } from "@app/i18n";
 import * as utils from '@app/utils';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 
-const num = "　１２３４５６７８９".split("");
-const bomb = "Ｘ";
+const numberSymbols = "　１２３４５６７８９".split("");
+const bombSymbol = "Ｘ";
 
 export const module: Module = {
 	trigger: ["mine"],
 	event: "messageCreate",
 	argv: {
-		"x": [ArgumentRequirement.Optional],
-		"y": [ArgumentRequirement.Optional]
+		"h": [ArgumentRequirement.Optional],
+		"w": [ArgumentRequirement.Optional],
+		"n": [ArgumentRequirement.Optional]
 	},
 	action: async (obj: ModuleActionArgument) => {
-		let txt = utils.extArgv(obj.message, true);
-		let argv = utils.parseArgv(txt);
+		const _h = utils.random(5, 10);
+		const _w = utils.random(5, 10);
+		const _mineCount = Math.max(1, _h * _w / utils.random(5, 10) | 0);
 
-		const [_h, _w, _n] = [argv[0], argv[1], argv[2]].map(a => parseInt(a));
-		let [h, w] = [utils.random(5, 10), utils.random(5, 10)]; // max: 200?
-		if (_h && _w && _h > 3 && _w > 3 && _h * _w < 200) {
+		let h = parseInt(obj.argv!.h) || _h;
+		let w = parseInt(obj.argv!.w) || _w;
+		let mineCount = parseInt(obj.argv!.n) || _mineCount;
+
+		if (h * w > 200) {
 			[h, w] = [_h, _w];
 		}
 
-		const mineArr = [...new Array(h)].map(a => [...new Array(w)].map(a => num[0]));
-		const mineCount = _n && _n < (h * w - 3) ? _n : ((h * w / 10) | 0);
+		if (!mineCount.inRange(0, h * w - 4)) mineCount = Math.max(1, h * w / 10 | 0);
 
-		const mines = [];
-		let avail = [...new Array(h * w)].map((a, i) => i).filter(a => [0, w - 1, w * (h - 1), w * h - 1].indexOf(a) == -1);
+		const field = [...new Array(h)].map(a => [...new Array(w)].map(a => numberSymbols[0]));
 
+		const mineLocations = [];
+
+		// 4 corners are always safe
+		let avail = [...new Array(h * w)].map((a, i) => i).filter(a => [0, w - 1, w * (h - 1), w * h - 1].indexOf(a) === -1);
+
+		// Put mines into the field
 		for (let i = 0; i < mineCount; i++) {
 			let ran = utils.randomArrayElement(avail);
 
-			mines.push(ran);
+			mineLocations.push(ran);
 			delete avail[avail.indexOf(ran)];
 
 			avail = avail.filter(a => !!a);
 		}
 
-		console.log(mines);
-		for (let m of mines) {
-			let [x, y] = [m % w, (m / w) | 0];
-			mineArr[y][x] = bomb;
+		// Populate the radar
+		for (let mineLocation of mineLocations) {
+			let [x, y] = [mineLocation % w, (mineLocation / w) | 0];
+			field[y][x] = bombSymbol;
+
+			// Filter is used to prevent out-of-bound array access
 			for (let _m of [
 				[x - 1, y - 1], [x - 1, y], [x - 1, y + 1],
 				[x, y - 1], [x, y], [x, y + 1],
 				[x + 1, y - 1], [x + 1, y], [x + 1, y + 1]
 			].filter(a => a[0] < w && a[0] > -1 && a[1] < h && a[1] > -1)) {
-				if (mineArr[_m[1]][_m[0]] != bomb) {
-					mineArr[_m[1]][_m[0]] = num[num.indexOf(mineArr[_m[1]][_m[0]]) + 1];
+				// Add the surroundings of a bomb by 1
+				if (field[_m[1]][_m[0]] != bombSymbol) {
+					field[_m[1]][_m[0]] = numberSymbols[numberSymbols.indexOf(field[_m[1]][_m[0]]) + 1];
 				}
 			}
 		}
 
-		return obj.message.channel.send(mineArr.map(a => a.map(b => "||" + b + "||").join("")).join("\n"));
+		return await obj.message.channel.send(getString("mine", obj.message.getLocale(), {
+			h, w, mineCount,
+			mineField: field.map(a => a.map(b => `||${b}||`).join("")).join("\n")
+		}));
 	}
 };
