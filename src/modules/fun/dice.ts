@@ -11,18 +11,18 @@ export const module: Module = {
 		let txt = utils.extArgv(obj.message, true);
 		let argv = utils.parseArgv(txt);
 
-		let re = /^(\d*)d(\d*)([+-]\d*)?$/;
+		let re = /^([1-9]\d{0,2})d([1-9]\d{0,2})([+-]\d{1,3})?$/;
 		let tmp;
 		if (!utils.isValid(argv[0]) || !(tmp = argv[0].match(re))) {
-			return obj.message.reply("Format: __n__d__f__[+-o]\nn: Number of dice\tf: Faces\to: Offset");
+			return await obj.message.reply("Format: __n__d__f__[+-o]\nn: Number of dice\tf: Faces\to: Offset");
 		} else { // ndf+o
 			const [_, n, faces, offset] = tmp.map(a => parseInt(a));
-			if (!n.inRange(1, 500)) return await obj.message.reply("Invalid dice count!");
+
 			let result = 0;
 			for (let i = 0; i < n; i++) {
 				result += utils.random(1, faces);
 			}
-			result += (!isNaN(offset) ? offset : 0);
+			result += offset || 0;
 			return await obj.message.reply(`Rolling a ${faces}-faced dice for ${n} times${(!isNaN(offset) ? " with " + offset + " offset" : "")}.\nResult: \`${result}\``);
 		}
 	}
