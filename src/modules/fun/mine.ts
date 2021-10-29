@@ -22,6 +22,9 @@ export const module: Module = {
 		let w = parseInt(obj.argv!.w) || _w;
 		let mineCount = parseInt(obj.argv!.n) || _mineCount;
 
+		if (!h.inRange(0, 15)) h = _h;
+		if (!w.inRange(0, 15)) w = _w;
+		
 		if (h * w > 200) {
 			[h, w] = [_h, _w];
 		}
