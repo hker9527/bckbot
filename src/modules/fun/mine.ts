@@ -22,14 +22,14 @@ export const module: Module = {
 		let w = parseInt(obj.argv!.w) || _w;
 		let mineCount = parseInt(obj.argv!.n) || _mineCount;
 
-		if (!h.inRange(0, 15)) h = _h;
-		if (!w.inRange(0, 15)) w = _w;
-		
+		if (!h.inRange(2, 15)) h = _h;
+		if (!w.inRange(2, 15)) w = _w;
+
 		if (h * w > 200) {
 			[h, w] = [_h, _w];
 		}
 
-		if (!mineCount.inRange(0, h * w - 4)) mineCount = Math.max(1, h * w / 10 | 0);
+		if (!mineCount.inRange(1, h * w - 4)) mineCount = Math.max(1, h * w / 10 | 0);
 
 		const field = [...new Array(h)].map(a => [...new Array(w)].map(a => numberSymbols[0]));
 
