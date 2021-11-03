@@ -16,7 +16,7 @@ async function worker() {
 				response = await utils.req2json(`https://free.currconv.com/api/v7/convert?q=${i}_${j},${j}_${i}&compact=ultra&apiKey=${process.env.currency}`);
 				assert(!isNaN(response[`${i}_${j}`]) && !isNaN(response[`${j}_${i}`]));
 				data[i][j] = response[`${i}_${j}`];
-				data[j][i] = response[`${i}_${j}`];
+				data[j][i] = response[`${j}_${i}`];
 			}
 		}
 
