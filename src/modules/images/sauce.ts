@@ -1,53 +1,16 @@
 import { Singleton } from '@app/Singleton';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@app/types/Module';
-import { SaucenaoApiResponse } from '@app/types/SaucenaoApiResponse';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { SaucenaoApiResponse } from '@type/api/Saucenao';
 import * as utils from '@app/utils';
 import * as picsearch from '@module/images/picsearch';
 import * as pixiv from '@module/images/pixiv';
 import { Collection, Message, MessageEmbed, TextChannel } from 'discord.js';
 
-enum Source {
-	HMagazines = 0,
-	HGame_CG = 2,
-	DoujinshiDB = 3,
-	Pixiv_Images = 5,
-	Pixiv_Historical = 6,
-	Nico_Nico_Seiga = 8,
-	Danbooru = 9,
-	Drawr_Images = 10,
-	Nijie_Images = 11,
-	Yandere = 12,
-	FAKKU = 16,
-	Nhentai = 18,
-	TwoDMarket = 19,
-	MediBang = 20,
-	Anime = 21,
-	HAnime = 22,
-	Movies = 23,
-	Shows = 24,
-	Gelbooru = 25,
-	Konachan = 26,
-	SankakuChannel = 27,
-	AnimePicturesnet = 28,
-	E621net = 29,
-	IdolComplex = 30,
-	Bcynet_Illust = 31,
-	Bcynet_Cosplay = 32,
-	PortalGraphicsnet = 33,
-	DeviantArt = 34,
-	Pawoonet = 35,
-	Madokami = 36,
-	MangaDex = 37,
-	HMisc_EHentai = 38,
-	Artstation = 39,
-	FurAffinity = 40,
-	Twitter = 41,
-	Furry_Network = 42
-};
-
 export const findImageFromMessages = (index: number, msgs: Collection<string, Message>) => {
+	// Precedence: URL > Embeds > Attachments
+
 	let i = 0;
-	let url = "";
+	let url: string | null = null;
 
 	for (const [_, msg] of msgs.filter(a => a.author.id !== Singleton.client.user!.id)) {
 		for (const embed of msg.embeds.reverse()) {
@@ -64,7 +27,7 @@ export const findImageFromMessages = (index: number, msgs: Collection<string, Me
 			}
 		}
 
-		if (url.length) return url;
+		if (url) return url;
 
 		for (const [_, attachment] of msg.attachments) {
 			if (attachment.width && attachment.width > 0) {
@@ -77,7 +40,7 @@ export const findImageFromMessages = (index: number, msgs: Collection<string, Me
 			}
 		}
 
-		if (url.length) return url;
+		if (url) return url;
 	}
 
 	return null;
@@ -105,56 +68,67 @@ export const module: Module = {
 		}
 
 		const msg = await obj.message.channel.send("Querying image `" + url + "`...");
-		const res = await utils.req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=1&url=${url}`) as SaucenaoApiResponse;
+		const res = await utils.req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as SaucenaoApiResponse;
 
 		if (res.header.status === 0) {
 			if (res.results === null) {
 				return await msg.edit("No sauce found!");
 			}
 
-			const result = res.results[0];
-			const similarity = parseFloat(result.header.similarity);
-
-			let embed: MessageEmbed;
+			// TODO: Select dropdown for user to check other sauces
+			const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
 			try {
-				const parentId = res.header.index[result.header.index_id].parent_id;
-				if (parentId == Source.Pixiv_Images) {
-					const _embed = await pixiv.genEmbed(`${result.data.pixiv_id!}`, false);
-					if (_embed === null) {
-						return await msg.edit("The related post is not found!");
-					}
-					embed = _embed;
-				} else {
-					let provider: keyof typeof picsearch.ApiPortal | null = null;
-					let id: number | null = null;
+				for (const result of results) {
+					const similarity = parseFloat(result.header.similarity);
 
-					if (parentId == Source.Yandere) {
-						provider = "yan";
-						id = result.data.yandere_id!;
-					} else if (parentId == Source.Konachan) {
-						provider = "kon";
-						id = result.data.konachan_id!;
-					} else if (parentId == Source.Danbooru) {
-						provider = "dan";
-						id = (result.data.danbooru_id ?? result.data.gelbooru_id)!;
-					}
-
-					if (provider !== null && id !== null) {
-						const imageObjects = await picsearch.fetchList(provider, [`id:${id}`], nsfw);
-						if (imageObjects.length === 0) {
+					let embed: MessageEmbed | null = null;
+					if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
+						const _embed = await pixiv.genEmbed(`${result.data.pixiv_id}`, false);
+						if (_embed === null) {
 							return await msg.edit("The related post is not found!");
 						}
-						embed = await picsearch.genEmbed(provider, imageObjects[0], false, nsfw);
-					} else {
-						return await msg.edit(JSON.stringify(result));
+						embed = _embed;
+					} else if ("creator" in result.data) { // MoebooruData
+						let provider: keyof typeof picsearch.ApiPortal | null = null;
+						let id: number | null = null;
+
+						if ("yandere_id" in result.data) {
+							provider = "yan";
+							id = result.data.yandere_id ?? null;
+						} else if ("konachan_id" in result.data) {
+							provider = "kon";
+							id = result.data.konachan_id ?? null;
+						} else if ("danbooru_id" in result.data) {
+							provider = "dan";
+							id = result.data.danbooru_id ?? null;
+						} else if ("gelbooru_id" in result.data) {
+							provider = "dan";
+							id = result.data.gelbooru_id ?? null;
+						} else if ("sankaku_id" in result.data) {
+							provider = "san";
+							id = result.data.sankaku_id ?? null;
+						}
+
+						if (provider !== null && id !== null) {
+							const imageObjects = await picsearch.fetchList(provider, [`id:${id}`], nsfw);
+							if (imageObjects.length > 0) {
+								embed = await picsearch.genEmbed(provider, imageObjects[0], false, nsfw);
+							}
+						}
+					}
+					if (embed) {
+						return await msg.edit({
+							content: (similarity < 70 ? "||" : "") + `Confidence level: ${similarity}%` + (similarity < 70 ? " ||" : ""),
+							embeds: [embed]
+						});
 					}
 				}
-				return msg.edit({
-					content: (similarity < 70 ? "||" : "") + `Confidence level: ${similarity}%` + (similarity < 70 ? " ||" : ""),
-					embeds: [embed]
-				});
+				throw "Unknown";
 			} catch (e) {
-				return await msg.edit(JSON.stringify(result));
+				// No suitable sauce found.... Default to the highest confidence one.
+				// TODO: Beautify
+
+				return await msg.edit("The sauce in unfamiliar to me... Here are some of the ingredients.\n```json\n" + JSON.stringify(results[0], null, 4) + "```");
 			}
 		} else {
 			return await msg.edit(`Error: ${res.header.message}`);
