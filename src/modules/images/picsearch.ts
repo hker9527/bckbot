@@ -1,9 +1,9 @@
 import * as utils from '@app/utils';
-import { DanbooruApiResponse } from '@type/DanbooruApiResponse';
-import { KonachanApiResponse } from '@type/KonachanApiResponse';
+import { DanbooruApiResponse } from '@type/api/Danbooru';
+import { KonachanApiResponse } from '@type/api/Konachan';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { SankakuApiResponse } from '@type/SankakuApiResponse';
-import { YandereApiResponse } from '@type/YandereApiResponse';
+import { SankakuApiResponse } from '@type/api/Sankaku';
+import { YandereApiResponse } from '@type/api/Yandere';
 import { MessageEmbed, TextChannel } from 'discord.js';
 
 export enum ApiPortal {

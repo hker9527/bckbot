@@ -1,6 +1,6 @@
 import { getString } from "@app/i18n";
 import { Module, ModuleActionArgument } from '@type/Module';
-import { ScamApiResponse } from '@type/ScamApiResponse';
+import { ScamApiResponse } from '@type/api/Scam';
 import * as linkify from 'linkifyjs';
 import fetch from 'node-fetch';
 

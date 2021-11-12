@@ -1,6 +1,6 @@
 import * as utils from '@app/utils';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { PixivApiResponse } from '@type/PixivApiResponse';
+import { PixivApiResponse } from '@type/api/Pixiv';
 import { MessageEmbed, TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
 
