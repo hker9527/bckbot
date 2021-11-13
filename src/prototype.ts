@@ -1,6 +1,6 @@
 import { Languages } from '@app/i18n';
 import { Singleton } from '@app/Singleton';
-import { Message, Channel, Guild } from 'discord.js';
+import { Message, Channel, Guild, Interaction } from 'discord.js';
 
 export const injectPrototype = () => {}; // Turn this file into a module
 
@@ -36,6 +36,10 @@ declare module "discord.js" {
 		getLocale(): Languages;
 	}
 
+	interface Interaction {
+		getLocale(): Languages;
+	}
+
 	interface Channel {
 		getLocale(): Languages;
 		setLocale(language: Languages): void;
@@ -49,6 +53,10 @@ declare module "discord.js" {
 
 Message.prototype.getLocale = function () {
 	return this.channel.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
+};
+
+Interaction.prototype.getLocale = function () {
+	return this.channel?.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
 };
 
 Channel.prototype.getLocale = function () {

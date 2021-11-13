@@ -9,10 +9,11 @@ import * as utils from '@app/utils';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { Message } from 'discord.js';
+import { CommandInteraction, Message } from 'discord.js';
 import glob from 'glob';
 import { exec } from "child_process";
 import { getString, i18init } from "./i18n";
+import { SlashCommand } from "@type/SlashCommand";
 
 injectPrototype();
 i18init();
@@ -27,18 +28,20 @@ try {
 		events.map(() => ({}))
 	);
 
+	const slashCommands: Dictionary<SlashCommand> = {};
+
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
 
 		exec('git show -s --format="v.%h on %aI"', (error, string) => {
-            if (error) {
-                logger.log(error.message);
-            } else {
-                client.user!.setActivity(string, {
+			if (error) {
+				logger.log(error.message);
+			} else {
+				client.user!.setActivity(string, {
 					type: 'WATCHING'
 				});
-            }
-        });
+			}
+		});
 
 		for (let event of events) {
 			// Pre-processing (init, interval)
@@ -225,21 +228,35 @@ try {
 			});
 		}
 
+		for (const [_, guild] of client.guilds.cache) {
+			guild.commands.set(Object.values(slashCommands));
+		}
+
 		client.on("interactionCreate", async (interaction) => {
-			const module = interaction.id.split(".")[0];
-
-			if (interaction.isCommand()) {
-
-			} else if (interaction.isButton()) {
-
-			} else if (interaction.isContextMenu()) {
-				
-			} else if (interaction.isMessageComponent()) {
-				
-			} else if (interaction.isSelectMenu()) {
-
+			if (interaction.isCommand() || interaction.isContextMenu()) {
+				const source = interaction.commandName;
+				const command = slashCommands[source];
+				if (command) {
+					if (interaction.isCommand() && command.onCommand)
+						return await command.onCommand(interaction);
+					else if (interaction.isContextMenu() && command.onContextMenu)
+						return await command.onContextMenu(interaction);
+				}
+			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
+				const source = (interaction.message.interaction! as CommandInteraction).commandName;
+				const command = slashCommands[source];
+				if (command) {
+					if (interaction.isButton() && command.onButton)
+						return await command.onButton(interaction);
+					else if (interaction.isMessageComponent() && command.onMessageComponent)
+						return await command.onMessageComponent(interaction);
+					else if (interaction.isSelectMenu() && command.onSelectMenu)
+						return await command.onSelectMenu(interaction);
+				}
 			}
+			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction)}`);
 		});
+
 		utils.report(`Finished loading in ${+new Date() - +startTime}ms`);
 	});
 
@@ -249,11 +266,24 @@ try {
 			return _file.split("/").pop()![0] != "_";
 		})) {
 			const fileName = file.split("/").pop()!;
-			const tmp = require(`@app/${file.slice(6)}`).module as Module;
-			eventModules[tmp.event][fileName.slice(0, -3)] = {
-				module: tmp,
-				loaded: false,
-			};
+			const moduleName = fileName.slice(0, -3);
+
+			const _module = require(`@app/${file.slice(6)}`).module;
+			let tmp: Module | SlashCommand;
+			if ("action" in _module) {
+				tmp = _module as Module;
+				eventModules[tmp.event][moduleName] = {
+					module: tmp,
+					loaded: false,
+				};
+			} else if ("description" in _module) {
+				tmp = _module as SlashCommand;
+				slashCommands[moduleName] = tmp;
+			} else {
+				utils.report(`Unknown module ${fileName}!`);
+				process.exit();
+			}
+
 			utils.report(`Loaded module ${fileName}`);
 		}
 
