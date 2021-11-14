@@ -1,24 +1,13 @@
 import { getString } from "@app/i18n";
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { ContextMenuCommand } from "@type/SlashCommand";
 import { MessageEmbed } from 'discord.js';
 
-export const module: Module = {
-	trigger: ["ava", "avatar"],
-	event: "messageCreate",
-	argv: {
-		"user": [ArgumentRequirement.Required]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		let user = obj.message.mentions.users.first();
-		if (!user) {
-			let member = (await obj.message.guild!.members.fetch({query: obj.argv!.user, limit: 1})).first();
-
-			if (member) {
-				user = member.user;
-			} else {
-				return await obj.message.reply(getString("avatar.memberNotFound", obj.message.getLocale()));
-			}
-		}
+export const module: ContextMenuCommand = {
+	name: "avatar",
+	description: "",
+	type: "USER",
+	onContextMenu: async (interaction) => {
+		const user = interaction.getUser();
 
 		const avatarURL = user.avatarURL({
 			format: "png",
@@ -27,7 +16,7 @@ export const module: Module = {
 		});
 
 		if (!avatarURL) {
-			return await obj.message.reply(getString("avatar.avatarNotFound", obj.message.getLocale()));
+			return await interaction.reply({ content: getString("avatar.avatarNotFound", interaction.getLocale()), ephemeral: true });
 		}
 
 		const embed = new MessageEmbed()
@@ -35,12 +24,8 @@ export const module: Module = {
 			.setAuthor(`${user.username}'s avatar`)
 			.setColor("#8dd272");
 
-		if (obj.trigger === "ava") {
-			embed.setThumbnail(avatarURL);
-		} else {
-			embed.setImage(avatarURL);
-		}
+		embed.setImage(avatarURL);
 
-		return await obj.message.channel.send({embeds: [embed]});
+		return await interaction.reply({ embeds: [embed], ephemeral: true });
 	}
 };
