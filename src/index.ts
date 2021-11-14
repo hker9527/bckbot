@@ -13,7 +13,7 @@ import { CommandInteraction, Message } from 'discord.js';
 import glob from 'glob';
 import { exec } from "child_process";
 import { getString, i18init } from "./i18n";
-import { SlashCommand } from "@type/SlashCommand";
+import { ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
 
 injectPrototype();
 i18init();
@@ -28,7 +28,33 @@ try {
 		events.map(() => ({}))
 	);
 
-	const slashCommands: Dictionary<SlashCommand> = {};
+	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
+
+	const createDeleteAction = async (message: Message) => {
+		const collector = message.createReactionCollector({
+			filter: (reaction, user) => {
+				const emojiIsBin = reaction.emoji.name === '🗑️';
+				const reactorIsAuthor = user === message.author;
+				const reactorIsSelf = user === client.user;
+				if (emojiIsBin && !reactorIsAuthor && reactorIsSelf) {
+					reaction.remove();
+				}
+				return emojiIsBin && reactorIsAuthor && !reactorIsSelf;
+			},
+			time: 15000
+		});
+		collector.on('collect', async () => {
+			try {
+				await message.delete();
+			} catch (e) { }
+		});
+		const reaction = await message.react('🗑️');
+		collector.on('end', async () => {
+			try {
+				await reaction.remove();
+			} catch (e) { }
+		});
+	};
 
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
@@ -89,6 +115,18 @@ try {
 				let accepted = false,
 					stealthExists = false,
 					result;
+
+				// Prompt if user tried to use legacy method
+				for (const command in slashCommands) {
+					if (message.cleanContent.startsWith(`b!${command}`)) {
+						const cmd = slashCommands[command];
+						const msg = await message.reply("onContextMenu" in cmd ? `Please use the context menu on target ${cmd.type.toLocaleLowerCase()} and select ${command}.` : `Please use /${command} for the newer support.`);
+						await utils.sleep(5000);
+						await msg.delete();
+						return;
+					}
+				}
+
 				const messageArgs = message.content.split(" ");
 				const messageTrigger = messageArgs[0].startsWith("b!") ? messageArgs[0].substr(2) : null;
 
@@ -187,27 +225,7 @@ try {
 
 								result = await module.action(moduleActionArgument);
 								if (result instanceof Message) {
-									const msg = result as Message;
-									const collector = msg.createReactionCollector({
-										filter: (reaction, user) => {
-											const flag1 = reaction.emoji.name === '🗑️';
-											const flag2 = user === message.author;
-											if (flag1 && !flag2 && user !== client.user) reaction.remove();
-											return flag1 && flag2;
-										},
-										time: 15000
-									});
-									collector.on('collect', async () => {
-										try {
-											await msg.delete();
-										} catch (e) { }
-									});
-									const reaction = await msg.react('🗑️');
-									collector.on('end', async () => {
-										try {
-											await reaction.remove();
-										} catch (e) { }
-									});
+									await createDeleteAction(result);
 								}
 								if (!stealth) accepted = true;
 							} catch (e) {
@@ -219,7 +237,7 @@ try {
 				}
 				if (!accepted && message.content.startsWith("b!") && stealthExists) {
 					await message.react(
-						client.emojis.cache.random()
+						client.emojis.cache.random()!
 					);
 					return;
 				} else {
@@ -237,9 +255,9 @@ try {
 				const source = interaction.commandName;
 				const command = slashCommands[source];
 				if (command) {
-					if (interaction.isCommand() && command.onCommand)
+					if (interaction.isCommand() && "onCommand" in command)
 						return await command.onCommand(interaction);
-					else if (interaction.isContextMenu() && command.onContextMenu)
+					else if (interaction.isContextMenu() && "onContextMenu" in command)
 						return await command.onContextMenu(interaction);
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
@@ -254,7 +272,7 @@ try {
 						return await command.onSelectMenu(interaction);
 				}
 			}
-			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction)}`);
+			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
 		});
 
 		utils.report(`Finished loading in ${+new Date() - +startTime}ms`);
@@ -278,7 +296,7 @@ try {
 				};
 			} else if ("description" in _module) {
 				tmp = _module as SlashCommand;
-				slashCommands[moduleName] = tmp;
+				slashCommands[tmp.name] = tmp;
 			} else {
 				utils.report(`Unknown module ${fileName}!`);
 				process.exit();
