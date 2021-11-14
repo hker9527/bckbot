@@ -1,7 +1,7 @@
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@app/types/Module';
 import * as utils from '@app/utils';
 import { fetchInfo } from '@module/images/pixiv';
-import { findImageFromMessages } from '@module/images/sauce';
+import { findImageFromMessages } from '@module/images/_lib';
 import Twitter = require('twitter');
 
 const deepai = require("deepai");
