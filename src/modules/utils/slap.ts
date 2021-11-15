@@ -1,22 +1,30 @@
 import { getString } from "@app/i18n";
 import * as utils from '@app/utils';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { SlashCommand } from "@type/SlashCommand";
 import emoji from 'node-emoji';
 
-export const module: Module = {
-	trigger: ["slap", "slaps"],
-	event: "messageCreate",
-	argv: {
-		victim: [ArgumentRequirement.Required],
-		tool: [ArgumentRequirement.Optional, ArgumentRequirement.Concat],
-	},
-	action: async (obj: ModuleActionArgument) => {
-		return obj.message.channel.send(
-			getString("slap", obj.message.getLocale(), {
-				slapper: obj.message.author.toString(),
-				victim: obj.argv!.victim,
+export const module: SlashCommand = {
+	name: "slap",
+	description: "slap.description",
+	options: [
+		{
+			name: "victim",
+			description: "slap.victimDescription",
+			type: "USER"
+		}, {
+			name: "tool",
+			description: "slap.toolDescription",
+			type: "STRING",
+			optional: true
+		}
+	],
+	onCommand: async (interaction) => {
+		return await interaction.reply(
+			getString("slap.slap", interaction.getLocale(), {
+				slapper: interaction.member!.toString(),
+				victim: interaction.options.getUser("victim")!.toString(),
 				// TODO: Fix emoji that cannot display (message.react?)
-				tool: (obj.argv!.tool ?? emoji.random().emoji),
+				tool: (interaction.options.getString("tool") ?? emoji.random().emoji),
 				damage: utils.urandom(
 					utils.arr2obj(
 						[

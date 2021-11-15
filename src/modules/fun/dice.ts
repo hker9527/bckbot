@@ -1,29 +1,41 @@
-import { Module, ArgumentRequirement, ModuleActionArgument } from "@type/Module";
+import { getString } from "@app/i18n";
 import * as utils from "@app/utils";
+import { SlashCommand } from "@type/SlashCommand";
 
-export const module: Module = {
-	trigger: ["dice", "d"],
-	event: "messageCreate",
-	argv: {
-		"cmd": [ArgumentRequirement.Required]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		let txt = utils.extArgv(obj.message, true);
-		let argv = utils.parseArgv(txt);
-
-		let re = /^([1-9]\d{0,2})d([1-9]\d{0,2})([+-]\d{1,3})?$/;
-		let tmp;
-		if (!utils.isValid(argv[0]) || !(tmp = argv[0].match(re))) {
-			return await obj.message.reply("Format: __n__d__f__[+-o]\nn: Number of dice\tf: Faces\to: Offset");
-		} else { // ndf+o
-			const [_, n, faces, offset] = tmp.map(a => parseInt(a));
-
-			let result = 0;
-			for (let i = 0; i < n; i++) {
-				result += utils.random(1, faces);
-			}
-			result += offset || 0;
-			return await obj.message.reply(`Rolling a ${faces}-faced dice for ${n} times${(!isNaN(offset) ? " with " + offset + " offset" : "")}.\nResult: \`${result}\``);
+export const module: SlashCommand = {
+	name: "dice",
+	description: "dice.description",
+	options: [
+		{
+			name: "n",
+			description: "dice.nDescription",
+			type: "INTEGER",
+			min_value: 1,
+			max_value: 1000
+		}, {
+			name: "faces",
+			description: "dice.facesDescription",
+			type: "INTEGER",
+			min_value: 1,
+			max_value: 0x198964
+		}, {
+			name: "offset",
+			description: "dice.offsetDescription",
+			descriptionRaw: true,
+			type: "INTEGER",
+			optional: true
 		}
+	],
+	onCommand: async (interaction) => {
+		const n = interaction.options.getInteger("n", true);
+		const faces = interaction.options.getInteger("faces", true);
+		const offset = interaction.options.getInteger("offset") ?? 0;
+
+		let result = 0;
+		for (let i = 0; i < n; i++) {
+			result += utils.random(1, faces);
+		}
+		result += offset;
+		return await interaction.reply(getString("dice.roll", interaction.getLocale(), { faces, n, offsetStr: (!isNaN(offset) ? getString("dice.offset", interaction.getLocale(), { offset }) : ""), result }));
 	}
 };

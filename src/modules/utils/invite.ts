@@ -1,12 +1,9 @@
-import { Module, ModuleActionArgument } from '@type/Module';
+import { SlashCommand } from "@type/SlashCommand";
 
-export const module: Module = {
-	trigger: ["invite"],
-	event: "messageCreate",
-	eval: {
-		"id": "client.user.id"
-	},
-	action: async (obj: ModuleActionArgument) => {
-		return obj.message.reply(`<https://discordapp.com/oauth2/authorize?&client_id=${obj.eval!.id}&scope=bot&permissions=523328>`);
+export const module: SlashCommand = {
+	name: "invite",
+	description: "Get the invite link of this bot.",
+	onCommand: async (interaction) => {
+		return await interaction.reply(`<https://discordapp.com/oauth2/authorize?&client_id=${interaction.client.user!.id}&scope=bot&permissions=523328>`);
 	}
 };

@@ -3,8 +3,7 @@ import { ContextMenuCommand } from "@type/SlashCommand";
 import { MessageEmbed } from 'discord.js';
 
 export const module: ContextMenuCommand = {
-	name: "avatar",
-	description: "",
+	name: "avatar.name",
 	type: "USER",
 	onContextMenu: async (interaction) => {
 		const user = interaction.getUser();

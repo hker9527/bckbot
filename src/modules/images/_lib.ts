@@ -1,6 +1,14 @@
 import { Singleton } from "@app/Singleton";
 import { Collection, Message } from "discord.js";
 
+export const findImagesFromMessage = (message: Message) => {
+	// Attachment shows first, then embeds.
+	return [
+		...message.attachments.map(attachment => attachment.url),
+		...message.embeds.filter(embed => embed.thumbnail || embed.image).map(embed => embed.thumbnail?.url ?? embed.image?.url ?? embed.url)
+	];
+}
+
 export const findImageFromMessages = (index: number, msgs: Collection<string, Message>) => {
 	// Precedence: URL > Embeds > Attachments
 

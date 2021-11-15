@@ -1,47 +1,52 @@
 import { getString } from "@app/i18n";
-import * as utils from '@app/utils';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { random, round } from "@app/utils";
+import { SlashCommand } from "@type/SlashCommand";
 
 function shuffleArray(array: any[]) {
 	for (let i = array.length - 1; i > 0; i--) {
-		let j = utils.random(0, i);
+		let j = random(0, i);
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 }
 
-export const module: Module = {
-	trigger: ["cho", "choice", "choices"],
-	event: "messageCreate",
-	argv: {
-		"choices": [ArgumentRequirement.Required, ArgumentRequirement.Concat]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		const argv = obj.argv!.choices.split(" ").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
+export const module: SlashCommand = {
+	name: "choice",
+	description: "Curbs your decidophobia",
+	options: [{
+		name: "choices",
+		description: "Choices",
+		type: "STRING"
+	}],
+	onCommand: async (interaction) => {
+		const argv = interaction.options.getString("choices", true).split(" ").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
 
 		if (argv.length < 2) {
-			return await obj.message.reply(getString("choice.notEnoughChoices", obj.message.getLocale()));
+			return await interaction.reply(getString("choice.notEnoughChoices", interaction.getLocale()));
 		}
 
 		const last = argv.pop()!;
 		shuffleArray(argv);
 
 		let pMax = 1;
-		type Option = [string, number];
+		type Option = {
+			name: string,
+			p: number;
+		};
 
 		const o: Option[] = [];
 
 		for (const i in argv) {
-			const p = utils.random(0, pMax * 100000) / 100000;
-			o.push([argv[i], p]);
+			const p = random(0, pMax * 100000) / 100000;
+			o.push({ name: argv[i], p });
 			pMax = pMax - p;
 		}
-		o.push([last, pMax]);
+		o.push({ name: last, p: pMax });
 
-		return await obj.message.reply(getString("choice.result", obj.message.getLocale(), {
+		return await interaction.reply(getString("choice.result", interaction.getLocale(), {
 			result: o.sort((a: Option, b: Option) => {
-				return b[1] - a[1];
+				return b.p - a.p;
 			}).map((a: Option) => {
-				return a[0] + " (" + utils.round(a[1] * 100, 3) + "%)";
+				return a.name + " (" + round(a.p * 100, 3) + "%)";
 			}).join(" ")
 		}));
 	}

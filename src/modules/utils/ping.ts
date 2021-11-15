@@ -1,9 +1,9 @@
-import { Module, ModuleActionArgument } from '@type/Module';
+import { SlashCommand } from "@type/SlashCommand";
 
-export const module: Module = {
-	trigger: ["ping"],
-	event: "messageCreate",
-	action: async (obj: ModuleActionArgument) => {
-		return await obj.message.reply("Pong!");
+export const module: SlashCommand = {
+	name: "ping",
+	description: "Ping pong!",
+	onCommand: async (interaction) => {
+		return await interaction.reply("Pong!");
 	}
 };
