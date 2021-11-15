@@ -12,6 +12,10 @@ declare global {
 	interface Array<T> {
 		unique(): Array<T>;
 	}
+
+	interface BigInt {
+		toJSON(): string
+	}
 }
 
 Number.prototype.inRange = function (a: number, b: number) {
@@ -31,6 +35,10 @@ Array.prototype.unique = function () {
 	return [...new Set(this)];
 };
 
+BigInt.prototype.toJSON = function () {
+	return this.toString();
+}
+
 declare module "discord.js" {
 	interface Message {
 		getLocale(): Languages;
@@ -47,12 +55,12 @@ declare module "discord.js" {
 
 	interface Channel {
 		getLocale(): Languages;
-		setLocale(language: Languages): void;
+		setLocale(language?: Languages): void;
 	}
 
 	interface Guild {
 		getLocale(): Languages;
-		setLocale(language: Languages): void;
+		setLocale(language?: Languages): void;
 	}
 }
 
@@ -76,14 +84,22 @@ Channel.prototype.getLocale = function () {
 	return Singleton.db.data!.language.channels[this.id];
 };
 
-Channel.prototype.setLocale = function (language) {
-	Singleton.db.data!.language.channels[this.id] = language;
+Channel.prototype.setLocale = function (language?) {
+	if (language) {
+		Singleton.db.data!.language.channels[this.id] = language;
+	} else {
+		delete Singleton.db.data!.language.channels[this.id];
+	}
 };
 
 Guild.prototype.getLocale = function () {
 	return Singleton.db.data!.language.guilds[this.id];
 };
 
-Guild.prototype.setLocale = function (language) {
-	Singleton.db.data!.language.guilds[this.id] = language;
+Guild.prototype.setLocale = function (language?) {
+	if (language) {
+		Singleton.db.data!.language.guilds[this.id] = language;
+	} else {
+		delete Singleton.db.data!.language.guilds[this.id];
+	}
 };
