@@ -5,6 +5,7 @@ import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module'
 import { SankakuApiResponse } from '@type/api/Sankaku';
 import { YandereApiResponse } from '@type/api/Yandere';
 import { MessageEmbed, TextChannel } from 'discord.js';
+import { getString, Languages } from "@app/i18n";
 
 export enum ApiPortal {
 	kon = "https://konachan.com/post.json",
@@ -86,26 +87,22 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 	}
 };
 
-export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
+export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false, locale: Languages) => {
 	const embed = new MessageEmbed()
-		.setAuthor("搜尋結果", "https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_" + provider[0].toUpperCase() + "-64.png")
+		.setAuthor(getString('moebooru.searchResult', locale), `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`)
 		.setColor(({
 			s: 0x7df28b,
 			q: 0xe4ea69,
 			e: 0xd37a52
 		})[imageObject.rating])
-		.addField("ID", `[${imageObject.id}](${({
+		.addField("Post", `[${imageObject.id}](${({
 			kon: `https://konachan.com/post/show/${imageObject.id}`,
 			yan: `https://yande.re/post/show/${imageObject.id}`,
 			dan: `https://danbooru.donmai.us/posts/${imageObject.id}`,
 			san: `https://sankaku.app/post/show/${imageObject.id}`
 		})[provider]})`, true)
-		.addField("Dimensions", `${imageObject.width} x ${imageObject.height}`, true)
-		.addField("來源: ", (
-			typeof imageObject.source === "string" && imageObject.source.length > 0 ?
-				imageObject.source.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") :
-				"(未知)"
-		))
+		.addField(getString('moebooru.dimensions', locale), `${imageObject.width} x ${imageObject.height}`, true)
+		.addField(getString('moebooru.sourceHeader', locale), imageObject.source?.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") ?? "(未知)")
 		.setTimestamp(imageObject.created_at);
 
 	if (showImage && (imageObject.rating != "s" || nsfw) && imageObject.file_url) {
@@ -133,7 +130,7 @@ export const module: Module = {
 		const imageObject = utils.randomArrayElement(list);
 
 		return await obj.message.reply({
-			embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw)]
+			embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale())]
 		});
 	}
 };
