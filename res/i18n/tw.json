@@ -1,15 +1,19 @@
 {
 	"avatar": {
-		"memberNotFound": "找不到該成員！",
-		"avatarNotFound": "該成員沒有頭像！"
+		"avatarNotFound": "該成員沒有頭像！",
+		"name": "頭像"
 	},
 	"choice": {
-		"notEnoughChoices": "提供的選擇不足",
+		"notEnoughChoices": "提供的選擇不足！",
 		"result": "結果： {{result}}"
 	},
 	"index": {
 		"stillLoading": "模組正在載入！",
-		"argvError": "找不到位置{{position}}的參數`{{argName}}`！\n用法: `b!{{trigger}} {{usage}}`"
+		"argvError": "找不到位置{{position}}的參數`{{argName}}`！\n用法: `b!{{trigger}} {{usage}}`",
+		"legacyPrompt": {
+			"contextMenuCommand": "請在{{target}}上右鍵，並選擇{{command}}。",
+			"slashCommand": "請使用/{{command}}。"
+		}
 	},
 	"magicball": {
 		"answer0": "這是必然。",
@@ -41,7 +45,39 @@
 		"stat.notLinked": "該用戶沒有連結Osu!賬號！",
 		"stat.retrieving": "獲取資訊..."
 	},
-	"roll": "`{{points}}` 點。",
+	"roll": {
+		"roll": "`{{points}}` 點。"
+	},
 	"scam": "🚨偵測到潛在有害鏈接 `{{link}}` ！\n風險類別：`{{threatType}}`\n影響平台：`{{platformType}}`",
-	"slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。"
+	"slap": {
+		"slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。",
+		"description": "賞他一巴掌！",
+		"toolDescription": "用什麼扇他",
+		"victimDescription": "要扇誰"
+	},
+	"sauce": {
+		"confidenceLevel": "信心值：{{similarity}}%",
+		"invalidUrl": "找不到可用圖片！",
+		"noSauce": "找不到圖源！",
+		"postNotFound": "找不到{{url}}的圖源！",
+		"unknown": "不懂這是蝦米碗糕...\n```json\n{{json}}```",
+		"name": "抓圖源"
+	},
+	"mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。四個角一定沒有地雷。\n{{mineField}}",
+	"pixiv": {
+		"descriptionHeader": "說明：",
+		"descriptionPlaceholder": "（無）",
+		"imageNotFound": "找不到編號為{{id}}的圖片",
+		"sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\\t[作者: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
+		"sauceHeader": "圖源：",
+		"titlePlaceholder": "Pixiv圖片"
+	},
+	"dice": {
+		"offsetDescription": "偏移量",
+		"roll": "`{{n}}`個`{{faces}}`面骰子{{offsetStr}}的結果：\n`{{result}}`",
+		"offset": "加上$t(dice.offsetDescription)`{{offset}}`"
+	},
+	"i18n": {
+		"success": "已切換語言。"
+	}
 }

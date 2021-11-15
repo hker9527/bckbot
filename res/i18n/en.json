@@ -1,15 +1,19 @@
 {
 	"avatar": {
-		"memberNotFound": "Member not found!",
-		"avatarNotFound": "The user has no avatar!"
+		"avatarNotFound": "The user has no avatar!",
+		"name": "avatar"
 	},
 	"choice": {
-		"notEnoughChoices": "Not enough choices",
+		"notEnoughChoices": "Not enough choices!",
 		"result": "Result: {{result}}"
 	},
 	"index": {
 		"stillLoading": "Module is still loading!",
-		"argvError": "Required argument `{{argName}}` at position {{position}} not found!\nUsage: `b!{{trigger}} {{usage}}`"
+		"argvError": "Required argment `{{argName}}` at position {{position}} not found!\nUsage: `b!{{trigger}} {{usage}}`",
+		"legacyPrompt": {
+			"contextMenuCommand": "Please use the context menu on target {{target}} and select {{command}}.",
+			"slashCommand": "Please use /{{command}} instead."
+		}
 	},
 	"magicball": {
 		"answer0": "It is certain.",
@@ -34,6 +38,7 @@
 		"answer19": "Very doubtful."
 	},
 	"migrate": "The bot is currently migrating into a newer structure. As a result, some commands are disabled.\nYou can follow the progress at <https://github.com/hker9527/bckbot>",
+	"mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. The 4 corners are always safe.\n{{mineField}}",
 	"osu": {
 		"modeName0": "Standard",
 		"modeName1": "Taiko",
@@ -49,8 +54,50 @@
 			"retrieving": "Retrieiving..."
 		}
 	},
-	"roll": "`{{points}}` points.",
+	"roll": {
+		"roll": "`{{points}}` points.",
+		"description": "Roll a number!",
+		"upperDescription": "The maximum number",
+		"lowerDescription": "The minimum number",
+		"invalidRange": "Invalid number range {{lower}} - {{upper}}!"
+	},
 	"scam": "🚨Possibly hazardous link `{{link}}` found! \nThreat type: `{{threatType}}`\nPlatform type: `{{platformType}}`",
-	"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points.",
-	"mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. The 4 corners are always safe.\n{{mineField}}"
+	"slap": {
+		"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points.",
+		"description": "Slap the user!",
+		"victimDescription": "The target you want to slap.",
+		"toolDescription": "What to use to slap."
+	},
+	"sauce": {
+		"postNotFound": "The related post {{url}} is not found!",
+		"noSauce": "No sauce found!",
+		"invalidUrl": "No usable image found!",
+		"confidenceLevel": "Confidence level: {{similarity}}%",
+		"unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
+		"name": "Get sauce"
+	},
+	"pixiv": {
+		"imageNotFound": "No image found for id {{id}}",
+		"titlePlaceholder": "Pixiv illustration",
+		"sauceHeader": "Sauce:",
+		"sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\t[Author: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
+		"descriptionHeader": "Description;",
+		"descriptionPlaceholder": "(None)"
+	},
+	"moebooru": {
+		"searchResult": "Search Result",
+		"dimensions": "Dimensions",
+		"sourceHeader": "Source"
+	},
+	"dice": {
+		"description": "Roll a dice.",
+		"nDescription": "Number of dices",
+		"facesDescription": "How many face are there of a dice",
+		"offsetDescription": "Offset",
+		"roll": "Rolling a `{{faces}}`-faced dice for `{{n}}` times {{offsetStr}}.\nResult: `{{result}}`",
+		"offset": "with `{{offset}}` $t(dice.offsetDescription)"
+	},
+	"i18n": {
+		"success": "Switched language."
+	}
 }
