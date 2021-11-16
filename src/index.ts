@@ -1,20 +1,19 @@
-import { config } from "dotenv-safe";
-config();
-
-import 'module-alias/register';
-
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
+import { APISlashCommandFactory } from "@type/APISlashCommand";
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { CommandInteraction, Message } from 'discord.js';
-import glob from 'glob';
-import { exec } from "child_process";
-import { getString, i18init } from "./i18n";
 import { ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
+import { exec } from "child_process";
+import { Message, MessageInteraction } from 'discord.js';
+import { config } from "dotenv-safe";
+import glob from 'glob';
+import 'module-alias/register';
+import { getString, i18init } from "./i18n";
 
+config();
 injectPrototype();
 i18init();
 
@@ -29,6 +28,7 @@ try {
 	);
 
 	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
+	const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
 
 	const createDeleteAction = async (message: Message) => {
 		const collector = message.createReactionCollector({
@@ -120,7 +120,7 @@ try {
 				for (const command in slashCommands) {
 					if (message.cleanContent.startsWith(`b!${command}`)) {
 						const cmd = slashCommands[command];
-						const msg = await message.reply("onContextMenu" in cmd ? `Please use the context menu on target ${cmd.type.toLocaleLowerCase()} and select ${command}.` : `Please use /${command} for the newer support.`);
+						const msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command }));
 						await utils.sleep(5000);
 						await msg.delete();
 						return;
@@ -139,12 +139,7 @@ try {
 						if (trigger === messageTrigger || stealth) {
 							try {
 								if (!_module.loaded) {
-									await message.reply(
-										getString(
-											"index.stillLoading",
-											message.getLocale()
-										)
-									);
+									await message.reply(getString("index.stillLoading", message.getLocale()));
 									return;
 								}
 								let moduleActionArgument: ModuleActionArgument = {
@@ -166,39 +161,16 @@ try {
 											typeof argValue === "undefined"
 										) {
 											await message.reply(
-												getString(
-													"index.argvError",
-													message.getLocale(),
+												getString("index.argvError", message.getLocale(),
 													{
 														argName,
 														position: i,
 														trigger,
-														usage: argNames
-															.map((arg) => {
-																const flagOptional =
-																	module.argv![
-																		arg
-																	].includes(
-																		ArgumentRequirement.Required
-																	);
-																const flagConcat =
-																	module.argv![
-																		arg
-																	].includes(
-																		ArgumentRequirement.Concat
-																	);
-																return `${flagOptional
-																	? "["
-																	: ""
-																	}${flagConcat
-																		? "..."
-																		: ""
-																	}${arg}${flagOptional
-																		? "]"
-																		: ""
-																	}`;
-															})
-															.join(" "),
+														usage: argNames.map((arg) => {
+															const flagOptional = module.argv![arg].includes(ArgumentRequirement.Required);
+															const flagConcat = module.argv![arg].includes(ArgumentRequirement.Concat);
+															return `${flagOptional ? "[" : ""}${flagConcat ? "..." : ""}${arg}${flagOptional ? "]" : ""}`;
+														}).join(" ")
 													}
 												)
 											);
@@ -206,12 +178,8 @@ try {
 										}
 										if (argValue && argValue.length)
 											moduleActionArgument.argv[argName] =
-												module.argv[argName].includes(
-													ArgumentRequirement.Concat
-												)
-													? messageArgs
-														.slice(i + 1)
-														.join(" ")
+												module.argv[argName].includes(ArgumentRequirement.Concat)
+													? messageArgs.slice(i + 1).join(" ")
 													: argValue;
 									}
 								}
@@ -246,14 +214,28 @@ try {
 			});
 		}
 
+		// if (process.argv[2] === "dev") {
+		// Faster propagation
 		for (const [_, guild] of client.guilds.cache) {
-			guild.commands.set(Object.values(slashCommands));
+			const map: Dictionary<string> = {};
+
+			for (const commandName in slashCommands) {
+				const commandNameLocalized = commandName.includes(".") ? getString(commandName, guild.getLocale()) : commandName; // Prevent direct object access getString(commandName, guild.getLocale());
+				map[commandNameLocalized] = commandName;
+			}
+			const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandFactory(slashCommand, guild.getLocale())));
+			for (const [_, command] of commands) {
+				APICommands[command.id] = slashCommands[map[command.name]];
+			}
+			// await utils.sleep(500);
 		}
+		// } else {
+		// 	client.application!.commands.set(Object.values(slashCommands));
+		// }
 
 		client.on("interactionCreate", async (interaction) => {
 			if (interaction.isCommand() || interaction.isContextMenu()) {
-				const source = interaction.commandName;
-				const command = slashCommands[source];
+				const command = APICommands[interaction.commandId];
 				if (command) {
 					if (interaction.isCommand() && "onCommand" in command)
 						return await command.onCommand(interaction);
@@ -261,8 +243,7 @@ try {
 						return await command.onContextMenu(interaction);
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
-				const source = (interaction.message.interaction! as CommandInteraction).commandName;
-				const command = slashCommands[source];
+				const command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
 				if (command) {
 					if (interaction.isButton() && command.onButton)
 						return await command.onButton(interaction);
@@ -294,7 +275,7 @@ try {
 					module: tmp,
 					loaded: false,
 				};
-			} else if ("description" in _module) {
+			} else if ("name" in _module) {
 				tmp = _module as SlashCommand;
 				slashCommands[tmp.name] = tmp;
 			} else {
