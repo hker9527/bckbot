@@ -14,6 +14,9 @@ export enum ArgumentRequirement {
 	Concat
 }
 
+/**
+ * @deprecated Use slash command instead if possible.
+ */
 export type Module = {
 	trigger: string[],
 	argv?: Dictionary<ArgumentRequirement[]>,
