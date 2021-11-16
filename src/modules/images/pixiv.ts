@@ -3,6 +3,7 @@ import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module'
 import { PixivApiResponse } from '@type/api/Pixiv';
 import { MessageEmbed, TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
+import { getString, Languages } from "@app/i18n";
 
 export const pimg = (url: string) => {
 	return url.replace("i.pximg.net", "i.pixiv.cat");
@@ -14,7 +15,7 @@ export const fetchInfo = async (illust_id: string) => {
 
 		if (Array.isArray(res.body)) {
 			if (res.message === "該当作品は削除されたか、存在しない作品IDです。") {
-				throw new Error(`No image found for id ${illust_id} (${res.message})`);
+				throw `No image found for id ${illust_id} (${res.message})`;
 			}
 			utils.report("res: " + JSON.stringify(res));
 			return null;
@@ -41,7 +42,7 @@ export const fetchInfo = async (illust_id: string) => {
 	}
 };
 
-export const genEmbed = async (illust_id: string, show_image = true, nsfw = false) => {
+export const genEmbed = async (illust_id: string, show_image = true, nsfw = false, locale: Languages) => {
 	const illust = await fetchInfo(illust_id);
 	if (illust === null) {
 		return null;
@@ -49,19 +50,19 @@ export const genEmbed = async (illust_id: string, show_image = true, nsfw = fals
 
 	return new MessageEmbed()
 		.setAuthor(
-			(illust.title || "Pixiv圖片") + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : ""),
+			(illust.title || getString('pixiv.titlePlaceholder', locale)) + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : ""),
 			"https://s.pximg.net/www/images/pixiv_logo.gif"
 		)
 		.setColor(illust.restrict ? 0xd37a52 : 0x3D92F5)
 		.setTimestamp(new Date(illust.date))
 		.setImage((show_image && !(illust.restrict && !nsfw)) ? `https://pixiv.cat/${illust_id}${(illust.pageCount > 1 ? "-1" : "")}.jpg` : "")
 		.addField(
-			"Sauce: ",
-			"[ID: " + illust_id + "](https://www.pixiv.net/member_illust.php?mode=medium&illust_id=" + illust_id + ")\t[作者: " + illust.author.name + "]( https://www.pixiv.net/member.php?id=" + illust.author.id + ")"
+			getString('pixiv.sauceHeader', locale),
+			getString('pixiv.sauceContent', locale, { illust_id, author: illust.author.name, author_id: illust.author.id })
 		)
 		.addField(
-			"說明: ",
-			illust.description || "(無)"
+			getString('pixiv.descriptionHeader', locale),
+			illust.description || getString('pixiv.descriptionPlaceholder', locale)
 		);
 };
 
@@ -84,7 +85,7 @@ export const module: Module = {
 		}
 
 		if (!isNaN(parseInt(illust_id))) {
-			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw);
+			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale());
 			if (embed) {
 				try {
 					await obj.message.suppressEmbeds(true);
@@ -94,7 +95,7 @@ export const module: Module = {
 				}
 			} else {
 				if (!stealth) {
-					return await obj.message.reply("Can't find it");
+					return await obj.message.reply(getString('pixiv.imageNotFound', obj.message.getLocale(), { id: illust_id }));
 				}
 			}
 			return false;
