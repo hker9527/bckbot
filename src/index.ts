@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
@@ -10,7 +11,6 @@ import { exec } from "child_process";
 import { Message, MessageInteraction } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
-import 'module-alias/register';
 import { getString, i18init } from "./i18n";
 
 config();
