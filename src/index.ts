@@ -117,10 +117,11 @@ try {
 					result;
 
 				// Prompt if user tried to use legacy method
-				for (const command in slashCommands) {
+				for (const _command in slashCommands) {
+					const command = _command.replace(".name", "");
 					if (message.cleanContent.startsWith(`b!${command}`)) {
-						const cmd = slashCommands[command];
-						const msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command }));
+						const cmd = slashCommands[_command];
+						const msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						await utils.sleep(5000);
 						await msg.delete();
 						return;
