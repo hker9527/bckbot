@@ -1,5 +1,5 @@
-import * as utils from '@app/utils';
-import { Database } from '@type/Database';
+import { arr2obj, enumStringKeys, report } from '@app/utils';
+import { Currencies, Database } from '@type/Database';
 import { Dictionary } from '@type/Dictionary';
 import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from 'discord.js';
 import { JSONFileSync, LowSync } from 'lowdb';
@@ -29,7 +29,7 @@ export const Singleton: {
 				}
 			}
 		});
-		
+
 		logger
 			.command("send [chid] [msg...]", "Send message.")
 			.autocomplete({
@@ -50,17 +50,17 @@ export const Singleton: {
 				}
 			})
 			.alias("say");
-		
+
 		logger.find("exit").remove();
 		logger
 			.command("exit", "Stop server.")
 			.action(async () => {
 				Singleton.client.destroy();
-				utils.report("Bot closed.");
+				report("Bot closed.");
 				process.exit();
 			})
 			.alias("quit");
-		
+
 		(logger as any)
 			.mode("eval")
 			.delimiter("<eval>")
@@ -76,8 +76,8 @@ export const Singleton: {
 						logger.log(e.toString());
 				}
 			});
-		
-			return logger;
+
+		return logger;
 	})(),
 	client: new Discord.Client({
 		intents: [
@@ -97,12 +97,20 @@ export const Singleton: {
 		db.read();
 
 		// Set default value
+		const a = enumStringKeys(Currencies).map(c => c as keyof typeof Currencies);
 		db.data ||= {
 			language: {
 				guilds: {},
 				channels: {}
 			},
-			osuLink: {}
+			osuLink: {},
+			currency: arr2obj(
+				enumStringKeys(Currencies),
+				enumStringKeys(Currencies).map(a => arr2obj(
+					enumStringKeys(Currencies),
+					enumStringKeys(Currencies).map(b => 0)
+				))
+			) as Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>
 		};
 
 		// Sync worker
