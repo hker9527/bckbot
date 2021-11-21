@@ -2,7 +2,7 @@ import 'module-alias/register';
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
-import { APISlashCommandFactory } from "@type/APISlashCommand";
+import { APISlashCommandFactory } from "@app/Factory";
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
