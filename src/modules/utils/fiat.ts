@@ -5,7 +5,6 @@ import { SlashCommand } from '@type/SlashCommand';
 import assert from "assert";
 import { MessageEmbed } from 'discord.js';
 
-let lastUpdate: Date;
 let data = Singleton.db.data!.currency;
 
 async function worker() {
@@ -13,16 +12,16 @@ async function worker() {
 	try {
 		for (let i in data) {
 			const c1 = i as keyof typeof Currencies;
-			for (let j in data[c1]) {
+			for (let j in data.data[c1]) {
 				const c2 = j as keyof typeof Currencies;
 				response = await req2json(`https://free.currconv.com/api/v7/convert?q=${i}_${j},${j}_${i}&compact=ultra&apiKey=${process.env.currency}`);
 				assert(!isNaN(response[`${i}_${j}`]) && !isNaN(response[`${j}_${i}`]));
-				data[c1][c2] = response[`${i}_${j}`];
-				data[c2][c1] = response[`${j}_${i}`];
+				data.data[c1][c2] = response[`${i}_${j}`];
+				data.data[c2][c1] = response[`${j}_${i}`];
 			}
 		}
 
-		lastUpdate = new Date();
+		data.lastUpdate = new Date();
 		return true;
 	} catch (e) {
 		return false;
@@ -73,10 +72,14 @@ export const module: SlashCommand = {
 				},
 				...enumStringKeys(Currencies).filter(currency => currency != source && ((target != null && currency == target) || target == null)).map(currency => ({
 					name: currency,
-					value: round(data[source][currency as keyof typeof Currencies] * amount, 2).toString(),
+					value: round(data.data[source][currency as keyof typeof Currencies] * amount, 2).toString(),
 					inline: true
 				}))
-			]
+			],
+			footer: {
+				text: "Updated at",
+			},
+			timestamp: data.lastUpdate
 		});
 		return await interaction.reply({
 			embeds: [embed]

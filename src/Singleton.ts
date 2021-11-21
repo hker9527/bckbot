@@ -104,13 +104,16 @@ export const Singleton: {
 				channels: {}
 			},
 			osuLink: {},
-			currency: arr2obj(
-				enumStringKeys(Currencies),
-				enumStringKeys(Currencies).map(a => arr2obj(
+			currency: {
+				data: arr2obj(
 					enumStringKeys(Currencies),
-					enumStringKeys(Currencies).map(b => 0)
-				))
-			) as Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>
+					enumStringKeys(Currencies).map(a => arr2obj(
+						enumStringKeys(Currencies),
+						enumStringKeys(Currencies).map(b => 0)
+					))
+				) as Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>,
+				lastUpdate: new Date()
+			}
 		};
 
 		// Sync worker

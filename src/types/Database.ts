@@ -12,5 +12,8 @@ export type Database = {
 		channels: Dictionary<Languages>;
 	},
 	osuLink: Dictionary<string>,
-	currency: Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>
+	currency: {
+		data: Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>,
+		lastUpdate: Date
+	}
 };
