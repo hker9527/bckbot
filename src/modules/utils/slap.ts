@@ -10,7 +10,7 @@ export const module: SlashCommand = {
 		{
 			name: "victim",
 			description: "slap.victimDescription",
-			type: "USER"
+			type: "STRING"
 		}, {
 			name: "tool",
 			description: "slap.toolDescription",
@@ -22,7 +22,7 @@ export const module: SlashCommand = {
 		return await interaction.reply(
 			getString("slap.slap", interaction.getLocale(), {
 				slapper: interaction.member!.toString(),
-				victim: interaction.options.getUser("victim")!.toString(),
+				victim: interaction.options.getString("victim", true),
 				// TODO: Fix emoji that cannot display (message.react?)
 				tool: (interaction.options.getString("tool") ?? emoji.random().emoji),
 				damage: utils.urandom(
