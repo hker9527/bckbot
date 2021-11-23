@@ -250,6 +250,7 @@ try {
 				}
 			}
 
+			worker();
 			// await utils.sleep(500);
 		}
 		// } else {
