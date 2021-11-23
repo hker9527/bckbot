@@ -8,7 +8,7 @@ import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
 import { exec } from "child_process";
-import { Message, MessageInteraction } from 'discord.js';
+import { Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
 import { getString, i18init } from "./i18n";
@@ -31,11 +31,11 @@ try {
 	const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
 	const slashCommandGuildAvailability: Dictionary<boolean> = {};
 
-	const createDeleteAction = async (message: Message) => {
+	const createDeleteAction = async (message: Message, author: User | null = null) => {
 		const collector = message.createReactionCollector({
 			filter: (reaction, user) => {
 				const emojiIsBin = reaction.emoji.name === '🗑️';
-				const reactorIsAuthor = user === message.author;
+				const reactorIsAuthor = user === (author || message.author);
 				const reactorIsSelf = user === client.user;
 				if (emojiIsBin && !reactorIsAuthor && reactorIsSelf) {
 					reaction.remove();
@@ -130,8 +130,7 @@ try {
 							const cmd = slashCommands[_command];
 							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						}
-						await utils.sleep(5000);
-						await msg.delete();
+						await createDeleteAction(msg, message.author);					
 						return;
 					}
 				}
