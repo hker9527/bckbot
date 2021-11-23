@@ -12,7 +12,8 @@
     "argvError": "Required argment `{{argName}}` at position {{position}} not found!\nUsage: `b!{{trigger}} {{usage}}`",
     "legacyPrompt": {
       "contextMenuCommand": "Please use the context menu on target {{target}} and select \"$t({{command}})\".",
-      "slashCommand": "Please use /{{command}} instead."
+      "slashCommand": "Please use /{{command}} instead.",
+      "missingPermission": "The bot is updated to the newest slash command feature, but it fails to register in your guild.\nContact administrator to update the bot's permission by clicking the link.\nLink: <https://discordapp.com/oauth2/authorize?&client_id={{id}}&scope=bot%20applications.commands&permissions=523328>`"
     }
   },
   "magicball": {

@@ -12,7 +12,8 @@
     "argvError": "找不到位置{{position}}的參數`{{argName}}`！\n用法: `b!{{trigger}} {{usage}}`",
     "legacyPrompt": {
       "contextMenuCommand": "請在目標{{target}}上右鍵，並選擇｢$t({{command}})｣。",
-      "slashCommand": "請使用/{{command}}。"
+      "slashCommand": "請使用/{{command}}。",
+      "missingPermission": "本機器人已更新為斜槓命令。\n請聯繫管理員按下連結，讓機器人更新權限。\n網址：<https://discordapp.com/oauth2/authorize?&client_id={{id}}&scope=bot%20applications.commands&permissions=523328>`"
     }
   },
   "magicball": {

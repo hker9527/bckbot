@@ -29,6 +29,7 @@ try {
 
 	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
 	const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
+	const slashCommandGuildAvailability: Dictionary<boolean> = {};
 
 	const createDeleteAction = async (message: Message) => {
 		const collector = message.createReactionCollector({
@@ -120,8 +121,15 @@ try {
 				for (const _command in slashCommands) {
 					const command = _command.replace(".name", "");
 					if (message.cleanContent.startsWith(`b!${command}`)) {
-						const cmd = slashCommands[_command];
-						const msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
+						let msg: Message;
+						if (!slashCommandGuildAvailability[message.guild!.id]) {
+							msg = await message.reply(getString("index.legacyPrompt.missingPermission", message.getLocale(), {
+								id: Singleton.client.user!.id
+							}));
+						} else {
+							const cmd = slashCommands[_command];
+							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
+						}
 						await utils.sleep(5000);
 						await msg.delete();
 						return;
@@ -218,16 +226,30 @@ try {
 		// if (process.argv[2] === "dev") {
 		// Faster propagation
 		for (const [_, guild] of client.guilds.cache) {
-			const map: Dictionary<string> = {};
+			const worker = async () => {
+				if (slashCommandGuildAvailability[guild.id]) return;
 
-			for (const commandName in slashCommands) {
-				const commandNameLocalized = commandName.includes(".") ? getString(commandName, guild.getLocale()) : commandName; // Prevent direct object access getString(commandName, guild.getLocale());
-				map[commandNameLocalized] = commandName;
+				try {
+					await guild.commands.fetch(); // Check for permissions
+					slashCommandGuildAvailability[guild.id] = true;
+				} catch (e) {
+					slashCommandGuildAvailability[guild.id] = false;
+					setTimeout(worker, 1000 * 60 * 5);
+					return;
+				}
+
+				const map: Dictionary<string> = {};
+
+				for (const commandName in slashCommands) {
+					const commandNameLocalized = commandName.includes(".") ? getString(commandName, guild.getLocale()) : commandName; // Prevent direct object access getString(commandName, guild.getLocale());
+					map[commandNameLocalized] = commandName;
+				}
+				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandFactory(slashCommand, guild.getLocale())));
+				for (const [_, command] of commands) {
+					APICommands[command.id] = slashCommands[map[command.name]];
+				}
 			}
-			const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandFactory(slashCommand, guild.getLocale())));
-			for (const [_, command] of commands) {
-				APICommands[command.id] = slashCommands[map[command.name]];
-			}
+
 			// await utils.sleep(500);
 		}
 		// } else {
