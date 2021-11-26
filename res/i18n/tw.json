@@ -69,7 +69,7 @@
     "descriptionHeader": "說明：",
     "descriptionPlaceholder": "（無）",
     "imageNotFound": "找不到編號為{{id}}的圖片",
-    "sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\\t[作者: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
+    "sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\t[作者: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
     "sauceHeader": "圖源：",
     "titlePlaceholder": "Pixiv圖片"
   },
