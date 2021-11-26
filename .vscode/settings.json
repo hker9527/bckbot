@@ -1,0 +1,7 @@
+{
+	"i18n-ally.localesPaths": [
+		"res/i18n",
+		"bin/modules/i18n",
+		"src/modules/i18n"
+	]
+}
