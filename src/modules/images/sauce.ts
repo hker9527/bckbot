@@ -79,7 +79,7 @@ export const module: ContextMenuCommand = {
 					if (embed) {
 						return await interaction.editReply({
 							content: (similarity < 70 ? "||" : "") + getString("sauce.confidenceLevel", message.getLocale(), { similarity }) + (similarity < 70 ? " ||" : ""),
-							embeds: [embed]
+							embeds: [embed.setThumbnail(url)]
 						});
 					}
 				}
