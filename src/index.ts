@@ -222,8 +222,6 @@ try {
 			});
 		}
 
-		// if (process.argv[2] === "dev") {
-		// Faster propagation
 		for (const [_, guild] of client.guilds.cache) {
 			const worker = async () => {
 				if (slashCommandGuildAvailability[guild.id]) return;
@@ -232,6 +230,7 @@ try {
 					await guild.commands.fetch(); // Check for permissions
 					slashCommandGuildAvailability[guild.id] = true;
 				} catch (e) {
+					logger.log(`Register slash command failed for guild ${guild.name}`);
 					slashCommandGuildAvailability[guild.id] = false;
 					setTimeout(worker, 1000 * 60 * 5);
 					return;
@@ -250,11 +249,7 @@ try {
 			}
 
 			worker();
-			// await utils.sleep(500);
 		}
-		// } else {
-		// 	client.application!.commands.set(Object.values(slashCommands));
-		// }
 
 		client.on("interactionCreate", async (interaction) => {
 			if (interaction.isCommand() || interaction.isContextMenu()) {
