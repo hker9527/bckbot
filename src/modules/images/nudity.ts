@@ -49,12 +49,12 @@ export const module: ContextMenuCommand = {
 			image: url
 		});
 
-		const score = utils.round(resp.output.nsfw_score);
+		const score = utils.round(resp.output.nsfw_score * 100);
 		return await interaction.editReply(
 			{
 				embeds: [{
-					color: colorByRatio(score),
-					title: `${score * 100}%`,
+					color: colorByRatio(score / 100),
+					title: `${score}%`,
 					thumbnail: { url },
 					fields: resp.output.detections.length ?
 						[
@@ -62,7 +62,7 @@ export const module: ContextMenuCommand = {
 								name: getString("nudity.items", interaction.getLocale()),
 
 								value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
-									`(${utils.round(detection.confidence) * 100}%) ${detection.name}`
+									`(${utils.round(detection.confidence * 100)}%) ${detection.name}`
 								).join("\n")
 							}
 						] : undefined
