@@ -2,7 +2,7 @@ import 'module-alias/register';
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
-import { APISlashCommandFactory } from "@app/Factory";
+import { APISlashCommandAdapter } from "@app/Adapters";
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
@@ -243,7 +243,7 @@ try {
 					const commandNameLocalized = commandName.includes(".") ? getString(commandName, guild.getLocale()) : commandName; // Prevent direct object access getString(commandName, guild.getLocale());
 					map[commandNameLocalized] = commandName;
 				}
-				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandFactory(slashCommand, guild.getLocale())));
+				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandAdapter(slashCommand, guild.getLocale())));
 				for (const [_, command] of commands) {
 					APICommands[command.id] = slashCommands[map[command.name]];
 				}

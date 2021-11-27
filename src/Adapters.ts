@@ -2,7 +2,7 @@ import { getString, Languages } from "@app/i18n";
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionData, BaseMessageComponentOptions, MessageActionRowOptions, MessageButton, MessageSelectMenu } from "discord.js";
 import { ContextMenuCommand, MessageComponentActionRow, SlashCommand } from "./types/SlashCommand";
 
-export const APISlashCommandFactory = (command: SlashCommand | ContextMenuCommand, locale: Languages): ApplicationCommandDataResolvable => {
+export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuCommand, locale: Languages): ApplicationCommandDataResolvable => {
 	return {
 		name: command.name.includes(".") ? getString(command.name, locale) : command.name, // Prevent direct object access
 		description: getString("description" in command ? command.description : "", locale),
@@ -21,7 +21,7 @@ export const APISlashCommandFactory = (command: SlashCommand | ContextMenuComman
 	};
 };
 
-export const APIMessageComponentFactory = (rows: Array<MessageComponentActionRow>): (Required<BaseMessageComponentOptions> & MessageActionRowOptions)[] => {
+export const APIMessageComponentAdapter = (rows: Array<MessageComponentActionRow>): (Required<BaseMessageComponentOptions> & MessageActionRowOptions)[] => {
 	return rows.map(row => {
 		return {
 			type: "ACTION_ROW",
