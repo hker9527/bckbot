@@ -6,7 +6,7 @@ export const findImagesFromMessage = (message: Message) => {
 	return [
 		...message.attachments.map(attachment => attachment.url),
 		...message.embeds.filter(embed => embed.thumbnail || embed.image).map(embed => embed.thumbnail?.url ?? embed.image?.url ?? embed.url)
-	];
+	] as string[];
 }
 
 export const findImageFromMessages = (index: number, msgs: Collection<string, Message>) => {
