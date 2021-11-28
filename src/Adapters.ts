@@ -1,6 +1,7 @@
 import { getString, Languages } from "@app/i18n";
+import { MessageComponentActionRow } from "@type/MessageComponents";
 import { ApplicationCommandDataResolvable, ApplicationCommandOptionData, BaseMessageComponentOptions, MessageActionRowOptions, MessageButton, MessageSelectMenu } from "discord.js";
-import { ContextMenuCommand, MessageComponentActionRow, SlashCommand } from "./types/SlashCommand";
+import { ContextMenuCommand, SlashCommand } from "./types/SlashCommand";
 
 export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuCommand, locale: Languages): ApplicationCommandDataResolvable => {
 	return {
