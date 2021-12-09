@@ -15,7 +15,7 @@ export const module: ContextMenuCommand = {
 		});
 
 		if (!avatarURL) {
-			return await interaction.reply({ content: getString("avatar.avatarNotFound", interaction.getLocale()), ephemeral: true });
+			return { content: getString("avatar.avatarNotFound", interaction.getLocale()), ephemeral: true };
 		}
 
 		const embed = new MessageEmbed()
@@ -25,6 +25,6 @@ export const module: ContextMenuCommand = {
 
 		embed.setImage(avatarURL);
 
-		return await interaction.reply({ embeds: [embed], ephemeral: true });
+		return { embeds: [embed], ephemeral: true };
 	}
 };

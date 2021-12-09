@@ -9,30 +9,29 @@ import { findImagesFromMessage } from "./_lib";
 export const module: ContextMenuCommand = {
 	name: "sauce.name",
 	type: "MESSAGE",
+	defer: true,
 	onContextMenu: async (interaction) => {
-		await interaction.deferReply();
-
 		const message = interaction.getMessage();
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 
 		// Attachment shows first, then embeds.
 		const urls = findImagesFromMessage(message);
 		let url;
-		
+
 		if (!urls.length) {
-			return await interaction.editReply(getString("sauce.invalidUrl", message.getLocale()));
+			return getString("sauce.invalidUrl", message.getLocale());
 		} else if (urls.length > 1) {
 			// TODO: Give select menu for user to pick which one
 			url = urls[0];
 		} else {
-			url = urls[0];	
+			url = urls[0];
 		}
 
 		const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as SaucenaoApiResponse;
 
 		if (res.header.status === 0) {
 			if (res.results === null) {
-				return await interaction.editReply(getString("sauce.noSauce", message.getLocale()));
+				return getString("sauce.noSauce", message.getLocale());
 			}
 
 			// TODO: Select dropdown for user to check other sauces
@@ -45,7 +44,7 @@ export const module: ContextMenuCommand = {
 					if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
 						const _embed = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw, interaction.getLocale());
 						if (_embed === null) {
-							return await interaction.editReply(getString('sauce.postNotFound', message.getLocale(), { url: result.data.pixiv_id }));
+							return getString('sauce.postNotFound', message.getLocale(), { url: result.data.pixiv_id });
 						}
 						embed = _embed;
 					} else if ("creator" in result.data) { // MoebooruData
@@ -77,10 +76,10 @@ export const module: ContextMenuCommand = {
 						}
 					}
 					if (embed) {
-						return await interaction.editReply({
+						return {
 							content: (similarity < 70 ? "||" : "") + getString("sauce.confidenceLevel", message.getLocale(), { similarity }) + (similarity < 70 ? " ||" : ""),
 							embeds: [embed.setThumbnail(url)]
-						});
+						};
 					}
 				}
 				throw "Unknown";
@@ -88,10 +87,10 @@ export const module: ContextMenuCommand = {
 				// No suitable sauce found.... Default to the highest confidence one.
 				// TODO: Beautify
 
-				return await interaction.editReply(getString('sauce.unknown', message.getLocale(), { json: JSON.stringify(results[0], null, 4) }));
+				return getString('sauce.unknown', message.getLocale(), { json: JSON.stringify(results[0], null, 4) });
 			}
 		} else {
-			return await interaction.editReply(`Error: ${res.header.message}`);
+			return `Error: ${res.header.message}`;
 		}
 	}
 };

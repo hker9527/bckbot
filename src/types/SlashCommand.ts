@@ -1,21 +1,24 @@
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
-import { CommandOptionSubCommand, CommandOptionSubCommandGroup, CommandOptionString, CommandOptionNumeric, CommandOptionBoolean, CommandOptionUser } from "./CommandOptions";
+import { CommandOptionBoolean, CommandOptionNumeric, CommandOptionString, CommandOptionSubCommand, CommandOptionSubCommandGroup, CommandOptionUser } from "./CommandOptions";
+
+export type onFn<T> = (interaction: T) => Promise<Parameters<MessageComponentInteraction["reply"]>[0]>;
 
 export interface Command {
 	name: string,
-	options?: (CommandOptionSubCommand | CommandOptionSubCommandGroup | CommandOptionString | CommandOptionNumeric | CommandOptionBoolean | CommandOptionUser)[];
+	options?: (CommandOptionSubCommand | CommandOptionSubCommandGroup | CommandOptionString | CommandOptionNumeric | CommandOptionBoolean | CommandOptionUser)[],
+	defer?: boolean,
 
-	onButton?: (interaction: ButtonInteraction) => Promise<any>,
-	onMessageComponent?: (interaction: MessageComponentInteraction) => Promise<any>,
-	onSelectMenu?: (interaction: SelectMenuInteraction) => Promise<any>;
+	onButton?: onFn<ButtonInteraction>,
+	onMessageComponent?: onFn<MessageComponentInteraction>,
+	onSelectMenu?: onFn<SelectMenuInteraction>;
 };
 
 export interface SlashCommand extends Command {
 	description: string,
-	onCommand: (interaction: CommandInteraction) => Promise<any>, // TODO: unify return value
+	onCommand: onFn<CommandInteraction>,
 };
 
 export interface ContextMenuCommand extends Command {
 	type: 'MESSAGE' | 'USER',
-	onContextMenu: (interaction: ContextMenuInteraction) => Promise<any>;
+	onContextMenu: onFn<ContextMenuInteraction>;
 };

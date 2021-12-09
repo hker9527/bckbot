@@ -48,6 +48,6 @@ export const module: SlashCommand = {
 				break;
 		}
 
-		return await interaction.reply(getString("i18n.success", language === "na" ? Languages.English : language as Languages));
+		return getString("i18n.success", language === "na" ? Languages.English : language as Languages);
 	}
 };

@@ -24,11 +24,11 @@ export const module: SlashCommand = {
 		const upper = interaction.options.getInteger("upper") ?? (lower + 100);
 
 		if (lower > upper) {
-			return await interaction.reply(getString("roll.invalidRange", interaction.getLocale(), { lower, upper }));
+			return getString("roll.invalidRange", interaction.getLocale(), { lower, upper });
 		}
 
-		return await interaction.reply(getString("roll.roll", interaction.getLocale(), {
+		return getString("roll.roll", interaction.getLocale(), {
 			points: utils.random(lower, upper)
-		}));
+		});
 	}
 };

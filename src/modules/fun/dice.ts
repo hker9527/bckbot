@@ -36,6 +36,6 @@ export const module: SlashCommand = {
 			result += utils.random(1, faces);
 		}
 		result += offset;
-		return await interaction.reply(getString("dice.roll", interaction.getLocale(), { faces, n, offsetStr: (!isNaN(offset) ? getString("dice.offset", interaction.getLocale(), { offset }) : ""), result }));
+		return getString("dice.roll", interaction.getLocale(), { faces, n, offsetStr: (!isNaN(offset) ? getString("dice.offset", interaction.getLocale(), { offset }) : ""), result });
 	}
 };

@@ -34,13 +34,13 @@ const colorByRatio = (_ratio: number): `#${string}` => {
 export const module: ContextMenuCommand = {
 	name: "nudity.name",
 	type: "MESSAGE",
+	defer: true,
 	onContextMenu: async (interaction) => {
-		await interaction.deferReply();
 		let url: string;
 		const urls = findImagesFromMessage(interaction.getMessage());
 
 		if (!urls.length) {
-			return await interaction.editReply(getString("nudity.invalidMessage", interaction.getLocale()));
+			return getString("nudity.invalidMessage", interaction.getLocale());
 		}
 
 		url = urls[0];
@@ -50,24 +50,22 @@ export const module: ContextMenuCommand = {
 		});
 
 		const score = utils.round(resp.output.nsfw_score * 100);
-		return await interaction.editReply(
-			{
-				embeds: [{
-					color: colorByRatio(score / 100),
-					title: `${score}%`,
-					thumbnail: { url },
-					fields: resp.output.detections.length ?
-						[
-							{
-								name: getString("nudity.items", interaction.getLocale()),
+		return {
+			embeds: [{
+				color: colorByRatio(score / 100),
+				title: `${score}%`,
+				thumbnail: { url },
+				fields: resp.output.detections.length ?
+					[
+						{
+							name: getString("nudity.items", interaction.getLocale()),
 
-								value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
-									`(${utils.round(detection.confidence * 100)}%) ${detection.name}`
-								).join("\n")
-							}
-						] : undefined
-				}]
-			}
-		);
+							value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
+								`(${utils.round(detection.confidence * 100)}%) ${detection.name}`
+							).join("\n")
+						}
+					] : undefined
+			}]
+		};
 	}
 };

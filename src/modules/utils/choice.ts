@@ -21,7 +21,7 @@ export const module: SlashCommand = {
 		const argv = interaction.options.getString("choices", true).split(" ").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
 
 		if (argv.length < 2) {
-			return await interaction.reply(getString("choice.notEnoughChoices", interaction.getLocale()));
+			return getString("choice.notEnoughChoices", interaction.getLocale());
 		}
 
 		const last = argv.pop()!;
@@ -42,12 +42,12 @@ export const module: SlashCommand = {
 		}
 		o.push({ name: last, p: pMax });
 
-		return await interaction.reply(getString("choice.result", interaction.getLocale(), {
+		return getString("choice.result", interaction.getLocale(), {
 			result: o.sort((a: Option, b: Option) => {
 				return b.p - a.p;
 			}).map((a: Option) => {
 				return a.name + " (" + round(a.p * 100, 3) + "%)";
 			}).join(" ")
-		}));
+		});
 	}
 };

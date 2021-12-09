@@ -19,24 +19,22 @@ export const module: SlashCommand = {
 		}
 	],
 	onCommand: async (interaction) => {
-		return await interaction.reply(
-			getString("slap.slap", interaction.getLocale(), {
-				slapper: interaction.member!.toString(),
-				victim: interaction.options.getString("victim", true),
-				// TODO: Fix emoji that cannot display (message.react?)
-				tool: (interaction.options.getString("tool") ?? emoji.random().emoji),
-				damage: utils.urandom(
-					utils.arr2obj(
-						[
-							utils.random(50, 100),
-							utils.random(100, 300),
-							utils.random(300, 600),
-							utils.random(600, 1000),
-						],
-						[0.1, 0.6, 0.2, 0.1]
-					)
+		return getString("slap.slap", interaction.getLocale(), {
+			slapper: interaction.member!.toString(),
+			victim: interaction.options.getString("victim", true),
+			// TODO: Fix emoji that cannot display (message.react?)
+			tool: (interaction.options.getString("tool") ?? emoji.random().emoji),
+			damage: utils.urandom(
+				utils.arr2obj(
+					[
+						utils.random(50, 100),
+						utils.random(100, 300),
+						utils.random(300, 600),
+						utils.random(600, 1000),
+					],
+					[0.1, 0.6, 0.2, 0.1]
 				)
-			})
-		);
+			)
+		});
 	},
 };

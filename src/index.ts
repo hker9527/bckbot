@@ -1,14 +1,15 @@
 import 'module-alias/register';
+
+import { APISlashCommandAdapter } from "@app/Adapters";
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
-import { APISlashCommandAdapter } from "@app/Adapters";
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
+import { ContextMenuCommand, onFn, SlashCommand } from "@type/SlashCommand";
 import { exec } from "child_process";
-import { Message, MessageInteraction, User } from 'discord.js';
+import { Interaction, Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
 import { getString, i18init } from "./i18n";
@@ -130,7 +131,7 @@ try {
 							const cmd = slashCommands[_command];
 							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						}
-						await createDeleteAction(msg, message.author);					
+						await createDeleteAction(msg, message.author);
 						return;
 					}
 				}
@@ -246,30 +247,49 @@ try {
 				for (const [_, command] of commands) {
 					APICommands[command.id] = slashCommands[map[command.name]];
 				}
-			}
+			};
 
 			worker();
 		}
 
+		const deleteButtonInteractions: Dictionary<Interaction> = {};
+
 		client.on("interactionCreate", async (interaction) => {
+			let result: Awaited<ReturnType<onFn<any>>> = {};
+
+			if (interaction.isButton() && interaction.customId) {
+
+			}
+
 			if (interaction.isCommand() || interaction.isContextMenu()) {
 				const command = APICommands[interaction.commandId];
 				if (command) {
-					if (interaction.isCommand() && "onCommand" in command)
-						return await command.onCommand(interaction);
-					else if (interaction.isContextMenu() && "onContextMenu" in command)
-						return await command.onContextMenu(interaction);
+					if (command.defer) 
+						await interaction.deferReply();
+
+					if (interaction.isCommand() && "onCommand" in command) {
+						result = await command.onCommand(interaction);
+					} else if (interaction.isContextMenu() && "onContextMenu" in command) {
+						result = await command.onContextMenu(interaction);
+					}
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
 				const command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
 				if (command) {
-					if (interaction.isButton() && command.onButton)
-						return await command.onButton(interaction);
-					else if (interaction.isMessageComponent() && command.onMessageComponent)
-						return await command.onMessageComponent(interaction);
-					else if (interaction.isSelectMenu() && command.onSelectMenu)
-						return await command.onSelectMenu(interaction);
+					if (command.defer) 
+						await interaction.deferReply();
+						
+					if (interaction.isButton() && command.onButton) {
+						result = await command.onButton(interaction);
+					} else if (interaction.isMessageComponent() && command.onMessageComponent) {
+						result = await command.onMessageComponent(interaction);
+					} else if (interaction.isSelectMenu() && command.onSelectMenu) {
+						result = await command.onSelectMenu(interaction);
+					}
 				}
+			}
+			if (result) {
+				deleteButtonInteractions[interaction.id] = interaction;
 			}
 			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
 		});

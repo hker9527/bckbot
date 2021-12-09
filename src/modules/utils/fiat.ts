@@ -81,8 +81,6 @@ export const module: SlashCommand = {
 			},
 			timestamp: data.lastUpdate
 		});
-		return await interaction.reply({
-			embeds: [embed]
-		});
+		return { embeds: [embed] };
 	}
 };
