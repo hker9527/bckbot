@@ -1,18 +1,21 @@
 import 'module-alias/register';
 
-import { APISlashCommandAdapter } from "@app/Adapters";
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { ContextMenuCommand, onFn, SlashCommand } from "@type/SlashCommand";
+import { ContextMenuCommand, onFn, SlashCommand, SlashCommandResult } from "@type/SlashCommand";
 import { exec } from "child_process";
-import { Interaction, Message, MessageInteraction, User } from 'discord.js';
+import { BaseCommandInteraction, Interaction, InteractionReplyOptions, Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
 import { getString, i18init } from "./i18n";
+import { MessageComponentButton } from '@type/MessageComponents';
+import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
+import { APISlashCommandAdapter } from './adapters/APISlashCommand';
+import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
 
 config();
 injectPrototype();
@@ -252,45 +255,91 @@ try {
 			worker();
 		}
 
-		const deleteButtonInteractions: Dictionary<Interaction> = {};
+		const deleteButtonInteractions: Dictionary<{
+			deleteReply: () => Promise<void>
+		}> = {};
 
 		client.on("interactionCreate", async (interaction) => {
-			let result: Awaited<ReturnType<onFn<any>>> = {};
+			let result: SlashCommandResult | null = null;
+			let command: SlashCommand | ContextMenuCommand;
 
-			if (interaction.isButton() && interaction.customId) {
+			const sendResult = async () => {
+				if (result) {
+					const _interaction = interaction as BaseCommandInteraction;
 
+					const deleteButton = [
+						{
+							type: "BUTTON",
+							custom_id: `delete${interaction.id}`,
+							emoji: {
+								name: "🗑️"
+							},
+							style: "DANGER",
+							label: "Delete"
+						} as MessageComponentButton
+					];
+
+					if (result.components) {
+						result.components.push(deleteButton);
+					} else {
+						result.components = [deleteButton];
+					}
+
+					const options = InteractionReplyOptionsAdapter(result);
+
+					if (command.defer) {
+						await _interaction.editReply(options);
+					} else {
+						await _interaction.reply(options);
+					}
+
+					deleteButtonInteractions[_interaction.id] = _interaction;
+					setTimeout(() => {
+						delete deleteButtonInteractions[_interaction.id];
+					}, 1000 * 86400);
+				}
+			};
+
+			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
+				try {
+					await deleteButtonInteractions[interaction.customId.substring(6)].deleteReply();
+				} catch (e) { }
+
+				return;
 			}
 
 			if (interaction.isCommand() || interaction.isContextMenu()) {
-				const command = APICommands[interaction.commandId];
+				command = APICommands[interaction.commandId];
 				if (command) {
-					if (command.defer) 
+					if (command.defer)
 						await interaction.deferReply();
 
 					if (interaction.isCommand() && "onCommand" in command) {
-						result = await command.onCommand(interaction);
+						result = SlashCommandResultAdapter(await command.onCommand(interaction));
 					} else if (interaction.isContextMenu() && "onContextMenu" in command) {
-						result = await command.onContextMenu(interaction);
+						result = SlashCommandResultAdapter(await command.onContextMenu(interaction));
 					}
+
+					return await sendResult();
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
-				const command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
+				command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
 				if (command) {
-					if (command.defer) 
+					if (command.defer)
 						await interaction.deferReply();
-						
+
 					if (interaction.isButton() && command.onButton) {
-						result = await command.onButton(interaction);
+						result = SlashCommandResultAdapter(await command.onButton(interaction));
 					} else if (interaction.isMessageComponent() && command.onMessageComponent) {
-						result = await command.onMessageComponent(interaction);
+						result = SlashCommandResultAdapter(await command.onMessageComponent(interaction));
 					} else if (interaction.isSelectMenu() && command.onSelectMenu) {
-						result = await command.onSelectMenu(interaction);
+						result = SlashCommandResultAdapter(await command.onSelectMenu(interaction));
 					}
+
+					return await sendResult();
 				}
 			}
-			if (result) {
-				deleteButtonInteractions[interaction.id] = interaction;
-			}
+
 			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
 		});
 

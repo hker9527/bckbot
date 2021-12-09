@@ -1,7 +1,12 @@
-import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, InteractionReplyOptions, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
 import { CommandOptionBoolean, CommandOptionNumeric, CommandOptionString, CommandOptionSubCommand, CommandOptionSubCommandGroup, CommandOptionUser } from "./CommandOptions";
+import { MessageComponents } from "./MessageComponents";
 
-export type onFn<T> = (interaction: T) => Promise<Parameters<MessageComponentInteraction["reply"]>[0]>;
+export interface SlashCommandResult extends Omit<InteractionReplyOptions, "components"> {
+	components?: MessageComponents
+};
+
+export type onFn<T> = (interaction: T) => Promise<string | SlashCommandResult>;
 
 export interface Command {
 	name: string,

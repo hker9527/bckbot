@@ -1,5 +1,5 @@
 import { MessageButtonStyle, Snowflake } from "discord.js";
-import { RangedArray, RangedArray25 } from "./RangedArray";
+import { RangedArray25 } from "./RangedArray";
 import { RangedNumber } from "./RangedNumber";
 
 interface CustomEmoji {
@@ -30,7 +30,7 @@ interface MessageComponentLinkButton extends MessageComponentBaseButton {
 	url: string;
 }
 
-type MessageComponentButton = MessageComponentColoredButton | MessageComponentLinkButton;
+export type MessageComponentButton = MessageComponentColoredButton | MessageComponentLinkButton;
 
 export type MessageComponentSelectMenuOption = {
 	label: string;
@@ -50,6 +50,6 @@ interface MessageComponentSelectMenu {
 	max_values?: RangedNumber<0, 25>;
 };
 
-export type MessageComponentActionRow = RangedArray<MessageComponentButton, 1, 6> | [MessageComponentSelectMenu];
+export type MessageComponentActionRow = MessageComponentButton[] | [MessageComponentSelectMenu];
 
-export type MessageComponents = RangedArray<MessageComponentActionRow, 1, 6>;
+export type MessageComponents = MessageComponentActionRow[];
