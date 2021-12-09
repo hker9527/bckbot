@@ -255,7 +255,7 @@ try {
 			worker();
 		}
 
-		const deleteButtonInteractions: Dictionary<{
+		const interactions: Dictionary<BaseCommandInteraction & {
 			deleteReply: () => Promise<void>
 		}> = {};
 
@@ -293,9 +293,9 @@ try {
 						await _interaction.reply(options);
 					}
 
-					deleteButtonInteractions[_interaction.id] = _interaction;
+					interactions[_interaction.id] = _interaction;
 					setTimeout(async () => {
-						delete deleteButtonInteractions[_interaction.id];
+						delete interactions[_interaction.id];
 						options.components!.pop();
 						await _interaction.editReply(options);
 					}, 1000 * 3600);
@@ -304,7 +304,9 @@ try {
 
 			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
 				try {
-					await deleteButtonInteractions[interaction.customId.substring(6)].deleteReply();
+					const originalInteraction = interactions[interaction.customId.substring(6)];
+					if (originalInteraction && (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR')))
+						await originalInteraction.deleteReply();
 				} catch (e) { }
 
 				return;
