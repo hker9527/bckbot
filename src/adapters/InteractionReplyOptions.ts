@@ -1,7 +1,12 @@
+import { getString, Languages } from "@app/i18n";
 import { SlashCommandResult } from "@type/SlashCommand";
-import { BaseCommandInteraction, MessageButton, MessageSelectMenu, WebhookEditMessageOptions } from "discord.js";
+import { MessageButton, MessageSelectMenu, WebhookEditMessageOptions } from "discord.js";
 
-export const InteractionReplyOptionsAdapter = (result: SlashCommandResult): WebhookEditMessageOptions => {
+const getStringOptional = (key: string | undefined, locale: Languages, data?: any) => {
+    return typeof key === "string" ? getString(key, locale, data) : undefined;
+}
+
+export const InteractionReplyOptionsAdapter = (result: SlashCommandResult, locale: Languages): WebhookEditMessageOptions => {
     const ret: any = {};
     for (const _key in result) {
         const key = _key as keyof typeof result;
@@ -21,7 +26,7 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult): Webh
                                 return {
                                     ...base,
                                     emoji: component.emoji,
-                                    label: "label" in component ? component.label : undefined,
+                                    label: getStringOptional(component.label, locale),
                                     style: component.style,
                                     url: component.style == "LINK" ? component.url : undefined,
                                 } as MessageButton;
@@ -30,12 +35,12 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult): Webh
                                     ...base,
                                     maxValues: component.max_values,
                                     minValues: component.min_values,
-                                    placeholder: component.placeholder,
+                                    placeholder: getStringOptional(component.placeholder, locale),
                                     options: component.options.map(option => ({
                                         default: option!.default ?? false,
                                         description: option!.description ?? null,
                                         emoji: option!.emoji ?? null,
-                                        label: option!.label,
+                                        label: getStringOptional(option!.label, locale),
                                         value: option!.value
                                     }))
                                 } as MessageSelectMenu;
@@ -44,6 +49,16 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult): Webh
                     }
                 });
                 break;
+            case "content":
+                if (typeof result.content === "string") {
+                    ret.content = result.content;
+                } else if (result.content) {
+                    ret.content = getString(result.content.key, locale, result.content.data);
+                }
+                
+                break;
+            case "embeds":
+                // TODO: Localize embeds
             default:
                 ret[key] = result[key];
                 break;
