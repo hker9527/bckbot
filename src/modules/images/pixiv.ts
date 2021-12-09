@@ -1,9 +1,9 @@
-import * as utils from '@app/utils';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { getString, Languages } from "@app/i18n";
+import { report, req2json } from '@app/utils';
 import { PixivApiResponse } from '@type/api/Pixiv';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { MessageEmbed, TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
-import { getString, Languages } from "@app/i18n";
 
 export const pimg = (url: string) => {
 	return url.replace("i.pximg.net", "i.pixiv.cat");
@@ -11,13 +11,13 @@ export const pimg = (url: string) => {
 
 export const fetchInfo = async (illust_id: string) => {
 	try {
-		const res = await utils.req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as PixivApiResponse;
+		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as PixivApiResponse;
 
 		if (Array.isArray(res.body)) {
 			if (res.message === "該当作品は削除されたか、存在しない作品IDです。") {
 				throw `No image found for id ${illust_id} (${res.message})`;
 			}
-			utils.report("res: " + JSON.stringify(res));
+			report("res: " + JSON.stringify(res));
 			return null;
 		} else {
 			return {

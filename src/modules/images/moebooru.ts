@@ -1,11 +1,11 @@
-import * as utils from '@app/utils';
+import { getString, Languages } from "@app/i18n";
+import { enumStringKeys, randomArrayElement, req2json } from '@app/utils';
 import { DanbooruApiResponse } from '@type/api/Danbooru';
 import { KonachanApiResponse } from '@type/api/Konachan';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { SankakuApiResponse } from '@type/api/Sankaku';
 import { YandereApiResponse } from '@type/api/Yandere';
+import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { MessageEmbed, TextChannel } from 'discord.js';
-import { getString, Languages } from "@app/i18n";
 
 export enum ApiPortal {
 	kon = "https://konachan.com/post.json",
@@ -25,7 +25,7 @@ export type ImageObject = {
 };
 
 export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
-	let res = await utils.req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join('+')}${nsfw ? "" : "+rating:s"}&limit=20`);
+	let res = await req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join('+')}${nsfw ? "" : "+rating:s"}&limit=20`);
 
 	switch (provider) {
 		case "kon": {
@@ -112,7 +112,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 };
 
 export const module: Module = {
-	trigger: utils.enumStringKeys(ApiPortal),
+	trigger: enumStringKeys(ApiPortal),
 	event: "messageCreate",
 	argv: {
 		"tags": [ArgumentRequirement.Optional, ArgumentRequirement.Concat]
@@ -127,7 +127,7 @@ export const module: Module = {
 			return await obj.message.reply("`找不到結果。請檢查關鍵字`");
 		}
 
-		const imageObject = utils.randomArrayElement(list);
+		const imageObject = randomArrayElement(list);
 
 		return await obj.message.reply({
 			embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale())]

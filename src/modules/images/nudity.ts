@@ -1,5 +1,4 @@
-import { getString } from "@app/i18n";
-import * as utils from '@app/utils';
+import { round } from "@app/utils";
 import { findImagesFromMessage } from '@module/images/_lib';
 import { ContextMenuCommand } from "@type/SlashCommand";
 
@@ -51,7 +50,7 @@ export const module: ContextMenuCommand = {
 			image: url
 		});
 
-		const score = utils.round(resp.output.nsfw_score * 100);
+		const score = round(resp.output.nsfw_score * 100);
 		return {
 			embeds: [{
 				color: colorByRatio(score / 100),
@@ -60,10 +59,10 @@ export const module: ContextMenuCommand = {
 				fields: resp.output.detections.length ?
 					[
 						{
-							name: getString("nudity.items", interaction.getLocale()),
+							name: "nudity.items",
 
 							value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
-								`(${utils.round(detection.confidence * 100)}%) ${detection.name}`
+								`(${round(detection.confidence * 100)}%) ${detection.name}`
 							).join("\n")
 						}
 					] : undefined

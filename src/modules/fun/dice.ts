@@ -1,5 +1,4 @@
-import { getString } from "@app/i18n";
-import * as utils from "@app/utils";
+import { random } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
@@ -33,7 +32,7 @@ export const module: SlashCommand = {
 
 		let result = 0;
 		for (let i = 0; i < n; i++) {
-			result += utils.random(1, faces);
+			result += random(1, faces);
 		}
 		result += offset;
 		return {

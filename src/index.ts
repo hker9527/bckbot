@@ -2,7 +2,6 @@ import 'module-alias/register';
 
 import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
-import * as utils from '@app/utils';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { MessageComponentButton } from '@type/MessageComponents';
@@ -16,6 +15,8 @@ import { APISlashCommandAdapter } from './adapters/APISlashCommand';
 import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
 import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
 import { getString, i18init } from "./i18n";
+import { arr2obj, pmError, report } from './utils';
+
 
 config();
 injectPrototype();
@@ -26,7 +27,7 @@ const { logger, client } = Singleton;
 try {
 	const startTime = new Date();
 	const events = ["messageCreate", "messageDelete", "messageUpdate"];
-	const eventModules: Events = utils.arr2obj(
+	const eventModules: Events = arr2obj(
 		events,
 		events.map(() => ({}))
 	);
@@ -90,7 +91,7 @@ try {
 						})();
 					} catch (e) {
 						if (e instanceof Error)
-							utils.report(
+							report(
 								`Init failed for module ${moduleName}: ${e.message}`
 							);
 					}
@@ -105,7 +106,7 @@ try {
 							setTimeout(f, module.interval!.t);
 						} catch (e) {
 							if (e instanceof Error)
-								utils.report(
+								report(
 									`Interval failed for module ${moduleName}: ${e.message}`
 								);
 						}
@@ -210,7 +211,7 @@ try {
 								if (!stealth) accepted = true;
 							} catch (e) {
 								if (!stealth) await message.react("❌");
-								if (e instanceof Error) await utils.pmError(message, e);
+								if (e instanceof Error) await pmError(message, e);
 							}
 						}
 					}
@@ -347,7 +348,7 @@ try {
 			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
 		});
 
-		utils.report(`Finished loading in ${+new Date() - +startTime}ms`);
+		report(`Finished loading in ${+new Date() - +startTime}ms`);
 	});
 
 	glob("./bin/modules/**/*.js", async (error, fileList) => {
@@ -370,11 +371,11 @@ try {
 				tmp = _module as SlashCommand;
 				slashCommands[tmp.name] = tmp;
 			} else {
-				utils.report(`Unknown module ${fileName}!`);
+				report(`Unknown module ${fileName}!`);
 				process.exit();
 			}
 
-			utils.report(`Loaded module ${fileName}`);
+			report(`Loaded module ${fileName}`);
 		}
 
 		await client.login(
@@ -382,9 +383,9 @@ try {
 				? process.env.dev_token
 				: process.env.bot_token
 		);
-		utils.report("Logged in as " + client.user!.tag);
+		report("Logged in as " + client.user!.tag);
 	});
 } catch (e) {
 	if (e instanceof Error)
-		utils.report("Error occurred: " + e.toString());
+		report("Error occurred: " + e.toString());
 }
