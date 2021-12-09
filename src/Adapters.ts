@@ -1,9 +1,9 @@
 import { getString, Languages } from "@app/i18n";
 import { MessageComponentActionRow } from "@type/MessageComponents";
-import { ApplicationCommandDataResolvable, ApplicationCommandOptionData, BaseMessageComponentOptions, MessageActionRowOptions, MessageButton, MessageSelectMenu } from "discord.js";
+import { ApplicationCommandOptionData, GuildApplicationCommandManager, MessageButton, MessageOptions, MessageSelectMenu } from "discord.js";
 import { ContextMenuCommand, SlashCommand } from "./types/SlashCommand";
 
-export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuCommand, locale: Languages): ApplicationCommandDataResolvable => {
+export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuCommand, locale: Languages): Parameters<GuildApplicationCommandManager["set"]>["0"]["0"] => {
 	return {
 		name: command.name.includes(".") ? getString(command.name, locale) : command.name, // Prevent direct object access
 		description: getString("description" in command ? command.description : "", locale),
@@ -22,7 +22,20 @@ export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuComman
 	};
 };
 
-export const APIMessageComponentAdapter = (rows: Array<MessageComponentActionRow>): (Required<BaseMessageComponentOptions> & MessageActionRowOptions)[] => {
+export const APIMessageComponentAdapter = (rows: Array<MessageComponentActionRow>): MessageOptions["components"] => {
+	
+	rows.push([
+		{
+			type: "BUTTON",
+			custom_id: "delete",
+			emoji: {
+				name: "🗑️"
+			},
+			style: "DANGER",
+			label: "Delete"
+		}
+	]);
+	
 	return rows.map(row => {
 		return {
 			type: "ACTION_ROW",
