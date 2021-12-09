@@ -68,7 +68,7 @@
     "unknown": "不懂這是蝦米碗糕...\n```json\n{{json}}```",
     "name": "抓圖源"
   },
-  "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。四個角一定沒有地雷。\n{{mineField}}",
+  "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。\n{{mineField}}",
   "pixiv": {
     "descriptionHeader": "說明：",
     "descriptionPlaceholder": "（無）",

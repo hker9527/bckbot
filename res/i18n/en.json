@@ -39,7 +39,7 @@
     "answer19": "Very doubtful."
   },
   "migrate": "The bot is currently migrating into a newer structure. As a result, some commands are disabled.\nYou can follow the progress at <https://github.com/hker9527/bckbot>",
-  "mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. The 4 corners are always safe.\n{{mineField}}",
+  "mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. \n{{mineField}}",
   "osu": {
     "modeName0": "Standard",
     "modeName1": "Taiko",

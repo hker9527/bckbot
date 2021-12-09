@@ -1,35 +1,46 @@
 import { getString } from "@app/i18n";
-import * as utils from '@app/utils';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { random, randomArrayElement } from "@app/utils";
+import { SlashCommand } from "@type/SlashCommand";
 
 const numberSymbols = "　１２３４５６７８９".split("");
 const bombSymbol = "Ｘ";
 
-export const module: Module = {
-	trigger: ["mine"],
-	event: "messageCreate",
-	argv: {
-		"h": [ArgumentRequirement.Optional],
-		"w": [ArgumentRequirement.Optional],
-		"n": [ArgumentRequirement.Optional]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		const _h = utils.random(5, 10);
-		const _w = utils.random(5, 10);
-		const _mineCount = Math.max(1, _h * _w / utils.random(5, 10) | 0);
-
-		let h = parseInt(obj.argv!.h) || _h;
-		let w = parseInt(obj.argv!.w) || _w;
-		let mineCount = parseInt(obj.argv!.n) || _mineCount;
-
-		if (!h.inRange(2, 15)) h = _h;
-		if (!w.inRange(2, 15)) w = _w;
-
-		if (h * w > 200) {
-			[h, w] = [_h, _w];
+export const module: SlashCommand = {
+	name: "mine",
+	description: "Generate a minesweeper.",
+	options: [
+		{
+			name: "h",
+			description: "Height",
+			type: "INTEGER",
+			min_value: 3,
+			max_value: 14,
+			optional: true
+		}, {
+			name: "w",
+			description: "Width",
+			type: "INTEGER",
+			min_value: 3,
+			max_value: 14,
+			optional: true
+		}, {
+			name: "n",
+			description: "Mines",
+			type: "INTEGER",
+			min_value: 1,
+			max_value: 191,
+			optional: true
 		}
+	],
+	onCommand: async (interaction) => {
+		const _h = random(3, 15);
+		const _w = random(3, 15);
 
-		if (!mineCount.inRange(1, h * w - 4)) mineCount = Math.max(1, h * w / 10 | 0);
+		let h = interaction.options.getInteger("h") ?? _h;
+		let w = interaction.options.getInteger("w") ?? _w;
+		let mineCount = interaction.options.getInteger("n") ?? Math.max(1, h * w / random(5, 10) | 0);
+
+		if (mineCount > (h * w - 5)) mineCount = Math.max(1, h * w / random(5, 10) | 0);
 
 		const field = [...new Array(h)].map(a => [...new Array(w)].map(a => numberSymbols[0]));
 
@@ -40,7 +51,7 @@ export const module: Module = {
 
 		// Put mines into the field
 		for (let i = 0; i < mineCount; i++) {
-			let ran = utils.randomArrayElement(avail);
+			let ran = randomArrayElement(avail);
 
 			mineLocations.push(ran);
 			delete avail[avail.indexOf(ran)];
@@ -66,9 +77,12 @@ export const module: Module = {
 			}
 		}
 
-		return await obj.message.channel.send(getString("mine", obj.message.getLocale(), {
-			h, w, mineCount,
-			mineField: field.map(a => a.map(b => `||${b}||`).join("")).join("\n")
-		}));
+		return {
+			key: "mine", 
+			data: {
+				h, w, mineCount,
+				mineField: field.map(a => a.map(b => `||${b}||`).join("")).join("\n")
+			}
+		};
 	}
 };
