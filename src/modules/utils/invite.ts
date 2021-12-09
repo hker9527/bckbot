@@ -1,6 +1,4 @@
-import { APIMessageComponentAdapter } from "@app/Adapters";
 import { SlashCommand } from "@type/SlashCommand";
-import { InteractionReplyOptions } from "discord.js";
 
 export const module: SlashCommand = {
 	name: "invite",
