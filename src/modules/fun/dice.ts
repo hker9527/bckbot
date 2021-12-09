@@ -36,6 +36,9 @@ export const module: SlashCommand = {
 			result += utils.random(1, faces);
 		}
 		result += offset;
-		return getString("dice.roll", interaction.getLocale(), { faces, n, offsetStr: (!isNaN(offset) ? getString("dice.offset", interaction.getLocale(), { offset }) : ""), result });
+		return {
+			key: "dice.roll",
+			data: { faces, n, offset: `${offset > 0 ? "+" : (offset < 0 ? "-" : "")}${offset == 0 ? "" : offset}`, result }
+		};
 	}
 };

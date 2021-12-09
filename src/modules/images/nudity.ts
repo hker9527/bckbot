@@ -40,7 +40,9 @@ export const module: ContextMenuCommand = {
 		const urls = findImagesFromMessage(interaction.getMessage());
 
 		if (!urls.length) {
-			return getString("nudity.invalidMessage", interaction.getLocale());
+			return {
+				key: "nudity.invalidMessage"	
+			};
 		}
 
 		url = urls[0];

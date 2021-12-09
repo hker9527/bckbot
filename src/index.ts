@@ -5,17 +5,17 @@ import { Singleton } from '@app/Singleton';
 import * as utils from '@app/utils';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
+import { MessageComponentButton } from '@type/MessageComponents';
 import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
-import { ContextMenuCommand, onFn, SlashCommand, SlashCommandResult } from "@type/SlashCommand";
+import { ContextMenuCommand, SlashCommand, SlashCommandResult } from "@type/SlashCommand";
 import { exec } from "child_process";
-import { BaseCommandInteraction, Interaction, InteractionReplyOptions, Message, MessageInteraction, User } from 'discord.js';
+import { BaseCommandInteraction, Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
-import { getString, i18init } from "./i18n";
-import { MessageComponentButton } from '@type/MessageComponents';
-import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
 import { APISlashCommandAdapter } from './adapters/APISlashCommand';
+import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
 import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
+import { getString, i18init } from "./i18n";
 
 config();
 injectPrototype();
@@ -275,7 +275,7 @@ try {
 								name: "🗑️"
 							},
 							style: "DANGER",
-							label: "Delete"
+							label: "delete"
 						} as MessageComponentButton
 					];
 
@@ -285,7 +285,7 @@ try {
 						result.components = [deleteButton];
 					}
 
-					const options = InteractionReplyOptionsAdapter(result);
+					const options = InteractionReplyOptionsAdapter(result, interaction.getLocale());
 
 					if (command.defer) {
 						await _interaction.editReply(options);
@@ -294,9 +294,11 @@ try {
 					}
 
 					deleteButtonInteractions[_interaction.id] = _interaction;
-					setTimeout(() => {
+					setTimeout(async () => {
 						delete deleteButtonInteractions[_interaction.id];
-					}, 1000 * 86400);
+						options.components!.pop();
+						await _interaction.editReply(options);
+					}, 1000 * 3600);
 				}
 			};
 
@@ -320,7 +322,7 @@ try {
 						result = SlashCommandResultAdapter(await command.onContextMenu(interaction));
 					}
 
-					return await sendResult();
+					if (result) return await sendResult();
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
 				command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
@@ -336,7 +338,7 @@ try {
 						result = SlashCommandResultAdapter(await command.onSelectMenu(interaction));
 					}
 
-					return await sendResult();
+					if (result) return await sendResult();
 				}
 			}
 
