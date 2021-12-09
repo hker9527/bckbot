@@ -1,12 +1,19 @@
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, InteractionReplyOptions, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
 import { CommandOptionBoolean, CommandOptionNumeric, CommandOptionString, CommandOptionSubCommand, CommandOptionSubCommandGroup, CommandOptionUser } from "./CommandOptions";
+import { Dictionary } from "./Dictionary";
 import { MessageComponents } from "./MessageComponents";
 
-export interface SlashCommandResult extends Omit<InteractionReplyOptions, "components"> {
+export interface SlashCommandResult extends Omit<InteractionReplyOptions, "content" | "components"> {
+	content?: string | LocalizerData,
 	components?: MessageComponents
 };
 
-export type onFn<T> = (interaction: T) => Promise<string | SlashCommandResult>;
+export interface LocalizerData {
+	key: string,
+	data?: Dictionary<any>
+};
+
+export type onFn<T> = (interaction: T) => Promise<string | LocalizerData | SlashCommandResult>;
 
 export interface Command {
 	name: string,
