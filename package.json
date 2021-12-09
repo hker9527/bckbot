@@ -33,7 +33,7 @@
 		"sqlite3": "^5.0.2",
 		"table": "^6.7.1",
 		"twit": "^2.2.11",
-		"typescript": "^4.3.4",
+		"typescript": "^4.5.2",
 		"vorpal": "^1.12.0",
 		"xml2json": "^0.12.0"
 	},
