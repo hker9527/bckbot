@@ -122,14 +122,6 @@ export const pmError = async (message: Message, error: Error) => {
 	return pm(txt);
 };
 
-export const rod = function (value: number, max = 100, length = 10) {
-	let pv = new Decimal(max).dividedBy(length);
-	return ("█".repeat(value <= 0 ? 0 : new Decimal(value).dividedBy(pv).floor().toNumber()) +
-		"▓".repeat(value <= 0 ? 0 : new Decimal(length - (max - value)).dividedBy(pv).mod(1).toNumber() >= 0.5 ? 1 : 0) +
-		"▒".repeat(value <= 0 ? 0 : new Decimal(length - (max - value)).dividedBy(pv).mod(1).toNumber() < 0.5 ? 1 : 0) +
-		"░".repeat(value <= 0 ? length : new Decimal(max - value).dividedBy(pv).add(0.5).floor().toNumber())
-	).substr(0, length);
-};
 export const enumStringKeys = (e: any) => {
 	return Object.keys(e).filter(value => isNaN(Number(value)));
 };
