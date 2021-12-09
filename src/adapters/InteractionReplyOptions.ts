@@ -2,10 +2,6 @@ import { getString, Languages } from "@app/i18n";
 import { SlashCommandResult } from "@type/SlashCommand";
 import { MessageButton, MessageSelectMenu, WebhookEditMessageOptions } from "discord.js";
 
-const getStringOptional = (key: string | undefined, locale: Languages, data?: any) => {
-    return typeof key === "string" ? getString(key, locale, data) : undefined;
-}
-
 export const InteractionReplyOptionsAdapter = (result: SlashCommandResult, locale: Languages): WebhookEditMessageOptions => {
     const ret: any = {};
     for (const _key in result) {
@@ -26,7 +22,7 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult, local
                                 return {
                                     ...base,
                                     emoji: component.emoji,
-                                    label: getStringOptional(component.label, locale),
+                                    label: getString(component.label, locale),
                                     style: component.style,
                                     url: component.style == "LINK" ? component.url : undefined,
                                 } as MessageButton;
@@ -35,12 +31,12 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult, local
                                     ...base,
                                     maxValues: component.max_values,
                                     minValues: component.min_values,
-                                    placeholder: getStringOptional(component.placeholder, locale),
+                                    placeholder: getString(component.placeholder, locale),
                                     options: component.options.map(option => ({
                                         default: option!.default ?? false,
                                         description: option!.description ?? null,
                                         emoji: option!.emoji ?? null,
-                                        label: getStringOptional(option!.label, locale),
+                                        label: getString(option!.label, locale),
                                         value: option!.value
                                     }))
                                 } as MessageSelectMenu;
@@ -55,15 +51,29 @@ export const InteractionReplyOptionsAdapter = (result: SlashCommandResult, local
                 } else if (result.content) {
                     ret.content = getString(result.content.key, locale, result.content.data);
                 }
-                
+
                 break;
             case "embeds":
-                // TODO: Localize embeds
+                if (result.embeds) {
+                    for (const embed of result.embeds) {
+                        embed.title = getString(embed.title, locale);
+                        embed.description = getString(embed.description, locale);
+                        if (embed.footer) embed.footer.text = getString(embed.footer.text, locale);
+                        if ("provider" in embed && embed.provider) embed.provider.name = getString(embed.provider.name, locale);
+                        if (embed.fields) {
+                            for (const field of embed.fields) {
+                                field.name = getString(field.name, locale);
+                            }
+                        }
+                    }
+                }
+                ret.embeds = result.embeds;
+                break;
             default:
                 ret[key] = result[key];
                 break;
         }
     }
-    
+
     return ret as WebhookEditMessageOptions;
 }
