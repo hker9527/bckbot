@@ -1,6 +1,4 @@
-import { getString } from "@app/i18n";
-import * as utils from '@app/utils';
-import { Module, ModuleActionArgument } from '@type/Module';
+import { random } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
@@ -24,11 +22,17 @@ export const module: SlashCommand = {
 		const upper = interaction.options.getInteger("upper") ?? (lower + 100);
 
 		if (lower > upper) {
-			return getString("roll.invalidRange", interaction.getLocale(), { lower, upper });
+			return {
+				key: "roll.invalidRange",
+				data: { lower, upper }
+			};
 		}
 
-		return getString("roll.roll", interaction.getLocale(), {
-			points: utils.random(lower, upper)
-		});
+		return {
+			key: "roll.roll",
+			data: {
+				points: random(lower, upper)
+			}
+		};
 	}
 };
