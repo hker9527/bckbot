@@ -5,7 +5,6 @@ import { Singleton } from '@app/Singleton';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
 import { MessageComponentButton } from '@type/MessageComponents';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { ContextMenuCommand, SlashCommand, SlashCommandResult } from "@type/SlashCommand";
 import { exec } from "child_process";
 import { BaseCommandInteraction, Message, MessageInteraction, User } from 'discord.js';
@@ -15,6 +14,7 @@ import { APISlashCommandAdapter } from './adapters/APISlashCommand';
 import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
 import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
 import { getString, i18init } from "./i18n";
+import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { arr2obj, pmError, report } from './utils';
 
 
@@ -31,10 +31,7 @@ try {
 		events,
 		events.map(() => ({}))
 	);
-
 	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
-	const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
-	const slashCommandGuildAvailability: Dictionary<boolean> = {};
 
 	const createDeleteAction = async (message: Message, author: User | null = null) => {
 		const collector = message.createReactionCollector({
@@ -80,13 +77,12 @@ try {
 			for (let moduleName of Object.keys(eventModules[event])) {
 				const _module = eventModules[event][moduleName];
 				const module = _module.module;
-				let baseArgv: Dictionary<any> = {};
 
 				if (module.init) {
 					try {
 						// Parallel loading
 						(async () => {
-							await module.init!(baseArgv);
+							await module.init!();
 							_module.loaded = true;
 						})();
 					} catch (e) {
@@ -102,7 +98,7 @@ try {
 				if (module.interval) {
 					const f = async () => {
 						try {
-							await module.interval!.f(baseArgv);
+							await module.interval!.f();
 							setTimeout(f, module.interval!.t);
 						} catch (e) {
 							if (e instanceof Error)
@@ -114,15 +110,9 @@ try {
 					setTimeout(f, module.interval.t);
 				}
 			}
-			// Build listener
-			client.on(event, async (message: Message) => {
-				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
 
-				let accepted = false,
-					stealthExists = false,
-					result;
-
-				// Prompt if user tried to use legacy method
+			// Prompt if user tried to use legacy method
+			client.on("messageCreate", async (message) => {
 				for (const _command in slashCommands) {
 					const command = _command.replace(".name", "");
 					if (message.cleanContent.startsWith(`b!${command}`)) {
@@ -135,98 +125,53 @@ try {
 							const cmd = slashCommands[_command];
 							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						}
-						await createDeleteAction(msg, message.author);
 						return;
 					}
 				}
+			});
 
-				const messageArgs = message.content.split(" ");
-				const messageTrigger = messageArgs[0].startsWith("b!") ? messageArgs[0].substr(2) : null;
+			// Build listeners
+			client.on(event, async (message: Message) => {
+				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
 
 				for (let _module of Object.values(eventModules[event])) {
 					const module = _module.module;
-					for (let trigger of module.trigger) {
-						const stealth = trigger.startsWith("*");
-						stealthExists = stealthExists || stealth;
+					try {
+						if (!_module.loaded) return;
+						let matches: RegExpMatchArray | undefined;
+						if (module.pattern) {
+							matches = message.content.match(module.pattern) || undefined;
+							if (!matches) return;
+						}
 
-						if (trigger === messageTrigger || stealth) {
-							try {
-								if (!_module.loaded) {
-									await message.reply(getString("index.stillLoading", message.getLocale()));
-									return;
-								}
-								let moduleActionArgument: ModuleActionArgument = {
-									trigger,
-									message,
-								};
+						const argv: StealthModuleActionArgument = {
+							message,
+							matches
+						};
 
-								if (module.argv) {
-									moduleActionArgument.argv = {};
-									const argNames = Object.keys(module.argv);
-									// Check message argv requirements
-									for (let i = 0; i < argNames.length; i++) {
-										const argName = argNames[i];
-										const argValue = messageArgs[i + 1]; // The first one is trigger
-										if (
-											module.argv[argName].includes(
-												ArgumentRequirement.Required
-											) &&
-											typeof argValue === "undefined"
-										) {
-											await message.reply(
-												getString("index.argvError", message.getLocale(),
-													{
-														argName,
-														position: i,
-														trigger,
-														usage: argNames.map((arg) => {
-															const flagOptional = module.argv![arg].includes(ArgumentRequirement.Required);
-															const flagConcat = module.argv![arg].includes(ArgumentRequirement.Concat);
-															return `${flagOptional ? "[" : ""}${flagConcat ? "..." : ""}${arg}${flagOptional ? "]" : ""}`;
-														}).join(" ")
-													}
-												)
-											);
-											return;
-										}
-										if (argValue && argValue.length)
-											moduleActionArgument.argv[argName] =
-												module.argv[argName].includes(ArgumentRequirement.Concat)
-													? messageArgs.slice(i + 1).join(" ")
-													: argValue;
-									}
-								}
-
-								if (module.eval) {
-									moduleActionArgument.eval = {};
-									for (const name in module.eval) {
-										moduleActionArgument.eval[name] = eval(module.eval[name]);
-									}
-								}
-
-								result = await module.action(moduleActionArgument);
-								if (result instanceof Message) {
-									await createDeleteAction(result);
-								}
-								if (!stealth) accepted = true;
-							} catch (e) {
-								if (!stealth) await message.react("❌");
-								if (e instanceof Error) await pmError(message, e);
+						if (module.eval) {
+							argv.eval = {};
+							for (const name in module.eval) {
+								argv.eval[name] = eval(module.eval[name]);
 							}
 						}
+
+						const result = await module.action(argv);
+						if (result) {
+							await createDeleteAction(message);
+						}
+					} catch (e) {
+						if (e instanceof Error) await pmError(message, e);
 					}
 				}
-				if (!accepted && message.content.startsWith("b!") && stealthExists) {
-					await message.react(
-						client.emojis.cache.random()!
-					);
-					return;
-				} else {
-					return;
-				}
+				return;
 			});
 		}
 
+		const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
+		const slashCommandGuildAvailability: Dictionary<boolean> = {};
+
+		// Application Command registration
 		for (const [_, guild] of client.guilds.cache) {
 			const worker = async () => {
 				if (slashCommandGuildAvailability[guild.id]) return;
@@ -235,7 +180,6 @@ try {
 					await guild.commands.fetch(); // Check for permissions
 					slashCommandGuildAvailability[guild.id] = true;
 				} catch (e) {
-					logger.log(`Register slash command failed for guild ${guild.name}`);
 					slashCommandGuildAvailability[guild.id] = false;
 					setTimeout(worker, 1000 * 60 * 5);
 					return;
@@ -256,6 +200,7 @@ try {
 			worker();
 		}
 
+		// Save all interactions for delete button
 		const interactions: Dictionary<BaseCommandInteraction & {
 			deleteReply: () => Promise<void>
 		}> = {};
@@ -264,6 +209,7 @@ try {
 			let result: SlashCommandResult | null = null;
 			let command: SlashCommand | ContextMenuCommand;
 
+			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
 				if (result) {
 					const _interaction = interaction as BaseCommandInteraction;
@@ -303,12 +249,21 @@ try {
 				}
 			};
 
+			// Delete button
 			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
 				try {
 					const originalInteraction = interactions[interaction.customId.substring(6)];
-					if (originalInteraction && (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR')))
-						await originalInteraction.deleteReply();
-				} catch (e) { }
+					if (originalInteraction) {
+						if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR'))
+							await originalInteraction.deleteReply();
+						else
+							await interaction.reply({
+								content: "no u",
+								ephemeral: true
+							});
+					}
+				} catch (e) {
+				}
 
 				return;
 			}
@@ -351,6 +306,7 @@ try {
 		report(`Finished loading in ${+new Date() - +startTime}ms`);
 	});
 
+	// Init
 	glob("./bin/modules/**/*.js", async (error, fileList) => {
 		if (error) throw error;
 		for (let file of fileList.filter((_file) => {
@@ -360,9 +316,9 @@ try {
 			const moduleName = fileName.slice(0, -3);
 
 			const _module = require(`@app/${file.slice(6)}`).module;
-			let tmp: Module | SlashCommand;
+			let tmp: StealthModule | SlashCommand;
 			if ("action" in _module) {
-				tmp = _module as Module;
+				tmp = _module as StealthModule;
 				eventModules[tmp.event][moduleName] = {
 					module: tmp,
 					loaded: false,

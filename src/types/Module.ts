@@ -1,9 +1,8 @@
 import { Message } from "discord.js";
 import { Dictionary } from "./Dictionary";
 
-export type ModuleActionArgument = {
+export type StealthModuleActionArgument = {
 	message: Message,
-	trigger: string,
 	argv?: Dictionary<string>,
 	eval?: Dictionary<any>
 }
@@ -14,15 +13,12 @@ export enum ArgumentRequirement {
 	Concat
 }
 
-/**
- * @deprecated Use slash command instead if possible.
- */
-export type Module = {
+export type StealthModule = {
 	trigger: string[],
 	argv?: Dictionary<ArgumentRequirement[]>,
 	eval?: Dictionary<string>,
 	event: "messageCreate" | "messageDelete" | "messageUpdate",
-	action: (obj: ModuleActionArgument) => Promise<Message | boolean>, // TODO: Unify return value
+	action: (obj: StealthModuleActionArgument) => Promise<Message | boolean>, // TODO: Unify return value
 	init?: (obj?: Dictionary<any>) => Promise<boolean>,
 	interval?: {
 		f: (obj?: Dictionary<any>) => Promise<boolean>,

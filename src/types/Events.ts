@@ -1,7 +1,7 @@
 import { Dictionary } from "./Dictionary";
-import { Module } from "./Module";
+import { StealthModule } from "./StealthModule";
 
 export type Events = Dictionary<Dictionary<{
-	module: Module,
+	module: StealthModule,
 	loaded: boolean
 }>>

@@ -1,7 +1,7 @@
 import { getString, Languages } from "@app/i18n";
 import { report, req2json } from '@app/utils';
 import { PixivApiResponse } from '@type/api/Pixiv';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
+import { StealthModule } from '@type/StealthModule';
 import { MessageEmbed, TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
 
@@ -66,39 +66,23 @@ export const genEmbed = async (illust_id: string, show_image = true, nsfw = fals
 		);
 };
 
-export const module: Module = {
-	trigger: ["pixiv", "*pixiv"],
+export const module: StealthModule = {
 	event: "messageCreate",
-	argv: {
-		"id": [ArgumentRequirement.Optional]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		const stealth = obj.trigger[0] === "*";
-
-		let illust_id = "";
-		if (stealth) { // auto detection
-			const tmp = obj.message.content.match(/(artworks\/|illust_id=)(\d{1,8})/);
-			if (tmp) illust_id = tmp[2];
-		} else if (obj.argv!.id) {
-			const tmp = obj.argv!.id.match(/(\d{1,8})/)!;
-			if (tmp) illust_id = tmp[1];
-		}
+	pattern: /(artworks\/|illust_id=)(\d{1,8})/,
+	action: async (obj) => {
+		const illust_id = obj.matches![2];
 
 		if (!isNaN(parseInt(illust_id))) {
 			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale());
 			if (embed) {
 				try {
 					await obj.message.suppressEmbeds(true);
-					return await obj.message.channel.send({ embeds: [embed] });
+					await obj.message.channel.send({ embeds: [embed] });
+					return true;
 				} catch (e) { // No permission?
-					throw e;
-				}
-			} else {
-				if (!stealth) {
-					return await obj.message.reply(getString('pixiv.imageNotFound', obj.message.getLocale(), { id: illust_id }));
+					return false;
 				}
 			}
-			return false;
 		}
 		return false;
 	}

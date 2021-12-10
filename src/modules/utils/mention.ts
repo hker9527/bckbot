@@ -1,13 +1,13 @@
 import { req2json } from '@app/utils';
-import { Module, ModuleActionArgument } from '@type/Module';
+import { StealthModule, StealthModuleActionArgument } from '@type/Module';
 
-export const module: Module = {
+export const module: StealthModule = {
 	trigger: ["*mention"],
 	event: "messageCreate",
 	eval: {
 		id: "client.user.id"
 	},
-	action: async (obj: ModuleActionArgument) => {
+	action: async (obj: StealthModuleActionArgument) => {
 		if (obj.message.mentions.users.has(obj.eval!.id)) {
 			const json = await req2json("https://api.quotable.io/random");
 

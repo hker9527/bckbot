@@ -2,9 +2,9 @@ import { getString, Languages } from "@app/i18n";
 import { enumStringKeys, randomArrayElement, req2json } from '@app/utils';
 import { DanbooruApiResponse } from '@type/api/Danbooru';
 import { KonachanApiResponse } from '@type/api/Konachan';
+import { StealthModule } from '@type/StealthModule';
 import { SankakuApiResponse } from '@type/api/Sankaku';
 import { YandereApiResponse } from '@type/api/Yandere';
-import { ArgumentRequirement, Module, ModuleActionArgument } from '@type/Module';
 import { MessageEmbed, TextChannel } from 'discord.js';
 
 export enum ApiPortal {
@@ -111,26 +111,23 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 	return embed;
 };
 
-export const module: Module = {
-	trigger: enumStringKeys(ApiPortal),
+export const module: StealthModule = {
 	event: "messageCreate",
-	argv: {
-		"tags": [ArgumentRequirement.Optional, ArgumentRequirement.Concat]
-	},
-	action: async (obj: ModuleActionArgument) => {
-		const provider = obj.trigger.substr(0, 3) as keyof typeof ApiPortal;
-		const nsfw = (obj.message.channel as TextChannel).nsfw;
+	action: async (obj) => {
+		// const provider = obj.trigger.substr(0, 3) as keyof typeof ApiPortal;
+		// const nsfw = (obj.message.channel as TextChannel).nsfw;
 
-		const list = await fetchList(provider, (obj.argv!.tags ?? "").split(" "), nsfw);
+		// const list = await fetchList(provider, (obj.argv!.tags ?? "").split(" "), nsfw);
 
-		if (!list.length) {
-			return await obj.message.reply("`找不到結果。請檢查關鍵字`");
-		}
+		// if (!list.length) {
+		// 	return await obj.message.reply("`找不到結果。請檢查關鍵字`");
+		// }
 
-		const imageObject = randomArrayElement(list);
+		// const imageObject = utils.randomArrayElement(list);
 
-		return await obj.message.reply({
-			embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale())]
-		});
+		// return await obj.message.reply({
+		// 	embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale())]
+		// });
+		return false;
 	}
 };

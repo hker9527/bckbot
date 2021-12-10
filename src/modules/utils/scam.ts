@@ -1,13 +1,13 @@
 import { getString } from "@app/i18n";
-import { Module, ModuleActionArgument } from '@type/Module';
+import { StealthModule, StealthModuleActionArgument } from '@type/Module';
 import { ScamApiResponse } from '@type/api/Scam';
 import * as linkify from 'linkifyjs';
 import fetch from 'node-fetch';
 
-export const module: Module = {
+export const module: StealthModule = {
 	trigger: ["*scam"],
 	event: "messageCreate",
-	action: async (obj: ModuleActionArgument) => {
+	action: async (obj: StealthModuleActionArgument) => {
 		const urls = linkify.find(obj.message.content).filter(result => result.type === "url").map(result => result.href);
 		if (urls.length) {
 			const body = {
