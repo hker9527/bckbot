@@ -4,8 +4,9 @@ import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
-import { MessageComponentButton } from '@type/MessageComponents';
-import { ContextMenuCommand, SlashCommand, SlashCommandResult } from "@type/SlashCommand";
+import { ContextMenuCommand, SlashCommand, SlashCommandResult } from '@type/slashCommand';
+import { MessageComponentButton } from '@type/slashCommand/MessageComponents';
+import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { exec } from "child_process";
 import { BaseCommandInteraction, Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
@@ -14,9 +15,7 @@ import { APISlashCommandAdapter } from './adapters/APISlashCommand';
 import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
 import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
 import { getString, i18init } from "./i18n";
-import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { arr2obj, pmError, report } from './utils';
-
 
 config();
 injectPrototype();
@@ -158,7 +157,7 @@ try {
 
 						const result = await module.action(argv);
 						if (result) {
-							await createDeleteAction(message);
+							// await createDeleteAction(message);
 						}
 					} catch (e) {
 						if (e instanceof Error) await pmError(message, e);
