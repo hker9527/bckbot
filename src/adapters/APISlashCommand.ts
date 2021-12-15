@@ -1,11 +1,11 @@
-import { Languages, getString } from "@app/i18n";
+import { Languages } from "@app/i18n";
 import { Localizer } from "@localizer/index";
-import { SlashCommand, ContextMenuCommand } from "@type/SlashCommand";
-import { GuildApplicationCommandManager, ApplicationCommandOptionData } from "discord.js";
+import { ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
+import { ApplicationCommandOptionData, GuildApplicationCommandManager } from "discord.js";
 
 export const APISlashCommandAdapter = (command: SlashCommand | ContextMenuCommand, locale: Languages): Parameters<GuildApplicationCommandManager["set"]>["0"]["0"] => {
 	return {
-		name: Localizer(command.name, locale), // Prevent direct object access
+		name: Localizer(command.name, locale),
 		description: "description" in command ? Localizer(command.description, locale) : "",
 		type: "type" in command ? command.type : "CHAT_INPUT",
 		options: command.options?.map(_option => {
