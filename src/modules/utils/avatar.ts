@@ -1,7 +1,9 @@
 import { ContextMenuCommand } from "@type/SlashCommand";
 
 export const module: ContextMenuCommand = {
-	name: "avatar.name",
+	name: {
+		key: "avatar.name"
+	},
 	type: "USER",
 	onContextMenu: async (interaction) => {
 		const user = interaction.getUser();
