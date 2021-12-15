@@ -18,14 +18,16 @@ export const module: SlashCommand = {
 	defer: true,
 	onCommand: async (interaction) => {
 		const result = random(0, 19);
-		const type = result < 10 ? "Good" : (result < 14 ? "Fair" : "Bad");
+		const type = result < 10 ? "Good" : (result < 15 ? "Fair" : "Bad");
 
 		await sleep(1000);
 		return {
 			embeds: [{
 				color: `#${map[type]}`,
 				footer: {
-					text: `🤔\t$t(magicball.answer${result})`
+					text: {
+						key: `🤔\t$t(magicball.answer${result})`
+					}
 				},
 				author: {
 					name: `${interaction.options.getString("question", true)}`
