@@ -4,6 +4,7 @@ import assert from 'assert';
 import { Decimal } from 'decimal.js';
 import { DMChannel, Message, TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
+import { ZodAny, ZodObject, ZodType } from 'zod';
 
 export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -29,10 +30,6 @@ export const msg2str = (message: Message) => {
 
 export const report = (string: string) => {
 	Singleton.logger.log(`${timeFormat()}\t${string}`);
-};
-
-export const isValid = (variable: any) => {
-	return !(typeof variable == "undefined");
 };
 
 export const random = (low: number, high: number) => {
@@ -124,4 +121,8 @@ export const pmError = async (message: Message, error: Error) => {
 
 export const enumStringKeys = (e: any) => {
 	return Object.keys(e).filter(value => isNaN(Number(value)));
+};
+
+export const isZod = <T>(o: unknown, z: ZodType<T>): o is T => {
+	return z.safeParse(o).success;
 };

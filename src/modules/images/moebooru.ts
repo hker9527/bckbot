@@ -6,6 +6,7 @@ import { StealthModule } from '@type/StealthModule';
 import { SankakuApiResponse } from '@type/api/Sankaku';
 import { YandereApiResponse } from '@type/api/Yandere';
 import { MessageEmbed, TextChannel } from 'discord.js';
+import { Embed } from "@type/Message/Embed";
 
 export enum ApiPortal {
 	kon = "https://konachan.com/post.json",
@@ -87,26 +88,46 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 	}
 };
 
-export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false, locale: Languages) => {
-	const embed = new MessageEmbed()
-		.setAuthor(getString('moebooru.searchResult', locale), `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`)
-		.setColor(({
+export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
+	const embed: Embed = {
+		author: {
+			name: {
+				key: 'moebooru.searchResult'
+			},
+			iconURL: `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`
+		},
+		color: ({
 			s: 0x7df28b,
 			q: 0xe4ea69,
 			e: 0xd37a52
-		})[imageObject.rating])
-		.addField("Post", `[${imageObject.id}](${({
-			kon: `https://konachan.com/post/show/${imageObject.id}`,
-			yan: `https://yande.re/post/show/${imageObject.id}`,
-			dan: `https://danbooru.donmai.us/posts/${imageObject.id}`,
-			san: `https://sankaku.app/post/show/${imageObject.id}`
-		})[provider]})`, true)
-		.addField(getString('moebooru.dimensions', locale), `${imageObject.width} x ${imageObject.height}`, true)
-		.addField(getString('moebooru.sourceHeader', locale), imageObject.source?.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") ?? "(未知)")
-		.setTimestamp(imageObject.created_at);
+		})[imageObject.rating],
+		fields: [{
+			name: "Post",
+			value: `[${imageObject.id}](${({
+				kon: `https://konachan.com/post/show/${imageObject.id}`,
+				yan: `https://yande.re/post/show/${imageObject.id}`,
+				dan: `https://danbooru.donmai.us/posts/${imageObject.id}`,
+				san: `https://sankaku.app/post/show/${imageObject.id}`
+			})[provider]})`,
+			inline: true
+		}, {
+			name: {
+				key: "moebooru.dimensions"
+			},
+			value: `${imageObject.width} x ${imageObject.height}`,
+			inline: true
+		}, {
+			name: {
+				key: "'moebooru.sourceHeader"
+			},
+			value: imageObject.source?.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") ?? "(未知)"
+		}],
+		timestamp: imageObject.created_at
+	};
 
 	if (showImage && (imageObject.rating != "s" || nsfw) && imageObject.file_url) {
-		embed.setImage(imageObject.file_url);
+		// embed.setImage(imageObject.file_url);
+		embed.image = imageObject.file_url;
 	}
 	return embed;
 };

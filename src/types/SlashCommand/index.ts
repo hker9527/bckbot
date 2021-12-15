@@ -1,17 +1,12 @@
-import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, InteractionReplyOptions, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
+import { Localizable } from "@app/localizers/Data";
 import { CommandOptionBoolean, CommandOptionNumeric, CommandOptionString, CommandOptionSubCommand, CommandOptionSubCommandGroup, CommandOptionUser } from "./CommandOptions";
-import { LocalizerData } from "../LocalizerData";
-import { MessageComponents } from "./MessageComponents";
+import { SlashCommandResultType } from "./result";
 
-export interface SlashCommandResult extends Omit<InteractionReplyOptions, "content" | "components"> {
-	content?: string | LocalizerData,
-	components?: MessageComponents
-};
-
-export type onFn<T> = (interaction: T) => Promise<string | LocalizerData | SlashCommandResult>;
+export type onFn<T> = (interaction: T) => Promise<Localizable | SlashCommandResultType>;
 
 export interface Command {
-	name: string,
+	name: Localizable,
 	options?: (CommandOptionSubCommand | CommandOptionSubCommandGroup | CommandOptionString | CommandOptionNumeric | CommandOptionBoolean | CommandOptionUser)[],
 	defer?: boolean,
 
@@ -21,7 +16,8 @@ export interface Command {
 };
 
 export interface SlashCommand extends Command {
-	description: string,
+	name: string,
+	description: Localizable,
 	onCommand: onFn<CommandInteraction>,
 };
 

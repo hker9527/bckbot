@@ -4,18 +4,17 @@ import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
-import { ContextMenuCommand, SlashCommand, SlashCommandResult } from '@type/slashCommand';
-import { MessageComponentButton } from '@type/slashCommand/MessageComponents';
+import { ContextMenuCommand, SlashCommand } from '@type/SlashCommand';
+import { SlashCommandResult, SlashCommandResultType } from '@type/SlashCommand/result';
 import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { exec } from "child_process";
 import { BaseCommandInteraction, Message, MessageInteraction, User } from 'discord.js';
 import { config } from "dotenv-safe";
 import glob from 'glob';
 import { APISlashCommandAdapter } from './adapters/APISlashCommand';
-import { InteractionReplyOptionsAdapter } from './adapters/InteractionReplyOptions';
-import { SlashCommandResultAdapter } from './adapters/SlashCommandResult';
 import { getString, i18init } from "./i18n";
 import { arr2obj, pmError, report } from './utils';
+import { StealthModuleResult } from '@type/StealthModule/result';
 
 config();
 injectPrototype();
@@ -31,32 +30,6 @@ try {
 		events.map(() => ({}))
 	);
 	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
-
-	const createDeleteAction = async (message: Message, author: User | null = null) => {
-		const collector = message.createReactionCollector({
-			filter: (reaction, user) => {
-				const emojiIsBin = reaction.emoji.name === '🗑️';
-				const reactorIsAuthor = user === (author || message.author);
-				const reactorIsSelf = user === client.user;
-				if (emojiIsBin && !reactorIsAuthor && reactorIsSelf) {
-					reaction.remove();
-				}
-				return emojiIsBin && reactorIsAuthor && !reactorIsSelf;
-			},
-			time: 15000
-		});
-		collector.on('collect', async () => {
-			try {
-				await message.delete();
-			} catch (e) { }
-		});
-		const reaction = await message.react('🗑️');
-		collector.on('end', async () => {
-			try {
-				await reaction.remove();
-			} catch (e) { }
-		});
-	};
 
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
@@ -133,14 +106,16 @@ try {
 			client.on(event, async (message: Message) => {
 				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
 
-				for (let _module of Object.values(eventModules[event])) {
-					const module = _module.module;
+				for (let moduleName in eventModules[event]) {
 					try {
-						if (!_module.loaded) return;
+						const _module = eventModules[event][moduleName];
+						const module = _module.module;
+
+						if (!_module.loaded) continue;
 						let matches: RegExpMatchArray | undefined;
 						if (module.pattern) {
 							matches = message.content.match(module.pattern) || undefined;
-							if (!matches) return;
+							if (!matches) continue;
 						}
 
 						const argv: StealthModuleActionArgument = {
@@ -156,8 +131,11 @@ try {
 						}
 
 						const result = await module.action(argv);
-						if (result) {
+						if (typeof result !== "boolean") {
 							// await createDeleteAction(message);
+							const option = new StealthModuleResult(result.result, message.id).localize(message.getLocale()).build();
+							const msg = result.type === "reply" ? await message.reply(option) : await message.channel.send(option);
+							messages[message.id] = msg.id;
 						}
 					} catch (e) {
 						if (e instanceof Error) await pmError(message, e);
@@ -199,39 +177,21 @@ try {
 			worker();
 		}
 
+		const messages: Dictionary<string> = {};
 		// Save all interactions for delete button
 		const interactions: Dictionary<BaseCommandInteraction & {
 			deleteReply: () => Promise<void>
 		}> = {};
 
 		client.on("interactionCreate", async (interaction) => {
-			let result: SlashCommandResult | null = null;
+			let result: ConstructorParameters<typeof SlashCommandResult>["0"] | null = null;
 			let command: SlashCommand | ContextMenuCommand;
 
 			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
 				if (result) {
 					const _interaction = interaction as BaseCommandInteraction;
-
-					const deleteButton = [
-						{
-							type: "BUTTON",
-							custom_id: `delete${interaction.id}`,
-							emoji: {
-								name: "🗑️"
-							},
-							style: "DANGER",
-							label: "delete"
-						} as MessageComponentButton
-					];
-
-					if (result.components) {
-						result.components.push(deleteButton);
-					} else {
-						result.components = [deleteButton];
-					}
-
-					const options = InteractionReplyOptionsAdapter(result, interaction.getLocale());
+					const options = new SlashCommandResult(result, interaction.id).localize(interaction.getLocale()).build();
 
 					if (command.defer) {
 						await _interaction.editReply(options);
@@ -251,15 +211,32 @@ try {
 			// Delete button
 			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
 				try {
-					const originalInteraction = interactions[interaction.customId.substring(6)];
-					if (originalInteraction) {
-						if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR'))
-							await originalInteraction.deleteReply();
-						else
-							await interaction.reply({
-								content: "no u",
-								ephemeral: true
-							});
+					const id = interaction.customId.substring(7);
+					switch (interaction.customId[6]) {
+						case "m":
+							const originalMessage = await interaction.channel?.messages.fetch(messages[id]);
+							if (originalMessage) {
+								if (interaction.user === originalMessage.author || interaction.memberPermissions?.has('ADMINISTRATOR'))
+									await originalMessage.delete();
+								else
+									await interaction.reply({
+										content: "no u",
+										ephemeral: true
+									});
+							}
+							break;
+						case "i":
+							const originalInteraction = interactions[id];
+							if (originalInteraction) {
+								if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR'))
+									await originalInteraction.deleteReply();
+								else
+									await interaction.reply({
+										content: "no u",
+										ephemeral: true
+									});
+							}
+							break;
 					}
 				} catch (e) {
 				}
@@ -274,9 +251,9 @@ try {
 						await interaction.deferReply();
 
 					if (interaction.isCommand() && "onCommand" in command) {
-						result = SlashCommandResultAdapter(await command.onCommand(interaction));
+						result = await command.onCommand(interaction);
 					} else if (interaction.isContextMenu() && "onContextMenu" in command) {
-						result = SlashCommandResultAdapter(await command.onContextMenu(interaction));
+						result = await command.onContextMenu(interaction);
 					}
 
 					if (result) return await sendResult();
@@ -288,11 +265,11 @@ try {
 						await interaction.deferReply();
 
 					if (interaction.isButton() && command.onButton) {
-						result = SlashCommandResultAdapter(await command.onButton(interaction));
+						result = await command.onButton(interaction);
 					} else if (interaction.isMessageComponent() && command.onMessageComponent) {
-						result = SlashCommandResultAdapter(await command.onMessageComponent(interaction));
+						result = await command.onMessageComponent(interaction);
 					} else if (interaction.isSelectMenu() && command.onSelectMenu) {
-						result = SlashCommandResultAdapter(await command.onSelectMenu(interaction));
+						result = await command.onSelectMenu(interaction);
 					}
 
 					if (result) return await sendResult();
@@ -320,7 +297,7 @@ try {
 				tmp = _module as StealthModule;
 				eventModules[tmp.event][moduleName] = {
 					module: tmp,
-					loaded: false,
+					loaded: false
 				};
 			} else if ("name" in _module) {
 				tmp = _module as SlashCommand;

@@ -55,11 +55,13 @@ export const module: ContextMenuCommand = {
 			embeds: [{
 				color: colorByRatio(score / 100),
 				title: `${score}%`,
-				thumbnail: { url },
+				thumbnail: url,
 				fields: resp.output.detections.length ?
 					[
 						{
-							name: "nudity.items",
+							name: {
+								key: "nudity.items"
+							},
 
 							value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
 								`(${round(detection.confidence * 100)}%) ${detection.name}`

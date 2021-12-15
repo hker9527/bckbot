@@ -1,14 +1,14 @@
+import { Localizable } from "@app/localizers/Data";
 import { ChannelTypes } from "discord.js/typings/enums";
 
 type CommandOptionChoice<T> = {
-	name: string,
+	name: Localizable,
 	value: T;
 };
 
 interface CommandOption {
-	name: string,
-	description: string,
-	descriptionRaw?: boolean,
+	name: Localizable,
+	description: Localizable,
 	optional?: boolean,
 	channel_types?: ChannelTypes,
 	autocomplete?: boolean;

@@ -1,8 +1,8 @@
-import { getString, Languages } from "@app/i18n";
 import { report, req2json } from '@app/utils';
 import { PixivApiResponse } from '@type/api/Pixiv';
+import { Embed } from "@type/Message/Embed";
 import { StealthModule } from '@type/StealthModule';
-import { MessageEmbed, TextChannel } from 'discord.js';
+import { TextChannel } from 'discord.js';
 import { htmlToText } from 'html-to-text';
 
 export const pimg = (url: string) => {
@@ -42,28 +42,39 @@ export const fetchInfo = async (illust_id: string) => {
 	}
 };
 
-export const genEmbed = async (illust_id: string, show_image = true, nsfw = false, locale: Languages) => {
+export const genEmbed = async (illust_id: string, show_image = true, nsfw = false): Promise<Embed | null> => {
 	const illust = await fetchInfo(illust_id);
 	if (illust === null) {
 		return null;
 	}
 
-	return new MessageEmbed()
-		.setAuthor(
-			(illust.title || getString('pixiv.titlePlaceholder', locale)) + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : ""),
-			"https://s.pximg.net/www/images/pixiv_logo.gif"
-		)
-		.setColor(illust.restrict ? 0xd37a52 : 0x3D92F5)
-		.setTimestamp(new Date(illust.date))
-		.setImage((show_image && !(illust.restrict && !nsfw)) ? `https://pixiv.cat/${illust_id}${(illust.pageCount > 1 ? "-1" : "")}.jpg` : "")
-		.addField(
-			getString('pixiv.sauceHeader', locale),
-			getString('pixiv.sauceContent', locale, { illust_id, author: illust.author.name, author_id: illust.author.id })
-		)
-		.addField(
-			getString('pixiv.descriptionHeader', locale),
-			illust.description || getString('pixiv.descriptionPlaceholder', locale)
-		);
+	return {
+		author: {
+			name: {
+				key: (illust.title || '$t(pixiv.titlePlaceholder)') + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : "")
+			},
+			iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
+		},
+		color: illust.restrict ? 0xd37a52 : 0x3D92F5,
+		timestamp: new Date(illust.date),
+		image: (show_image && !(illust.restrict && !nsfw)) ? `https://pixiv.cat/${illust_id}${(illust.pageCount > 1 ? "-1" : "")}.jpg` : undefined,
+		fields: [{
+			name: {
+				key: 'pixiv.sauceHeader'
+			},
+			value: {
+				key: 'pixiv.sauceContent',
+				data: { illust_id, author: illust.author.name, author_id: illust.author.id }
+			}
+		}, {
+			name: {
+				key: 'pixiv.descriptionHeader'
+			},
+			value: illust.description || {
+				key: "pixiv.descriptionPlaceholder"
+			}
+		}]
+	};
 };
 
 export const module: StealthModule = {
@@ -73,12 +84,14 @@ export const module: StealthModule = {
 		const illust_id = obj.matches![2];
 
 		if (!isNaN(parseInt(illust_id))) {
-			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale());
+			const embed = await genEmbed(illust_id, true, (obj.message.channel as TextChannel).nsfw);
 			if (embed) {
 				try {
 					await obj.message.suppressEmbeds(true);
-					await obj.message.channel.send({ embeds: [embed] });
-					return true;
+					return {
+						type: "send",
+						result: { embeds: [embed] }
+					}
 				} catch (e) { // No permission?
 					return false;
 				}

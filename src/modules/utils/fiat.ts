@@ -44,8 +44,8 @@ export const module: SlashCommand = {
 		}))
 	}, {
 		name: "amount",
-		description: "How many money",
-		type: "INTEGER",
+		description: "How much",
+		type: "NUMBER",
 		min_value: 1,
 		optional: true
 	}, {
@@ -63,24 +63,25 @@ export const module: SlashCommand = {
 		const amount = interaction.options.getInteger("amount") ?? 1;
 		const target = interaction.options.getString("target") as keyof typeof Currencies ?? null;
 
-		const embed = new MessageEmbed({
-			title: "Convert",
-			fields: [
-				{
-					name: source,
-					value: amount.toString()
+		return {
+			embeds: [{
+				title: "Convert",
+				fields: [
+					{
+						name: source,
+						value: amount.toString()
+					},
+					...enumStringKeys(Currencies).filter(currency => currency != source && ((target != null && currency == target) || target == null)).map(currency => ({
+						name: currency,
+						value: round(data.data[source][currency as keyof typeof Currencies] * amount, 2).toString(),
+						inline: true
+					}))
+				],
+				footer: {
+					text: "Updated at",
 				},
-				...enumStringKeys(Currencies).filter(currency => currency != source && ((target != null && currency == target) || target == null)).map(currency => ({
-					name: currency,
-					value: round(data.data[source][currency as keyof typeof Currencies] * amount, 2).toString(),
-					inline: true
-				}))
-			],
-			footer: {
-				text: "Updated at",
-			},
-			timestamp: data.lastUpdate
-		});
-		return { embeds: [embed] };
+				timestamp: data.lastUpdate
+			}]
+		};
 	}
 };

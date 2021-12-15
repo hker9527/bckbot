@@ -1,11 +1,11 @@
-import { getString } from "@app/i18n";
 import { req2json } from "@app/utils";
 import { SaucenaoApiResponse } from "@type/api/Saucenao";
+import { Embed } from "@type/Message/Embed";
 import { ContextMenuCommand } from "@type/SlashCommand";
-import { MessageEmbed } from "discord.js";
 import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "./moebooru";
 import { genEmbed as genPixivEmbed } from "./pixiv";
 import { findImagesFromMessage } from "./_lib";
+
 export const module: ContextMenuCommand = {
 	name: "sauce.name",
 	type: "MESSAGE",
@@ -19,7 +19,9 @@ export const module: ContextMenuCommand = {
 		let url;
 
 		if (!urls.length) {
-			return getString("sauce.invalidUrl", message.getLocale());
+			return {
+				key: "sauce.invalidUrl"
+			};
 		} else if (urls.length > 1) {
 			// TODO: Give select menu for user to pick which one
 			url = urls[0];
@@ -31,7 +33,9 @@ export const module: ContextMenuCommand = {
 
 		if (res.header.status === 0) {
 			if (res.results === null) {
-				return getString("sauce.noSauce", message.getLocale());
+				return {
+					key: "sauce.noSauce"
+				};
 			}
 
 			// TODO: Select dropdown for user to check other sauces
@@ -40,11 +44,19 @@ export const module: ContextMenuCommand = {
 				for (const result of results) {
 					const similarity = parseFloat(result.header.similarity);
 
-					let embed: MessageEmbed | null = null;
+					let embed: Embed | null = null;
 					if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
-						const _embed = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw, interaction.getLocale());
+						const _embed = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw);
 						if (_embed === null) {
-							return getString('sauce.postNotFound', message.getLocale(), { url: result.data.pixiv_id });
+							// return {
+							// 	key: "sauce.postNotFound",
+							// 	data: {
+							// 		url: result.data.pixiv_id
+							// 	}
+							// };
+
+							// Go to next sauce
+							continue;
 						}
 						embed = _embed;
 					} else if ("creator" in result.data) { // MoebooruData
@@ -71,14 +83,17 @@ export const module: ContextMenuCommand = {
 						if (provider !== null && id !== null) {
 							const imageObjects = await fetchList(provider, [`id:${id}`], nsfw);
 							if (imageObjects.length > 0) {
-								embed = await genMoebooruEmbed(provider, imageObjects[0], false, nsfw, interaction.getLocale());
+								embed = await genMoebooruEmbed(provider, imageObjects[0], false, nsfw);
 							}
 						}
 					}
 					if (embed) {
 						return {
-							content: (similarity < 70 ? "||" : "") + getString("sauce.confidenceLevel", message.getLocale(), { similarity }) + (similarity < 70 ? " ||" : ""),
-							embeds: [embed.setThumbnail(url)]
+							content: {
+								key: "sauce.confidenceLevel",
+								data: { similarity }
+							},
+							embeds: [embed]
 						};
 					}
 				}
@@ -87,7 +102,12 @@ export const module: ContextMenuCommand = {
 				// No suitable sauce found.... Default to the highest confidence one.
 				// TODO: Beautify
 
-				return getString('sauce.unknown', message.getLocale(), { json: JSON.stringify(results[0], null, 4) });
+				return {
+					key: 'sauce.unknown',
+					data: {
+						json: JSON.stringify(results[0], null, 4)
+					}
+				}
 			}
 		} else {
 			return `Error: ${res.header.message}`;

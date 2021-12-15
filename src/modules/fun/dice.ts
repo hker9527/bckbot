@@ -3,24 +3,31 @@ import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
 	name: "dice",
-	description: "dice.description",
+	description: {
+		key: "dice.description"
+	},
 	options: [
 		{
 			name: "n",
-			description: "dice.nDescription",
+			description: {
+				key: "dice.nDescription"
+			},
 			type: "INTEGER",
 			min_value: 1,
 			max_value: 1000
 		}, {
 			name: "faces",
-			description: "dice.facesDescription",
+			description: {
+				key: "dice.facesDescription"
+			},
 			type: "INTEGER",
 			min_value: 1,
 			max_value: 0x198964
 		}, {
 			name: "offset",
-			description: "dice.offsetDescription",
-			descriptionRaw: true,
+			description: {
+				key: "dice.offsetDescription"
+			},
 			type: "INTEGER",
 			optional: true
 		}

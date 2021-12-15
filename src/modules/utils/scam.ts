@@ -1,11 +1,10 @@
 import { getString } from "@app/i18n";
-import { StealthModule, StealthModuleActionArgument } from '@type/Module';
+import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { ScamApiResponse } from '@type/api/Scam';
 import * as linkify from 'linkifyjs';
 import fetch from 'node-fetch';
 
 export const module: StealthModule = {
-	trigger: ["*scam"],
 	event: "messageCreate",
 	action: async (obj: StealthModuleActionArgument) => {
 		const urls = linkify.find(obj.message.content).filter(result => result.type === "url").map(result => result.href);
@@ -43,7 +42,10 @@ export const module: StealthModule = {
 							platformType: match.platformType
 						}));
 					}
-					return await obj.message.reply(txts.join("\n"));
+					return {
+						type: "reply",
+						result: txts.join("\n")
+					}
 				}
 			} catch (e) {
 				console.error(e);

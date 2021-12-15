@@ -1,5 +1,7 @@
+import { Localizable } from "@localizer/Data";
 import { Message } from "discord.js";
-import { Dictionary } from "./Dictionary";
+import { Dictionary } from "../Dictionary";
+import { StealthModuleResultType } from "./result";
 
 export type StealthModuleActionArgument = {
 	message: Message,
@@ -11,7 +13,10 @@ export type StealthModule = {
 	eval?: Dictionary<string>,
 	event: "messageCreate" | "messageDelete" | "messageUpdate",
 	pattern?: RegExp,
-	action: (obj: StealthModuleActionArgument) => Promise<boolean>, // TODO: Return object
+	action: (obj: StealthModuleActionArgument) => Promise<boolean | {
+		type: "reply" | "send",
+		result: Localizable | StealthModuleResultType
+	}>, // TODO: Return object
 	init?: (obj?: Dictionary<any>) => Promise<boolean>,
 	interval?: {
 		f: (obj?: Dictionary<any>) => Promise<boolean>,
