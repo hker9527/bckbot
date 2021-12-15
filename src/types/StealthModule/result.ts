@@ -7,6 +7,7 @@ export type StealthModuleResultType = LocalizableMessage<MessageOptions>;
 
 export class StealthModuleResult extends Result<MessageOptions>{
 	constructor(__result: Localizable | StealthModuleResultType, id: string) {
-		super(__result, `m${id}`);
+		super(__result);
+		this.addDeleteButton(`m${id}`);
 	}
 };

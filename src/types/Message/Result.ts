@@ -11,10 +11,11 @@ import { MessageComponentButton } from "./MessageComponents";
 export abstract class Result<T extends MessageOptions> {
 	protected _result: LocalizableMessage<T>;
 
-	constructor(__result: LocalizableMessage<T> | Localizable, id: string) {
-		this._result = isZod(__result, ZLocalizable) ? { content: __result } as LocalizableMessage<T> : __result;
+	constructor(__result: LocalizableMessage<T> | Localizable) {
+		this._result = isZod(__result, ZLocalizable) ? { content: __result } as LocalizableMessage<T> : __result;		
+	}
 
-		// Add delete button to result
+	protected addDeleteButton(id: string) {
 		const deleteButton = [
 			{
 				type: "BUTTON",
