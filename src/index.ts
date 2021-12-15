@@ -135,7 +135,10 @@ try {
 							// await createDeleteAction(message);
 							const option = new StealthModuleResult(result.result, message.id).localize(message.getLocale()).build();
 							const msg = result.type === "reply" ? await message.reply(option) : await message.channel.send(option);
-							messages[message.id] = msg.id;
+							stealthMessageData[message.id] = {
+								replyID: msg.id,
+								authorID: message.author.id
+							};
 						}
 					} catch (e) {
 						if (e instanceof Error) await pmError(message, e);
@@ -177,7 +180,10 @@ try {
 			worker();
 		}
 
-		const messages: Dictionary<string> = {};
+		const stealthMessageData: Dictionary<{
+			replyID: string;
+			authorID: string;
+		}> = {};
 		// Save all interactions for delete button
 		const interactions: Dictionary<BaseCommandInteraction & {
 			deleteReply: () => Promise<void>
@@ -214,10 +220,11 @@ try {
 					const id = interaction.customId.substring(7);
 					switch (interaction.customId[6]) {
 						case "m":
-							const originalMessage = await interaction.channel?.messages.fetch(messages[id]);
-							if (originalMessage) {
-								if (interaction.user === originalMessage.author || interaction.memberPermissions?.has('ADMINISTRATOR'))
-									await originalMessage.delete();
+							const reply = await interaction.channel?.messages.fetch(stealthMessageData[id].replyID);
+
+							if (reply) {
+								if (interaction.user.id === stealthMessageData[id].authorID || interaction.memberPermissions?.has('ADMINISTRATOR'))
+									await reply.delete();
 								else
 									await interaction.reply({
 										content: "no u",
