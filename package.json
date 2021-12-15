@@ -35,7 +35,8 @@
 		"twit": "^2.2.11",
 		"typescript": "^4.5.2",
 		"vorpal": "^1.12.0",
-		"xml2json": "^0.12.0"
+		"xml2json": "^0.12.0",
+		"zod": "^3.11.6"
 	},
 	"devDependencies": {
 		"@types/html-to-text": "^8.0.1",
@@ -49,6 +50,7 @@
 		"@root": ".",
 		"@res": "res",
 		"@app": "bin",
+		"@localizer": "bin/localizers",
 		"@type": "bin/types",
 		"@module": "bin/modules"
 	}
