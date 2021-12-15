@@ -31,7 +31,9 @@ const colorByRatio = (_ratio: number): `#${string}` => {
 };
 
 export const module: ContextMenuCommand = {
-	name: "nudity.name",
+	name: {
+		key: "nudity.name"
+	},
 	type: "MESSAGE",
 	defer: true,
 	onContextMenu: async (interaction) => {

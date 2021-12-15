@@ -7,7 +7,9 @@ import { genEmbed as genPixivEmbed } from "./pixiv";
 import { findImagesFromMessage } from "./_lib";
 
 export const module: ContextMenuCommand = {
-	name: "sauce.name",
+	name: {
+		key: "sauce.name"
+	},
 	type: "MESSAGE",
 	defer: true,
 	onContextMenu: async (interaction) => {
