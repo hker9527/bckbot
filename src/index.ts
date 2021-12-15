@@ -4,7 +4,6 @@ import { injectPrototype } from '@app/prototype';
 import { Singleton } from '@app/Singleton';
 import { Dictionary } from '@type/Dictionary';
 import { Events } from '@type/Events';
-import { ContextMenuCommand, SlashCommand } from '@type/SlashCommand';
 import { SlashCommandResult, SlashCommandResultType } from '@type/SlashCommand/result';
 import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
 import { exec } from "child_process";
@@ -15,6 +14,8 @@ import { APISlashCommandAdapter } from './adapters/APISlashCommand';
 import { getString, i18init } from "./i18n";
 import { arr2obj, pmError, report } from './utils';
 import { StealthModuleResult } from '@type/StealthModule/result';
+import { Localizer } from './localizers';
+import { Command, ContextMenuCommand, SlashCommand } from '@type/SlashCommand';
 
 config();
 injectPrototype();
@@ -29,7 +30,7 @@ try {
 		events,
 		events.map(() => ({}))
 	);
-	const slashCommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
+	const slashCommands: (SlashCommand | ContextMenuCommand)[] = [];
 
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
@@ -95,7 +96,7 @@ try {
 							}));
 						} else {
 							const cmd = slashCommands[_command];
-							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: cmd.type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
+							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: (cmd as ContextMenuCommand).type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						}
 						return;
 					}
@@ -165,15 +166,16 @@ try {
 					return;
 				}
 
-				const map: Dictionary<string> = {};
+				const originOfLocalizedName: Dictionary<string> = {};
 
-				for (const commandName in slashCommands) {
-					const commandNameLocalized = commandName.includes(".") ? getString(commandName, guild.getLocale()) : commandName; // Prevent direct object access getString(commandName, guild.getLocale());
-					map[commandNameLocalized] = commandName;
+				for (const command of slashCommands) {
+					const commandNameLocalized = Localizer(command.name, guild.getLocale());
+					originOfLocalizedName[commandNameLocalized] = typeof command.name === "string" ? command.name : command.name.key;
 				}
+
 				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandAdapter(slashCommand, guild.getLocale())));
 				for (const [_, command] of commands) {
-					APICommands[command.id] = slashCommands[map[command.name]];
+					APICommands[command.id] = slashCommands.find(_command => (typeof _command.name === "string" ? _command.name : _command.name.key) === originOfLocalizedName[command.name])!;
 				}
 			};
 
@@ -191,7 +193,7 @@ try {
 
 		client.on("interactionCreate", async (interaction) => {
 			let result: ConstructorParameters<typeof SlashCommandResult>["0"] | null = null;
-			let command: SlashCommand | ContextMenuCommand;
+			let command: Command;
 
 			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
@@ -258,15 +260,15 @@ try {
 						await interaction.deferReply();
 
 					if (interaction.isCommand() && "onCommand" in command) {
-						result = await command.onCommand(interaction);
+						result = await (command as SlashCommand).onCommand(interaction);
 					} else if (interaction.isContextMenu() && "onContextMenu" in command) {
-						result = await command.onContextMenu(interaction);
+						result = await (command as ContextMenuCommand).onContextMenu(interaction);
 					}
 
 					if (result) return await sendResult();
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
-				command = slashCommands[(interaction.message!.interaction! as MessageInteraction).commandName];
+				command = slashCommands.find(_command => _command.name === (interaction.message!.interaction! as MessageInteraction).commandName)!;
 				if (command) {
 					if (command.defer)
 						await interaction.deferReply();
@@ -299,7 +301,7 @@ try {
 			const moduleName = fileName.slice(0, -3);
 
 			const _module = require(`@app/${file.slice(6)}`).module;
-			let tmp: StealthModule | SlashCommand;
+			let tmp: StealthModule | SlashCommand | ContextMenuCommand;
 			if ("action" in _module) {
 				tmp = _module as StealthModule;
 				eventModules[tmp.event][moduleName] = {
@@ -307,8 +309,8 @@ try {
 					loaded: false
 				};
 			} else if ("name" in _module) {
-				tmp = _module as SlashCommand;
-				slashCommands[tmp.name] = tmp;
+				tmp = _module as SlashCommand | ContextMenuCommand;
+				slashCommands.push(tmp);
 			} else {
 				report(`Unknown module ${fileName}!`);
 				process.exit();
