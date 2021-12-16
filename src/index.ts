@@ -26,7 +26,10 @@ const { logger, client } = Singleton;
 try {
 	const startTime = new Date();
 	const events = ["messageCreate", "messageDelete", "messageUpdate"];
-	const eventModules: Events = arr2obj(
+	const eventModules: Dictionary<Dictionary<{
+		module: StealthModule,
+		loaded: boolean
+	}>> = arr2obj(
 		events,
 		events.map(() => ({}))
 	);
