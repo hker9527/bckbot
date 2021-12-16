@@ -60,7 +60,7 @@ export const module: SlashCommand = {
 	}],
 	onCommand: async (interaction) => {
 		const source = interaction.options.getString("source", true) as keyof typeof Currencies;
-		const amount = interaction.options.getInteger("amount") ?? 1;
+		const amount = interaction.options.getNumber("amount") ?? 1;
 		const target = interaction.options.getString("target") as keyof typeof Currencies ?? null;
 
 		return {
