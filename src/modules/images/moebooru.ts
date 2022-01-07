@@ -118,7 +118,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 			inline: true
 		}, {
 			name: {
-				key: "'moebooru.sourceHeader"
+				key: "moebooru.sourceHeader"
 			},
 			value: imageObject.source?.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") ?? "(未知)"
 		}],
