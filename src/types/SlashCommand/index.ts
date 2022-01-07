@@ -13,15 +13,15 @@ export interface Command {
 	onButton?: onFn<ButtonInteraction>,
 	onMessageComponent?: onFn<MessageComponentInteraction>,
 	onSelectMenu?: onFn<SelectMenuInteraction>;
-};
+}
 
 export interface SlashCommand extends Command {
 	name: string,
 	description: Localizable,
 	onCommand: onFn<CommandInteraction>,
-};
+}
 
 export interface ContextMenuCommand extends Command {
-	type: 'MESSAGE' | 'USER',
+	type: "MESSAGE" | "USER",
 	onContextMenu: onFn<ContextMenuInteraction>;
-};
+}

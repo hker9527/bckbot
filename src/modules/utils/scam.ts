@@ -1,8 +1,8 @@
 import { getString } from "@app/i18n";
-import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
-import { ScamApiResponse } from '@type/api/Scam';
-import * as linkify from 'linkifyjs';
-import fetch from 'node-fetch';
+import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
+import { ScamApiResponse } from "@type/api/Scam";
+import * as linkify from "linkifyjs";
+import fetch from "node-fetch";
 
 export const module: StealthModule = {
 	event: "messageCreate",
@@ -23,10 +23,10 @@ export const module: StealthModule = {
 			};
 
 			const response = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${process.env.safebrowsing_key}`, {
-				method: 'POST',
+				method: "POST",
 				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
+					"Accept": "application/json",
+					"Content-Type": "application/json"
 				},
 				body: JSON.stringify(body)
 			});

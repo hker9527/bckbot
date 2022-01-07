@@ -1,12 +1,11 @@
 import { Languages } from "@app/i18n";
-import { arr2obj, enumStringKeys } from "@app/utils";
 import { Dictionary } from "./Dictionary";
 
 export enum Currencies {
-	"TWD", "HKD", "JPY", "USD", "EUR"
-};
+	TWD, HKD, JPY, USD, EUR
+}
 
-export type Database = {
+export interface Database {
 	language: {
 		guilds: Dictionary<Languages>,
 		channels: Dictionary<Languages>;
@@ -16,4 +15,4 @@ export type Database = {
 		data: Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>,
 		lastUpdate: Date
 	}
-};
+}

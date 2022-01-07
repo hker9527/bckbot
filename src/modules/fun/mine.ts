@@ -1,4 +1,3 @@
-import { getString } from "@app/i18n";
 import { random, randomArrayElement } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
 
@@ -42,7 +41,7 @@ export const module: SlashCommand = {
 
 		if (mineCount > (h * w - 5)) mineCount = Math.max(1, h * w / random(5, 10) | 0);
 
-		const field = [...new Array(h)].map(a => [...new Array(w)].map(a => numberSymbols[0]));
+		const field = [...new Array(h)].map(() => [...new Array(w)].map(() => numberSymbols[0]));
 
 		const mineLocations = [];
 
@@ -71,7 +70,7 @@ export const module: SlashCommand = {
 				[x + 1, y - 1], [x + 1, y], [x + 1, y + 1]
 			].filter(a => a[0] < w && a[0] > -1 && a[1] < h && a[1] > -1)) {
 				// Add the surroundings of a bomb by 1
-				if (field[_m[1]][_m[0]] != bombSymbol) {
+				if (field[_m[1]][_m[0]] !== bombSymbol) {
 					field[_m[1]][_m[0]] = numberSymbols[numberSymbols.indexOf(field[_m[1]][_m[0]]) + 1];
 				}
 			}

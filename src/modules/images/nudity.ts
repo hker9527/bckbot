@@ -1,8 +1,8 @@
 import { round } from "@app/utils";
-import { findImagesFromMessage } from '@module/images/_lib';
+import { findImagesFromMessage } from "@module/images/_lib";
 import { ContextMenuCommand } from "@type/SlashCommand";
 
-const deepai = require("deepai");
+import deepai from "deepai";
 
 deepai.setApiKey(process.env.deepai);
 
@@ -20,7 +20,7 @@ const colorByRatio = (_ratio: number): `#${string}` => {
 	const ratio = (_ratio % 0.5) * 2;
 
 	const hex = (x: number) => {
-		return x.toString(16).padStart(2, '0');
+		return x.toString(16).padStart(2, "0");
 	};
 
 	const r = Math.ceil(parseInt(start.substring(0, 2), 16) * (1 - ratio) + parseInt(end.substring(0, 2), 16) * ratio);

@@ -6,8 +6,8 @@ import { MessageOptions } from "discord.js";
 export type StealthModuleResultType = LocalizableMessage<MessageOptions>;
 
 export class StealthModuleResult extends Result<MessageOptions>{
-	constructor(__result: Localizable | StealthModuleResultType, id: string) {
+	public constructor(__result: Localizable | StealthModuleResultType, id: string) {
 		super(__result);
 		this.addDeleteButton(`m${id}`);
 	}
-};
+}

@@ -3,13 +3,13 @@ import { Message } from "discord.js";
 import { Dictionary } from "../Dictionary";
 import { StealthModuleResultType } from "./result";
 
-export type StealthModuleActionArgument = {
+export interface StealthModuleActionArgument {
 	message: Message,
 	eval?: Dictionary<any>,
 	matches?: RegExpMatchArray
 }
 
-export type StealthModule = {
+export interface StealthModule {
 	eval?: Dictionary<string>,
 	event: "messageCreate" | "messageDelete" | "messageUpdate",
 	pattern?: RegExp,

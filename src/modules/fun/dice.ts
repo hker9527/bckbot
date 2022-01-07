@@ -44,7 +44,7 @@ export const module: SlashCommand = {
 		result += offset;
 		return {
 			key: "dice.roll",
-			data: { faces, n, offset: `${offset > 0 ? "+" : (offset < 0 ? "-" : "")}${offset == 0 ? "" : offset}`, result }
+			data: { faces, n, offset: `${offset > 0 ? "+" : (offset < 0 ? "-" : "")}${offset === 0 ? "" : offset}`, result }
 		};
 	}
 };

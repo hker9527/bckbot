@@ -1,9 +1,8 @@
-import { Singleton } from '@app/Singleton';
-import { enumStringKeys, req2json, round } from '@app/utils';
-import { Currencies } from '@type/Database';
-import { SlashCommand } from '@type/SlashCommand';
+import { Singleton } from "@app/Singleton";
+import { enumStringKeys, req2json, round } from "@app/utils";
+import { Currencies } from "@type/Database";
+import { SlashCommand } from "@type/SlashCommand";
 import assert from "assert";
-import { MessageEmbed } from 'discord.js';
 
 let data = Singleton.db.data!.currency;
 
@@ -71,7 +70,7 @@ export const module: SlashCommand = {
 						name: source,
 						value: amount.toString()
 					},
-					...enumStringKeys(Currencies).filter(currency => currency != source && ((target != null && currency == target) || target == null)).map(currency => ({
+					...enumStringKeys(Currencies).filter(currency => currency !== source && ((target !== null && currency === target) || target === null)).map(currency => ({
 						name: currency,
 						value: round(data.data[source][currency as keyof typeof Currencies] * amount, 2).toString(),
 						inline: true

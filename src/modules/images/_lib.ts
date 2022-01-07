@@ -15,6 +15,7 @@ export const findImageFromMessages = (index: number, msgs: Collection<string, Me
 	let i = 0;
 	let url: string | null = null;
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	for (const [_, msg] of msgs.filter(a => a.author.id !== Singleton.client.user!.id)) {
 		for (const embed of msg.embeds.reverse()) {
 			if (i === index) {
@@ -32,6 +33,7 @@ export const findImageFromMessages = (index: number, msgs: Collection<string, Me
 
 		if (url) return url;
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, attachment] of msg.attachments) {
 			if (attachment.width && attachment.width > 0) {
 				if (i === index) {

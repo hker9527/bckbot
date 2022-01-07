@@ -6,14 +6,14 @@ export enum Languages {
 	English = "en",
 	Taiwanese = "tw",
 	Japanese = "ja"
-};
+}
 
 export const i18init = async () => {
 	const resources: Dictionary<any> = {};
-	const fileList = glob.sync(`./res/i18n/*.json`);
+	const fileList = glob.sync("./res/i18n/*.json");
 	for (let file of fileList) {
 		const fileName = file.split("/").pop()!.split(".")[0];
-		const tmp = require(`@root/${file}`);
+		const tmp = await import(`@root/${file}`);
 		resources[fileName] = { translation: tmp };
 	}
 

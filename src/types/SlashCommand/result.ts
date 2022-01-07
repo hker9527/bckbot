@@ -6,8 +6,8 @@ import { Result } from "@type/Message/Result";
 export type SlashCommandResultType = LocalizableMessage<InteractionReplyOptions>;
 
 export class SlashCommandResult extends Result<InteractionReplyOptions> {
-	constructor(__result: SlashCommandResultType | Localizable, id: string) {
+	public constructor(__result: SlashCommandResultType | Localizable, id: string) {
 		super(__result);
 		if (!this._result.ephemeral) this.addDeleteButton(`i${id}`)
 	}
-};
+}

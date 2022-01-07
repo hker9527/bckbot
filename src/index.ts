@@ -1,20 +1,20 @@
-import 'module-alias/register';
+import "module-alias/register";
 
-import { injectPrototype } from '@app/prototype';
-import { Singleton } from '@app/Singleton';
-import { Dictionary } from '@type/Dictionary';
-import { SlashCommandResult } from '@type/SlashCommand/result';
-import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
+import { injectPrototype } from "@app/prototype";
+import { Singleton } from "@app/Singleton";
+import { Dictionary } from "@type/Dictionary";
+import { SlashCommandResult } from "@type/SlashCommand/result";
+import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
 import { exec } from "child_process";
-import { BaseCommandInteraction, Message, MessageInteraction, User } from 'discord.js';
+import { BaseCommandInteraction, Message, MessageInteraction } from "discord.js";
 import { config } from "dotenv-safe";
-import glob from 'glob';
-import { APISlashCommandAdapter } from './adapters/APISlashCommand';
+import glob from "glob";
+import { APISlashCommandAdapter } from "./adapters/APISlashCommand";
 import { getString, i18init } from "./i18n";
-import { arr2obj, pmError, report } from './utils';
-import { StealthModuleResult } from '@type/StealthModule/result';
-import { Localizer } from './localizers';
-import { Command, ContextMenuCommand, SlashCommand } from '@type/SlashCommand';
+import { arr2obj, pmError, report } from "./utils";
+import { StealthModuleResult } from "@type/StealthModule/result";
+import { Localizer } from "./localizers";
+import { Command, ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
 
 config();
 injectPrototype();
@@ -37,12 +37,12 @@ try {
 	client.on("ready", async () => {
 		logger.delimiter("> ").show();
 
-		exec('git show -s --format="v.%h on %aI"', (error, string) => {
+		exec("git show -s --format=\"v.%h on %aI\"", (error, string) => {
 			if (error) {
 				logger.log(error.message);
 			} else {
 				client.user!.setActivity(string, {
-					type: 'WATCHING'
+					type: "WATCHING"
 				});
 			}
 		});
@@ -91,14 +91,13 @@ try {
 				for (const _command in slashCommands) {
 					const command = _command.replace(".name", "");
 					if (message.cleanContent.startsWith(`b!${command}`)) {
-						let msg: Message;
 						if (!slashCommandGuildAvailability[message.guild!.id]) {
-							msg = await message.reply(getString("index.legacyPrompt.missingPermission", message.getLocale(), {
+							await message.reply(getString("index.legacyPrompt.missingPermission", message.getLocale(), {
 								id: Singleton.client.user!.id
 							}));
 						} else {
 							const cmd = slashCommands[_command];
-							msg = await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: (cmd as ContextMenuCommand).type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
+							await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: (cmd as ContextMenuCommand).type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
 						}
 						return;
 					}
@@ -155,6 +154,7 @@ try {
 		const slashCommandGuildAvailability: Dictionary<boolean> = {};
 
 		// Application Command registration
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, guild] of client.guilds.cache) {
 			const worker = async () => {
 				if (slashCommandGuildAvailability[guild.id]) return;
@@ -176,6 +176,7 @@ try {
 				}
 
 				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandAdapter(slashCommand, guild.getLocale())));
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				for (const [_, command] of commands) {
 					APICommands[command.id] = slashCommands.find(_command => (typeof _command.name === "string" ? _command.name : _command.name.key) === originOfLocalizedName[command.name])!;
 				}
@@ -227,7 +228,7 @@ try {
 							const reply = await interaction.channel?.messages.fetch(stealthMessageData[id].replyID);
 
 							if (reply) {
-								if (interaction.user.id === stealthMessageData[id].authorID || interaction.memberPermissions?.has('ADMINISTRATOR'))
+								if (interaction.user.id === stealthMessageData[id].authorID || interaction.memberPermissions?.has("ADMINISTRATOR"))
 									await reply.delete();
 								else
 									await interaction.reply({
@@ -239,7 +240,7 @@ try {
 						case "i":
 							const originalInteraction = interactions[id];
 							if (originalInteraction) {
-								if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has('ADMINISTRATOR'))
+								if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has("ADMINISTRATOR"))
 									await originalInteraction.deleteReply();
 								else
 									await interaction.reply({
@@ -250,6 +251,7 @@ try {
 							break;
 					}
 				} catch (e) {
+					// Nothing
 				}
 
 				return;
@@ -297,12 +299,13 @@ try {
 	glob("./bin/modules/**/*.js", async (error, fileList) => {
 		if (error) throw error;
 		for (let file of fileList.filter((_file) => {
-			return _file.split("/").pop()![0] != "_";
+			return _file.split("/").pop()![0] !== "_";
 		})) {
 			const fileName = file.split("/").pop()!;
 			const moduleName = fileName.slice(0, -3);
 
-			const _module = require(`@app/${file.slice(6)}`).module;
+			const __module = await import(`@app/${file.slice(6)}`);
+			const _module = __module.module;
 			let tmp: StealthModule | SlashCommand | ContextMenuCommand;
 			if ("action" in _module) {
 				tmp = _module as StealthModule;

@@ -4,7 +4,7 @@ import {SlashCommand } from "@type/SlashCommand";
 export const module: SlashCommand = {
     name: "test",
     description: "Ababa",
-    onCommand: async (interaction) => {
+    onCommand: async () => {
         const component: MessageComponents = [
             [
                 {

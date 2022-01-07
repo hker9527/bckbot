@@ -1,4 +1,3 @@
-import { getString } from "@app/i18n";
 import { random, round } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
 
@@ -30,10 +29,10 @@ export const module: SlashCommand = {
 		shuffleArray(argv);
 
 		let pMax = 1;
-		type Option = {
+		interface Option {
 			name: string,
 			p: number;
-		};
+		}
 
 		const o: Option[] = [];
 

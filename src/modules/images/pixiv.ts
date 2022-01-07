@@ -1,9 +1,9 @@
-import { report, req2json } from '@app/utils';
-import { PixivApiResponse } from '@type/api/Pixiv';
+import { report, req2json } from "@app/utils";
+import { PixivApiResponse } from "@type/api/Pixiv";
 import { Embed } from "@type/Message/Embed";
-import { StealthModule } from '@type/StealthModule';
-import { TextChannel } from 'discord.js';
-import { htmlToText } from 'html-to-text';
+import { StealthModule } from "@type/StealthModule";
+import { TextChannel } from "discord.js";
+import { htmlToText } from "html-to-text";
 
 export const pimg = (url: string) => {
 	return url.replace("i.pximg.net", "i.pixiv.cat");
@@ -31,7 +31,7 @@ export const fetchInfo = async (illust_id: string) => {
 					limits: {
 						maxInputLength: 1500
 					},
-					tags: { 'a': { options: { ignoreHref: true } } }
+					tags: { "a": { options: { ignoreHref: true } } }
 				}),
 				date: res.body.uploadDate,
 				restrict: res.body.restrict || res.body.xRestrict
@@ -51,7 +51,7 @@ export const genEmbed = async (illust_id: string, show_image = true, nsfw = fals
 	return {
 		author: {
 			name: {
-				key: (illust.title || '$t(pixiv.titlePlaceholder)') + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : "")
+				key: (illust.title || "$t(pixiv.titlePlaceholder)") + (illust.pageCount > 1 ? " (" + illust.pageCount + ")" : "")
 			},
 			iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
 		},
@@ -60,15 +60,15 @@ export const genEmbed = async (illust_id: string, show_image = true, nsfw = fals
 		image: (show_image && !(illust.restrict && !nsfw)) ? `https://pixiv.cat/${illust_id}${(illust.pageCount > 1 ? "-1" : "")}.jpg` : undefined,
 		fields: [{
 			name: {
-				key: 'pixiv.sauceHeader'
+				key: "pixiv.sauceHeader"
 			},
 			value: {
-				key: 'pixiv.sauceContent',
+				key: "pixiv.sauceContent",
 				data: { illust_id, author: illust.author.name, author_id: illust.author.id }
 			}
 		}, {
 			name: {
-				key: 'pixiv.descriptionHeader'
+				key: "pixiv.descriptionHeader"
 			},
 			value: illust.description || {
 				key: "pixiv.descriptionPlaceholder"

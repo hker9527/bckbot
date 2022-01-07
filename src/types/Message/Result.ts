@@ -11,7 +11,7 @@ import { MessageComponentButton } from "./MessageComponents";
 export abstract class Result<T extends MessageOptions> {
 	protected _result: LocalizableMessage<T>;
 
-	constructor(__result: LocalizableMessage<T> | Localizable) {
+	public constructor(__result: LocalizableMessage<T> | Localizable) {
 		this._result = isZod(__result, ZLocalizable) ? { content: __result } as LocalizableMessage<T> : __result;		
 	}
 
@@ -86,7 +86,7 @@ export abstract class Result<T extends MessageOptions> {
 									customId: "custom_id" in component ? component.custom_id : null,
 									disabled: component.disabled ?? false,
 								};
-								if (component.type == "BUTTON") {
+								if (component.type === "BUTTON") {
 									return {
 										...base,
 										emoji: component.emoji ?? null,
@@ -138,4 +138,4 @@ export abstract class Result<T extends MessageOptions> {
 
 		return ret as T;
 	}
-};
+}

@@ -1,5 +1,5 @@
-import { req2json } from '@app/utils';
-import { StealthModule, StealthModuleActionArgument } from '@type/StealthModule';
+import { req2json } from "@app/utils";
+import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
 
 export const module: StealthModule = {
 	event: "messageCreate",

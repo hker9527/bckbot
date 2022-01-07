@@ -1,18 +1,18 @@
-import { Singleton } from '@app/Singleton';
-import { Dictionary } from '@type/Dictionary';
-import assert from 'assert';
-import { Decimal } from 'decimal.js';
-import { DMChannel, Message, TextChannel } from 'discord.js';
-import fetch from 'node-fetch';
-import { ZodAny, ZodObject, ZodType } from 'zod';
+import { Singleton } from "@app/Singleton";
+import { Dictionary } from "@type/Dictionary";
+import assert from "assert";
+import { Decimal } from "decimal.js";
+import { DMChannel, Message, TextChannel } from "discord.js";
+import fetch from "node-fetch";
+import { ZodType } from "zod";
 
 export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export const timeFormat = () => {
-	return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+	return new Date().toISOString().replace(/T/, " ").replace(/\..+/, "");
 };
 
-export const round = (number: number, precision: number = 2) => {
+export const round = (number: number, precision = 2) => {
 	return parseFloat(new Decimal(number).toFixed(precision));
 };
 
@@ -57,7 +57,7 @@ export const urandom = (object: Dictionary<Decimal | number>) => {
 		for (const prob of Object.values(object)) {
 			sumProb = sumProb.add(new Decimal(prob));
 		}
-		assert(sumProb.toString() === '1', `sumProb != 1, got ${sumProb}`);
+		assert(sumProb.toString() === "1", `sumProb != 1, got ${sumProb}`);
 
 		sumProb.minus(object[opt[opt.length - 1]]);
 
@@ -85,16 +85,16 @@ export const randomArrayElement = <T>(array: Array<T>) => {
 	return array.length === 1 ? array[0] : array[random(0, array.length - 1)];
 };
 
-export const parseArgv = (text: string, delimiter: string = " ") => {
+export const parseArgv = (text: string, delimiter = " ") => {
 	return text.split(delimiter).filter((a) => { return a.length; });
 };
 
-export const extArgv = (message: Message, clean: boolean = false) => {
+export const extArgv = (message: Message, clean = false) => {
 	let t = clean ? message.cleanContent : message.content;
 	return t.split(" ").slice(1).join(" ");
 };
 
-export const _req = async (url: string, json: boolean = false) => {
+export const _req = async (url: string, json = false) => {
 	const response = await fetch(url);
 	return await (json ? response.json() : response.text());
 };

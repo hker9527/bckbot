@@ -1,21 +1,23 @@
-import { getString, Languages } from "@app/i18n";
-import { enumStringKeys, randomArrayElement, req2json } from '@app/utils';
-import { DanbooruApiResponse } from '@type/api/Danbooru';
-import { KonachanApiResponse } from '@type/api/Konachan';
-import { StealthModule } from '@type/StealthModule';
-import { SankakuApiResponse } from '@type/api/Sankaku';
-import { YandereApiResponse } from '@type/api/Yandere';
-import { MessageEmbed, TextChannel } from 'discord.js';
+import { req2json } from "@app/utils";
+import { DanbooruApiResponse } from "@type/api/Danbooru";
+import { KonachanApiResponse } from "@type/api/Konachan";
+import { SankakuApiResponse } from "@type/api/Sankaku";
+import { YandereApiResponse } from "@type/api/Yandere";
 import { Embed } from "@type/Message/Embed";
+import { StealthModule } from "@type/StealthModule";
 
 export enum ApiPortal {
+	// eslint-disable-next-line no-unused-vars
 	kon = "https://konachan.com/post.json",
+	// eslint-disable-next-line no-unused-vars
 	yan = "https://yande.re/post.json",
+	// eslint-disable-next-line no-unused-vars
 	dan = "https://danbooru.donmai.us/posts.json",
+	// eslint-disable-next-line no-unused-vars
 	san = "https://capi-v2.sankakucomplex.com/posts/keyset"
-};
+}
 
-export type ImageObject = {
+export interface ImageObject {
 	id: string,
 	rating: "s" | "q" | "e",
 	source: string | null,
@@ -23,10 +25,10 @@ export type ImageObject = {
 	created_at: Date,
 	width: number,
 	height: number;
-};
+}
 
 export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
-	let res = await req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join('+')}${nsfw ? "" : "+rating:s"}&limit=20`);
+	let res = await req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join("+")}${nsfw ? "" : "+rating:s"}&limit=20`);
 
 	switch (provider) {
 		case "kon": {
@@ -92,7 +94,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 	const embed: Embed = {
 		author: {
 			name: {
-				key: 'moebooru.searchResult'
+				key: "moebooru.searchResult"
 			},
 			iconURL: `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`
 		},
@@ -125,7 +127,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 		timestamp: imageObject.created_at
 	};
 
-	if (showImage && (imageObject.rating != "s" || nsfw) && imageObject.file_url) {
+	if (showImage && (imageObject.rating !== "s" || nsfw) && imageObject.file_url) {
 		// embed.setImage(imageObject.file_url);
 		embed.image = imageObject.file_url;
 	}
@@ -134,7 +136,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 
 export const module: StealthModule = {
 	event: "messageCreate",
-	action: async (obj) => {
+	action: async () => {
 		// const provider = obj.trigger.substr(0, 3) as keyof typeof ApiPortal;
 		// const nsfw = (obj.message.channel as TextChannel).nsfw;
 

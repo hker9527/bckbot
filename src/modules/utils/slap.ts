@@ -1,7 +1,7 @@
 import { getString } from "@app/i18n";
 import { arr2obj, random, urandom } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
-import emoji from 'node-emoji';
+import emoji from "node-emoji";
 
 export const module: SlashCommand = {
 	name: "slap",

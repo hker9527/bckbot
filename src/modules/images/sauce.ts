@@ -105,7 +105,7 @@ export const module: ContextMenuCommand = {
 				// TODO: Beautify
 
 				return {
-					key: 'sauce.unknown',
+					key: "sauce.unknown",
 					data: {
 						json: JSON.stringify(results[0], null, 4)
 					}

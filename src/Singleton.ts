@@ -1,10 +1,10 @@
-import { arr2obj, enumStringKeys, report } from '@app/utils';
-import { Currencies, Database } from '@type/Database';
-import { Dictionary } from '@type/Dictionary';
-import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from 'discord.js';
-import { JSONFileSync, LowSync } from 'lowdb';
-import Osu from 'osu.ts';
-import Vorpal from 'vorpal';
+import { arr2obj, enumStringKeys, report } from "@app/utils";
+import { Currencies, Database } from "@type/Database";
+import { Dictionary } from "@type/Dictionary";
+import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from "discord.js";
+import { JSONFileSync, LowSync } from "lowdb";
+import Osu from "osu.ts";
+import Vorpal from "vorpal";
 
 export const Singleton: {
 	logger: Vorpal,
@@ -41,7 +41,7 @@ export const Singleton: {
 			})
 			.action(async (data) => {
 				const channel = Singleton.client.channels.cache.find(
-					(_ch) => _ch.id == data.chid
+					(_ch) => _ch.id === data.chid
 				) as TextChannel;
 				if (channel) {
 					await channel.send(data.msg.join(" "));
@@ -65,7 +65,7 @@ export const Singleton: {
 			.mode("eval")
 			.delimiter("<eval>")
 			.description("Enter evaluation mode.")
-			.init(async (a: any) => {
+			.init(async () => {
 				logger.log("You are now in evaluation mode.\n Type `exit` to exit.");
 			})
 			.action(async (a: Vorpal.Args) => {
@@ -97,7 +97,6 @@ export const Singleton: {
 		db.read();
 
 		// Set default value
-		const a = enumStringKeys(Currencies).map(c => c as keyof typeof Currencies);
 		db.data ||= {
 			language: {
 				guilds: {},
@@ -107,9 +106,9 @@ export const Singleton: {
 			currency: {
 				data: arr2obj(
 					enumStringKeys(Currencies),
-					enumStringKeys(Currencies).map(a => arr2obj(
+					enumStringKeys(Currencies).map(() => arr2obj(
 						enumStringKeys(Currencies),
-						enumStringKeys(Currencies).map(b => 0)
+						enumStringKeys(Currencies).map(() => 0)
 					))
 				) as Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>,
 				lastUpdate: new Date()
