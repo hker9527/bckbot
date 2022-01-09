@@ -5,20 +5,10 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "pwa-node",
+			"command": "npm start",
+			"name": "Run npm start",
 			"request": "launch",
-			"name": "Launch Program",
-			"skipFiles": [
-				"<node_internals>/**"
-			],
-			"program": "${workspaceFolder}/src/index.ts",
-			"preLaunchTask": "tsc: build - tsconfig.json",
-			"outFiles": [
-				"${workspaceFolder}/bin/**/*.js"
-			],
-			"args": ["dev"],
-			"console": "integratedTerminal",
-			"redirectOutput": true
+			"type": "node-terminal"
 		}
 	]
 }

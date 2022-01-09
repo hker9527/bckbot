@@ -50,7 +50,7 @@
 		"ts-node": "^10.0.0"
 	},
 	"scripts": {
-		"debug": "ttsc && node src/index.js dev"
+		"start": "yarn run eslint 'src/**' && yarn run tsc && node bin/index.js"
 	},
 	"_moduleAliases": {
 		"@root": ".",
