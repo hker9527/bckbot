@@ -15,7 +15,7 @@ export const EmbedLocalizer = (embed: Embed, locale: Languages): Embed => {
 		embed.author.name = Localizer(embed.author.name, locale);
 	}
 
-    if (embed.title) embed.title = Localizer(embed.title, locale);
+	if (embed.title) embed.title = Localizer(embed.title, locale);
     
 	if (embed.description) embed.description = Localizer(embed.description, locale);
     
@@ -32,11 +32,11 @@ export const EmbedLocalizer = (embed: Embed, locale: Languages): Embed => {
 	if (embed.provider) embed.provider.name = Localizer(embed.provider.name, locale);
     
 	if (embed.fields) {
-        for (const field of embed.fields) {
-            field.name = Localizer(field.name, locale);
-            field.value = Localizer(field.value, locale);
-        }
-    }
+		for (const field of embed.fields) {
+			field.name = Localizer(field.name, locale);
+			field.value = Localizer(field.value, locale);
+		}
+	}
     
 	return embed;
 }

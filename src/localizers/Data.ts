@@ -2,13 +2,13 @@ import { isZod } from "@app/utils";
 import { z } from "zod";
 
 export const ZLocalizerData = z.object({
-    key: z.string().min(1),
-    data: z.record(z.any()).optional()
+	key: z.string().min(1),
+	data: z.record(z.any()).optional()
 });
 
 export const ZLocalizable = z.union([
-    ZLocalizerData,
-    z.string().min(1)
+	ZLocalizerData,
+	z.string().min(1)
 ]);
 
 export type LocalizerData = z.infer<typeof ZLocalizerData>;
