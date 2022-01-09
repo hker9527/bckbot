@@ -3,7 +3,7 @@ import { SaucenaoApiResponse } from "@type/api/Saucenao";
 import { Embed } from "@type/Message/Embed";
 import { ContextMenuCommand } from "@type/SlashCommand";
 import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "./moebooru";
-import { genEmbed as genPixivEmbed } from "./pixiv";
+import { genEmbeds as genPixivEmbed } from "./pixiv";
 import { findImagesFromMessage } from "./_lib";
 
 export const module: ContextMenuCommand = {
@@ -46,10 +46,10 @@ export const module: ContextMenuCommand = {
 				for (const result of results) {
 					const similarity = parseFloat(result.header.similarity);
 
-					let embed: Embed | null = null;
+					let embeds: Embed[] | null = null;
 					if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
-						const _embed = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw);
-						if (_embed === null) {
+						const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw);
+						if (_embeds === null) {
 							// return {
 							// 	key: "sauce.postNotFound",
 							// 	data: {
@@ -60,7 +60,7 @@ export const module: ContextMenuCommand = {
 							// Go to next sauce
 							continue;
 						}
-						embed = _embed;
+						embeds = _embeds;
 					} else if ("creator" in result.data) { // MoebooruData
 						let provider: keyof typeof ApiPortal | null = null;
 						let id: number | null = null;
@@ -85,17 +85,17 @@ export const module: ContextMenuCommand = {
 						if (provider !== null && id !== null) {
 							const imageObjects = await fetchList(provider, [`id:${id}`], nsfw);
 							if (imageObjects.length > 0) {
-								embed = await genMoebooruEmbed(provider, imageObjects[0], false, nsfw);
+								embeds = [await genMoebooruEmbed(provider, imageObjects[0], false, nsfw)];
 							}
 						}
 					}
-					if (embed) {
+					if (embeds) {
 						return {
 							content: {
 								key: "sauce.confidenceLevel",
 								data: { similarity }
 							},
-							embeds: [embed]
+							embeds
 						};
 					}
 				}
