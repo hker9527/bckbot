@@ -6,7 +6,7 @@ import assert from "assert";
 
 let data = Singleton.db.data!.currency;
 
-async function worker() {
+const worker = async () => {
 	let response;
 	try {
 		for (let i in data) {

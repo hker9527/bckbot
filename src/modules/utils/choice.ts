@@ -1,7 +1,7 @@
 import { random, round } from "@app/utils";
 import { SlashCommand } from "@type/SlashCommand";
 
-function shuffleArray(array: any[]) {
+const shuffleArray = (array: any[]) => {
 	for (let i = array.length - 1; i > 0; i--) {
 		let j = random(0, i);
 		[array[i], array[j]] = [array[j], array[i]];
