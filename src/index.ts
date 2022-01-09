@@ -324,11 +324,7 @@ try {
 			report(`Loaded module ${fileName}`);
 		}
 
-		await client.login(
-			process.argv[2] === "dev"
-				? process.env.dev_token
-				: process.env.bot_token
-		);
+		await client.login(process.env.bot_token);
 		report("Logged in as " + client.user!.tag);
 	});
 } catch (e) {
