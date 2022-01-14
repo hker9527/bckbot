@@ -10,36 +10,40 @@ import { BaseCommandInteraction, Message, MessageInteraction } from "discord.js"
 import { config } from "dotenv-safe";
 import glob from "glob";
 import { APISlashCommandAdapter } from "./adapters/APISlashCommand";
-import { getString, i18init } from "./i18n";
-import { arr2obj, pmError, report } from "./utils";
+import { i18init, Languages } from "./i18n";
+import { pmError, report } from "./utils";
 import { StealthModuleResult } from "@type/StealthModule/result";
 import { Localizer } from "./localizers";
 import { Command, ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
 
-config();
-injectPrototype();
-i18init();
-
-const { logger, client } = Singleton;
-
 try {
+	config();
+	injectPrototype();
+	i18init();
+	
+	const { client } = Singleton;
+
 	const startTime = new Date();
-	const events = ["messageCreate", "messageDelete", "messageUpdate"];
-	const eventModules: Dictionary<Dictionary<{
-		module: StealthModule,
-		loaded: boolean
-	}>> = arr2obj(
-		events,
-		events.map(() => ({}))
-	);
+	const eventModules: Record<
+		StealthModule["event"], 
+		Dictionary<{
+			module: StealthModule,
+			loaded: boolean
+		}>
+	> = {
+		"messageCreate": {},
+		"messageDelete": {},
+		"messageUpdate": {}
+	};
+
 	const slashCommands: (SlashCommand | ContextMenuCommand)[] = [];
 
 	client.on("ready", async () => {
-		logger.delimiter("> ").show();
+		Singleton.logger.delimiter("> ").show();
 
 		exec("git show -s --format=\"v.%h on %aI\"", (error, string) => {
 			if (error) {
-				logger.log(error.message);
+				report(error.message);
 			} else {
 				client.user!.setActivity(string, {
 					type: "WATCHING"
@@ -47,10 +51,10 @@ try {
 			}
 		});
 
-		for (let event of events) {
+		for (const [event, modules] of Object.entries(eventModules)) {
 			// Pre-processing (init, interval)
-			for (let moduleName of Object.keys(eventModules[event])) {
-				const _module = eventModules[event][moduleName];
+			for (let moduleName of Object.keys(modules)) {
+				const _module = modules[moduleName];
 				const module = _module.module;
 
 				if (module.init) {
@@ -62,9 +66,7 @@ try {
 						})();
 					} catch (e) {
 						if (e instanceof Error)
-							report(
-								`Init failed for module ${moduleName}: ${e.message}`
-							);
+							report(`Init failed for module ${moduleName}: ${e.message}`);
 					}
 				} else {
 					_module.loaded = true;
@@ -77,40 +79,20 @@ try {
 							setTimeout(f, module.interval!.t);
 						} catch (e) {
 							if (e instanceof Error)
-								report(
-									`Interval failed for module ${moduleName}: ${e.message}`
-								);
+								report(`Interval failed for module ${moduleName}: ${e.message}`);
 						}
 					};
 					setTimeout(f, module.interval.t);
 				}
 			}
 
-			// Prompt if user tried to use legacy method
-			client.on("messageCreate", async (message) => {
-				for (const _command in slashCommands) {
-					const command = _command.replace(".name", "");
-					if (message.cleanContent.startsWith(`b!${command}`)) {
-						if (!slashCommandGuildAvailability[message.guild!.id]) {
-							await message.reply(getString("index.legacyPrompt.missingPermission", message.getLocale(), {
-								id: Singleton.client.user!.id
-							}));
-						} else {
-							const cmd = slashCommands[_command];
-							await message.reply("onContextMenu" in cmd ? getString("index.legacyPrompt.contextMenuCommand", message.getLocale(), { target: (cmd as ContextMenuCommand).type.toLocaleLowerCase(), command: _command }) : getString("index.legacyPrompt.slashCommand", message.getLocale(), { command: _command }));
-						}
-						return;
-					}
-				}
-			});
-
 			// Build listeners
 			client.on(event, async (message: Message) => {
 				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
 
-				for (let moduleName in eventModules[event]) {
+				for (const moduleName in modules) {
 					try {
-						const _module = eventModules[event][moduleName];
+						const _module = modules[moduleName];
 						const module = _module.module;
 
 						if (!_module.loaded) continue;
@@ -151,35 +133,60 @@ try {
 		}
 
 		const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
-		const slashCommandGuildAvailability: Dictionary<boolean> = {};
+		const guildRegistered: Dictionary<boolean> = {};
 
 		// Application Command registration
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, guild] of client.guilds.cache) {
+			const guildLocale = guild.getLocale() ?? Languages.English;
+
 			const worker = async () => {
-				if (slashCommandGuildAvailability[guild.id]) return;
+				if (guildRegistered[guild.id]) return;
 
 				try {
 					await guild.commands.fetch(); // Check for permissions
-					slashCommandGuildAvailability[guild.id] = true;
 				} catch (e) {
-					slashCommandGuildAvailability[guild.id] = false;
+					guildRegistered[guild.id] = false;
 					setTimeout(worker, 1000 * 60 * 5);
 					return;
 				}
 
+				/*
+					A lookup table for the listener to check the origin command module.
+					For example, the original module may look like:
+					{
+						name: {
+							key: "avatar.name",
+							value: { hello: "world" }
+						}	
+					}
+					The registered module would contain the *localized* version of the command name, like:
+					{
+						name: "Command world"
+					}
+
+					We store the key-value pair in the APICommands variable, namely
+					{
+						"avatar.name": "Command world"
+					}
+
+					Then, we use the localized string to lookup the original command.
+				*/
+
 				const originOfLocalizedName: Dictionary<string> = {};
 
 				for (const command of slashCommands) {
-					const commandNameLocalized = Localizer(command.name, guild.getLocale());
+					const commandNameLocalized = Localizer(command.name, guildLocale);
 					originOfLocalizedName[commandNameLocalized] = typeof command.name === "string" ? command.name : command.name.key;
 				}
 
-				const commands = await guild.commands.set(Object.values(slashCommands).map(slashCommand => APISlashCommandAdapter(slashCommand, guild.getLocale())));
+				const commands = await guild.commands.set(slashCommands.map(slashCommand => APISlashCommandAdapter(slashCommand, guildLocale)));
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				for (const [_, command] of commands) {
 					APICommands[command.id] = slashCommands.find(_command => (typeof _command.name === "string" ? _command.name : _command.name.key) === originOfLocalizedName[command.name])!;
 				}
+
+				guildRegistered[guild.id] = true;
 			};
 
 			worker();
@@ -215,12 +222,21 @@ try {
 						delete interactions[_interaction.id];
 						options.components!.pop();
 						await _interaction.editReply(options);
-					}, 1000 * 3600);
+					}, 1000 * 60 * 5);
 				}
 			};
 
 			// Delete button
 			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
+				const reject = async () => {
+					await interaction.reply({
+						content: Localizer({
+							key: "index.deletingOthersMessage"
+						}, interaction.getLocale()),
+						ephemeral: true
+					});
+				};
+
 				try {
 					const id = interaction.customId.substring(7);
 					switch (interaction.customId[6]) {
@@ -231,10 +247,7 @@ try {
 								if (interaction.user.id === stealthMessageData[id].authorID || interaction.memberPermissions?.has("ADMINISTRATOR"))
 									await reply.delete();
 								else
-									await interaction.reply({
-										content: "no u",
-										ephemeral: true
-									});
+									await reject();
 							}
 							break;
 						case "i":
@@ -243,10 +256,7 @@ try {
 								if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has("ADMINISTRATOR"))
 									await originalInteraction.deleteReply();
 								else
-									await interaction.reply({
-										content: "no u",
-										ephemeral: true
-									});
+									await reject();
 							}
 							break;
 					}
@@ -258,6 +268,7 @@ try {
 			}
 
 			if (interaction.isCommand() || interaction.isContextMenu()) {
+				// Lookup by id
 				command = APICommands[interaction.commandId];
 				if (command) {
 					if (command.defer)
@@ -272,6 +283,7 @@ try {
 					if (result) return await sendResult();
 				}
 			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
+				// Lookup by source message's interaction's name
 				command = slashCommands.find(_command => _command.name === (interaction.message!.interaction! as MessageInteraction).commandName)!;
 				if (command) {
 					if (command.defer)
@@ -289,7 +301,7 @@ try {
 				}
 			}
 
-			logger.log(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
+			report(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
 		});
 
 		report(`Finished loading in ${+new Date() - +startTime}ms`);
@@ -299,6 +311,7 @@ try {
 	glob("./bin/modules/**/*.js", async (error, fileList) => {
 		if (error) throw error;
 		for (let file of fileList.filter((_file) => {
+			// Don't load modules starting with _
 			return _file.split("/").pop()![0] !== "_";
 		})) {
 			const fileName = file.split("/").pop()!;

@@ -1,12 +1,40 @@
 import { Dictionary } from "@type/Dictionary";
 import glob from "glob";
 import i18next from "i18next";
+import { Singleton } from "./Singleton";
 
 export enum Languages {
 	English = "en",
 	Taiwanese = "tw",
 	Japanese = "ja"
 }
+
+export const parseLocaleString = (str: string) => {
+	switch (str) {
+		case "en-US":
+		case "en-GB":
+			return Languages.English;
+		case "zh-CN":
+		case "zh-TW":
+			return Languages.Taiwanese;
+		case "ja":
+			return Languages.Japanese;
+		default:
+			return null;
+	}
+};
+
+export const getLocale = (type: "user" | "channel" | "guild", id: string): Languages | null => {
+	return Singleton.db.data!.language[`${type}s`][id] ?? null;
+};
+
+export const setLocale = (type: "user" | "channel" | "guild", id: string, language?: Languages) => {
+	if (language) {
+		Singleton.db.data!.language[`${type}s`][id] = language;
+	} else {
+		delete Singleton.db.data!.language[`${type}s`][id];
+	}
+};
 
 export const i18init = async () => {
 	const resources: Dictionary<any> = {};
@@ -23,6 +51,6 @@ export const i18init = async () => {
 	});
 };
 
-export const getString = <T>(key: T, lng: Languages, options?: Dictionary<string | number>): T => {
-	return (typeof key === "string" ? i18next.t(key, { interpolation: { escapeValue: false }, lng, ...options }) : key) as T;
+export const getString = <T>(key: T, language: Languages, options?: Dictionary<string | number>): T => {
+	return (typeof key === "string" ? i18next.t(key, { interpolation: { escapeValue: false }, lng: language, ...options }) : key) as T;
 };
