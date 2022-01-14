@@ -30,6 +30,34 @@ const colorByRatio = (_ratio: number): `#${string}` => {
 	return `#${hex(r)}${hex(g)}${hex(b)}`;
 };
 
+const query = async (url: string) => {
+	const resp = await deepai.callStandardApi("nsfw-detector", {
+		image: url
+	});
+
+	const score = round(resp.output.nsfw_score * 100);
+	return {
+		content: " ", // Clear the prompt
+		embeds: [{
+			color: colorByRatio(score / 100),
+			title: `${score}%`,
+			thumbnail: url,
+			fields: resp.output.detections.length ?
+				[
+					{
+						name: {
+							key: "nudity.items"
+						},
+
+						value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
+							`(${round(detection.confidence * 100)}%) ${detection.name}`
+						).join("\n")
+					}
+				] : undefined
+		}]
+	};
+};
+
 export const module: ContextMenuCommand = {
 	name: {
 		key: "nudity.name"
@@ -42,35 +70,32 @@ export const module: ContextMenuCommand = {
 
 		if (!urls.length) {
 			return {
-				key: "nudity.invalidMessage"	
+				key: "nudity.invalidMessage"
 			};
-		}
-
-		url = urls[0];
-
-		const resp = await deepai.callStandardApi("nsfw-detector", {
-			image: url
-		});
-
-		const score = round(resp.output.nsfw_score * 100);
-		return {
-			embeds: [{
-				color: colorByRatio(score / 100),
-				title: `${score}%`,
-				thumbnail: url,
-				fields: resp.output.detections.length ?
+		} else if (urls.length > 1) {
+			return {
+				content: "Which image do you want to check?",
+				components: [
 					[
 						{
-							name: {
-								key: "nudity.items"
-							},
-
-							value: resp.output.detections.sort((d1: any, d2: any) => d1.confidence > d2.confidence ? -1 : 1).map((detection: any) =>
-								`(${round(detection.confidence * 100)}%) ${detection.name}`
-							).join("\n")
+							type: "SELECT_MENU",
+							options: urls.map((url, i) => ({
+								label: `${i + 1}. ${url}`,
+								value: url
+							})),
+							custom_id: "pickURL"
 						}
-					] : undefined
-			}]
-		};
+					]
+				]
+			}
+		} else {
+			url = urls[0];
+		}
+
+		return query(url);
+	},
+	onSelectMenu: async (interaction) => {
+		const url = interaction.values[0];
+		return query(url);
 	}
 };

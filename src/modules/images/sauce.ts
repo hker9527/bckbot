@@ -2,7 +2,7 @@ import { req2json } from "@app/utils";
 import { SaucenaoAPIResponse } from "@type/api/Saucenao";
 import { Dictionary } from "@type/Dictionary";
 import { Embed } from "@type/Message/Embed";
-import { ContextMenuCommand } from "@type/SlashCommand";
+import { ContextMenuCommand, onFn } from "@type/SlashCommand";
 import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "./moebooru";
 import { genEmbeds as genPixivEmbed } from "./pixiv";
 import { findImagesFromMessage } from "./_lib";
@@ -69,6 +69,67 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => 
 	};
 };
 
+const query = async (id: string, url: string, nsfw: boolean): Promise<ReturnType<onFn<any>>> => {
+	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as SaucenaoAPIResponse;
+
+	if (res.header.status === 0) {
+		if (res.results === null) {
+			return {
+				key: "sauce.noSauce"
+			};
+		}
+
+		// TODO: Select dropdown for user to check other sauces
+		const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
+		try {
+			interactionResults[id] = results;
+
+			for (const result of results) {
+				const embed = await genEmbed(result, nsfw);
+				const similarity = parseFloat(result.header.similarity);
+
+				if (embed) {
+					return {
+						content: {
+							key: "sauce.confidenceLevel",
+							data: { similarity }
+						},
+						embeds: [embed],
+						components: [
+							[
+								{
+									type: "SELECT_MENU",
+									placeholder: {
+										key: "sauce.another"
+									},
+									options: results.map((result, i) => {
+										const _similarity = parseFloat(result.header.similarity);
+										return {
+											emoji: {
+												name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
+											},
+											label: `(${result.header.similarity}%) - ${result.header.index_name}`,
+											value: `${id}_${i}`
+										}
+									}),
+									custom_id: "checkOtherSauces"
+								}
+							]
+						]
+					};
+				}
+			}
+			throw "Unknown";
+		} catch (e) {
+			return {
+				key: "sauce.noSauce"
+			};
+		}
+	} else {
+		return `Error: ${res.header.message}`;
+	}
+};
+
 const interactionResults: Dictionary<Results> = {};
 
 export const module: ContextMenuCommand = {
@@ -90,109 +151,72 @@ export const module: ContextMenuCommand = {
 				key: "sauce.invalidUrl"
 			};
 		} else if (urls.length > 1) {
-			// TODO: Give select menu for user to pick which one
-			url = urls[0];
-		} else {
-			url = urls[0];
-		}
-
-		const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as SaucenaoAPIResponse;
-
-		if (res.header.status === 0) {
-			if (res.results === null) {
-				return {
-					key: "sauce.noSauce"
-				};
-			}
-
-			// TODO: Select dropdown for user to check other sauces
-			const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
-			try {
-				interactionResults[interaction.id] = results;
-
-				for (const result of results) {
-					const embed = await genEmbed(result, nsfw);
-					const similarity = parseFloat(result.header.similarity);
-
-					if (embed) {
-						return {
-							content: {
-								key: "sauce.confidenceLevel",
-								data: { similarity }
-							},
-							embeds: [embed],
-							components: [
-								[
-									{
-										type: "SELECT_MENU",
-										placeholder: {
-											key: "sauce.another"
-										},
-										options: results.map((result, i) => {
-											const _similarity = parseFloat(result.header.similarity);
-											return {
-												emoji: {
-													name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
-												},
-												label: `(${result.header.similarity}%) - ${result.header.index_name}`,
-												value: `${interaction.id}_${i}`
-											}
-										}),
-										custom_id: "checkOtherSauces"
-									}
-								]
-							]
-						};
-					}
-				}
-				throw "Unknown";
-			} catch (e) {
-				return {
-					key: "sauce.noSauce"
-				};
-			}
-		} else {
-			return `Error: ${res.header.message}`;
-		}
-	},
-	onSelectMenu: async (interaction) => {
-		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
-
-		const [id, i] = interaction.values[0].split("_");
-		const results = interactionResults[id];
-		const result = results[parseInt(i)];
-		const embed = await genEmbed(result, nsfw);
-
-		if (embed) {
 			return {
-				content: {
-					key: "sauce.confidenceLevel",
-					data: { similarity: parseFloat(result.header.similarity) }
-				},
-				embeds: [embed],
+				content: "Which image do you want to check?",
 				components: [
 					[
 						{
 							type: "SELECT_MENU",
-							placeholder: {
-								key: "sauce.another"
-							},
-							options: results.map((result, _i) => {
-								const _similarity = parseFloat(result.header.similarity);
-								return {
-									emoji: {
-										name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
-									},
-									label: `(${result.header.similarity}%) - ${result.header.index_name}`,
-									value: `${id}_${_i}`,
-									default: i === `${_i}`
-								}
-							}),
-							custom_id: "checkOtherSauces"
+							options: urls.map((url, i) => ({
+								label: `${i + 1}. ${url}`,
+								value: url
+							})),
+							custom_id: "pickURL"
 						}
 					]
 				]
-			};
+			}
+		} else {
+			url = urls[0];
+		}
+
+		return query(interaction.id, url, nsfw);
+	},
+	onSelectMenu: async (interaction) => {
+		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
+
+		switch (interaction.customId) {
+			case "pickURL":
+				const url = interaction.values[0];
+				return query(interaction.id, url, nsfw);
+			case "checkOtherSauces":
+				const [id, i] = interaction.values[0].split("_");
+				const results = interactionResults[id];
+				const result = results[parseInt(i)];
+				const embed = await genEmbed(result, nsfw);
+
+				if (embed) {
+					return {
+						content: {
+							key: "sauce.confidenceLevel",
+							data: { similarity: parseFloat(result.header.similarity) }
+						},
+						embeds: [embed],
+						components: [
+							[
+								{
+									type: "SELECT_MENU",
+									placeholder: {
+										key: "sauce.another"
+									},
+									options: results.map((result, _i) => {
+										const _similarity = parseFloat(result.header.similarity);
+										return {
+											emoji: {
+												name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
+											},
+											label: `(${result.header.similarity}%) - ${result.header.index_name}`,
+											value: `${id}_${_i}`,
+											default: i === `${_i}`
+										}
+									}),
+									custom_id: "checkOtherSauces"
+								}
+							]
+						]
+					};
+				}
+				break;
 		}
 
 		return "UwU";
