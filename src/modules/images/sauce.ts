@@ -125,7 +125,9 @@ export const module: ContextMenuCommand = {
 								[
 									{
 										type: "SELECT_MENU",
-										placeholder: "Another sauce?",
+										placeholder: {
+											key: "sauce.another"
+										},
 										options: results.map((result, i) => {
 											const _similarity = parseFloat(result.header.similarity);
 											return {
@@ -172,7 +174,9 @@ export const module: ContextMenuCommand = {
 					[
 						{
 							type: "SELECT_MENU",
-							placeholder: "Another sauce?",
+							placeholder: {
+								key: "sauce.another"
+							},
 							options: results.map((result, _i) => {
 								const _similarity = parseFloat(result.header.similarity);
 								return {

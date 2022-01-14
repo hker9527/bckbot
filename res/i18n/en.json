@@ -76,7 +76,8 @@
     "invalidUrl": "No usable image found!",
     "confidenceLevel": "Confidence level: {{similarity}}%",
     "unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
-    "name": "Get sauce"
+    "name": "Get sauce",
+    "another": "Another sauce?"
   },
   "pixiv": {
     "imageNotFound": "No image found for id {{id}}",
