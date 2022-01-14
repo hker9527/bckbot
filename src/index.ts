@@ -6,7 +6,7 @@ import { Dictionary } from "@type/Dictionary";
 import { SlashCommandResult } from "@type/SlashCommand/result";
 import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
 import { exec } from "child_process";
-import { BaseCommandInteraction, Message, MessageInteraction } from "discord.js";
+import { CommandInteraction, ContextMenuInteraction, Message, MessageComponentInteraction, MessageInteraction } from "discord.js";
 import { config } from "dotenv-safe";
 import glob from "glob";
 import { APISlashCommandAdapter } from "./adapters/APISlashCommand";
@@ -184,9 +184,7 @@ try {
 			authorID: string;
 		}> = {};
 		// Save all interactions for delete button
-		const interactions: Dictionary<BaseCommandInteraction & {
-			deleteReply: () => Promise<void>
-		}> = {};
+		const interactions: Dictionary<MessageComponentInteraction | CommandInteraction | ContextMenuInteraction> = {};
 
 		client.on("interactionCreate", async (interaction) => {
 			let result: ConstructorParameters<typeof SlashCommandResult>["0"] | null = null;
@@ -195,22 +193,33 @@ try {
 			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
 				if (result) {
+					const after = () => {
+						const _interaction = interaction as MessageComponentInteraction | CommandInteraction | ContextMenuInteraction;
+
+						interactions[_interaction.id] = _interaction;
+						setTimeout(async () => {
+							try {
+								delete interactions[_interaction.id];
+								options.components!.pop();
+								await _interaction.editReply(options);
+							} catch (e) {
+								// Nothing
+							}
+						}, 1000 * 60 * 5);
+					};
+
 					const options = new SlashCommandResult(result, interaction.id).localize(interaction.getLocale()).build();
 
 					if (interaction.isMessageComponent()) {
 						await interaction.editReply(options);
+						after();
 					} else if (interaction.isCommand() || interaction.isContextMenu()) {
 						if (command.defer) {
 							await interaction.editReply(options);
 						} else {
 							await interaction.reply(options);
 						}
-						interactions[interaction.id] = interaction;
-						setTimeout(async () => {
-							delete interactions[interaction.id];
-							options.components!.pop();
-							await interaction.editReply(options);
-						}, 1000 * 60 * 5);
+						after();
 					}
 				}
 			};
