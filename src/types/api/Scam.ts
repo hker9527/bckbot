@@ -1,4 +1,4 @@
-export interface ScamApiResponse {
+export interface ScamAPIResponse {
 	matches?: ({
 		threatType: string;
 		platformType: string;

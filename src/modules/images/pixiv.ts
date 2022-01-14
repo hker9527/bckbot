@@ -1,5 +1,5 @@
 import { report, req2json } from "@app/utils";
-import { PixivApiResponse } from "@type/api/Pixiv";
+import { PixivAPIResponse } from "@type/api/Pixiv";
 import { Embed } from "@type/Message/Embed";
 import { StealthModule } from "@type/StealthModule";
 import { TextChannel } from "discord.js";
@@ -11,7 +11,7 @@ export const pimg = (url: string) => {
 
 export const fetchInfo = async (illust_id: string) => {
 	try {
-		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as PixivApiResponse;
+		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as PixivAPIResponse;
 
 		if (Array.isArray(res.body)) {
 			if (res.message === "該当作品は削除されたか、存在しない作品IDです。") {

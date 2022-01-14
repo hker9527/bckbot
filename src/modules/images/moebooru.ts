@@ -1,8 +1,8 @@
 import { req2json } from "@app/utils";
 import { DanbooruApiResponse } from "@type/api/Danbooru";
-import { KonachanApiResponse } from "@type/api/Konachan";
-import { SankakuApiResponse } from "@type/api/Sankaku";
-import { YandereApiResponse } from "@type/api/Yandere";
+import { KonachanAPIResponse } from "@type/api/Konachan";
+import { SankakuAPIResponse } from "@type/api/Sankaku";
+import { YandereAPIResponse } from "@type/api/Yandere";
 import { Embed } from "@type/Message/Embed";
 import { StealthModule } from "@type/StealthModule";
 
@@ -32,7 +32,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 
 	switch (provider) {
 		case "kon": {
-			const result = res as KonachanApiResponse;
+			const result = res as KonachanAPIResponse;
 			return result.map(a => {
 				return {
 					id: `${a.id}`,
@@ -46,7 +46,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 			});
 		}
 		case "yan": {
-			const result = res as YandereApiResponse;
+			const result = res as YandereAPIResponse;
 			return result.map(a => {
 				return {
 					id: `${a.id}`,
@@ -74,7 +74,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 			});
 		}
 		case "san": {
-			const result = res as SankakuApiResponse;
+			const result = res as SankakuAPIResponse;
 			return result.data.map(a => {
 				return {
 					id: `${a.id}`,

@@ -1,6 +1,6 @@
 import { getString } from "@app/i18n";
 import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
-import { ScamApiResponse } from "@type/api/Scam";
+import { ScamAPIResponse } from "@type/api/Scam";
 import * as linkify from "linkifyjs";
 import fetch from "node-fetch";
 
@@ -31,7 +31,7 @@ export const module: StealthModule = {
 				body: JSON.stringify(body)
 			});
 
-			const json = await response.json() as ScamApiResponse;
+			const json = await response.json() as ScamAPIResponse;
 			try {
 				if (json.matches) {
 					const txts = [];

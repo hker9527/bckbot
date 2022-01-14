@@ -16,7 +16,7 @@ import { PawooData } from "./saucenao/Pawoo";
 import { PixivData } from "./saucenao/Pixiv";
 import { SeigaData } from "./saucenao/Seiga";
 
-export interface SaucenaoApiResponse {
+export interface SaucenaoAPIResponse {
     header:  Header;
     results: Result[];
 }

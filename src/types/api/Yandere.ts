@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-export type YandereApiResponse = YanderePost[];
+export type YandereAPIResponse = YanderePost[];
 
 interface YanderePost {
     id:                    number;

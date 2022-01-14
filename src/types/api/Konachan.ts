@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-export type KonachanApiResponse = KonachanPost[];
+export type KonachanAPIResponse = KonachanPost[];
 
 interface KonachanPost {
     id:                    number;
