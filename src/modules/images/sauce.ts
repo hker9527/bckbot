@@ -9,11 +9,20 @@ import { findImagesFromMessage } from "./_lib";
 
 type Results = SaucenaoAPIResponse["results"];
 
+const turn2thumbnail = (embed: Embed) => {
+	if (embed.image) {
+		embed.thumbnail = embed.image;
+		delete embed.image;
+	}
+
+	return embed;
+};
+
 const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => {
 	if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
-		const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, false, nsfw);
+		const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, true, nsfw);
 		if (_embeds !== null) {
-			return _embeds[0];
+			return turn2thumbnail(_embeds[0]);
 		}
 	} else if ("creator" in result.data) { // MoebooruData
 		let provider: keyof typeof ApiPortal | null = null;
@@ -43,12 +52,12 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => 
 				const matches = imageObject.source?.match(/illust_id=(\d{2,})|\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d{2,})_p|artworks\/(\d{2,})|img\/.*?\/(\d{2,})\./);
 
 				if (matches) {
-					let embeds = await genPixivEmbed(matches.filter(m => m)[1], false, nsfw);
-					if (embeds) return embeds[0];
+					let embeds = await genPixivEmbed(matches.filter(m => m)[1], true, nsfw);
+					if (embeds) return turn2thumbnail(embeds[0]);
 				}
 
 				// If fetching the original source fails, fallback
-				return await genMoebooruEmbed(provider, imageObjects[0], false, nsfw);
+				return turn2thumbnail(await genMoebooruEmbed(provider, imageObjects[0], true, nsfw));
 			}
 		}
 	}
