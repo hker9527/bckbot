@@ -100,7 +100,8 @@ export const Singleton: {
 		db.data ||= {
 			language: {
 				guilds: {},
-				channels: {}
+				channels: {},
+				users: {}
 			},
 			osuLink: {},
 			currency: {

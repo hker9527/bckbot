@@ -3,14 +3,14 @@ import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
 	name: "language",
-	description: "Change the language for the bot",
+	description: "Change the bot's language",
 	options: [
 		{
 			name: "language",
 			description: "The language that you want to change",
 			type: "STRING",
 			choices: [{
-				name: "Unset",
+				name: "Reset all",
 				value: "na"
 			}, {
 				name: "English",
@@ -27,6 +27,9 @@ export const module: SlashCommand = {
 			description: "Choose where to apply",
 			type: "STRING",
 			choices: [{
+				name: "User",
+				value: "user"
+			}, {
 				name: "Channel",
 				value: "channel"
 			}, {

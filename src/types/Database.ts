@@ -8,7 +8,8 @@ export enum Currencies {
 export interface Database {
 	language: {
 		guilds: Dictionary<Languages>,
-		channels: Dictionary<Languages>;
+		channels: Dictionary<Languages>,
+		users: Dictionary<Languages>
 	},
 	osuLink: Dictionary<string>,
 	currency: {

@@ -1,5 +1,4 @@
-import { Languages } from "@app/i18n";
-import { Singleton } from "@app/Singleton";
+import { getLocale, Languages, parseLocaleString, setLocale } from "@app/i18n";
 import { Message, Channel, Guild, Interaction, ContextMenuInteraction, User } from "discord.js";
 
 export const injectPrototype = () => { }; // Turn this file into a module
@@ -53,13 +52,18 @@ declare module "discord.js" {
 		getUser: () => User;
 	}
 
+	interface User {
+		getLocale: () => Languages | null;
+		setLocale: (language?: Languages) => void;
+	}
+
 	interface Channel {
-		getLocale: () => Languages;
+		getLocale: () => Languages | null;
 		setLocale: (language?: Languages) => void;
 	}
 
 	interface Guild {
-		getLocale: () => Languages;
+		getLocale: () => Languages | null;
 		setLocale: (language?: Languages) => void;
 	}
 }
@@ -69,7 +73,9 @@ Message.prototype.getLocale = function () {
 };
 
 Interaction.prototype.getLocale = function () {
-	return this.channel?.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
+	const locale: Languages | null = parseLocaleString(this.locale);
+
+	return locale ?? this.channel?.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
 };
 
 ContextMenuInteraction.prototype.getMessage = function () {
@@ -80,26 +86,26 @@ ContextMenuInteraction.prototype.getUser = function () {
 	return this.options.getUser("user") as User; // Assuming all messages received are Message-compactible.
 };
 
+User.prototype.getLocale = function () {
+	return getLocale("user", this.id);
+};
+
+User.prototype.setLocale = function (language?) {
+	setLocale("user", this.id, language);
+};
+
 Channel.prototype.getLocale = function () {
-	return Singleton.db.data!.language.channels[this.id];
+	return getLocale("channel", this.id);
 };
 
 Channel.prototype.setLocale = function (language?) {
-	if (language) {
-		Singleton.db.data!.language.channels[this.id] = language;
-	} else {
-		delete Singleton.db.data!.language.channels[this.id];
-	}
+	setLocale("channel", this.id, language);
 };
 
 Guild.prototype.getLocale = function () {
-	return Singleton.db.data!.language.guilds[this.id];
+	return getLocale("guild", this.id) ?? parseLocaleString(this.preferredLocale);
 };
 
 Guild.prototype.setLocale = function (language?) {
-	if (language) {
-		Singleton.db.data!.language.guilds[this.id] = language;
-	} else {
-		delete Singleton.db.data!.language.guilds[this.id];
-	}
+	setLocale("guild", this.id, language);
 };
