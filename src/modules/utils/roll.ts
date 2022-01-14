@@ -3,7 +3,9 @@ import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
 	name: "roll",
-	description: "roll.description",
+	description: {
+		key: "roll.description"
+	},
 	options: [
 		{
 			name: "upper",

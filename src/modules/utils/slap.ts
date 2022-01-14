@@ -5,7 +5,9 @@ import emoji from "node-emoji";
 
 export const module: SlashCommand = {
 	name: "slap",
-	description: "slap.description",
+	description: {
+		key: "slap.description"
+	},
 	options: [
 		{
 			name: "victim",
