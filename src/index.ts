@@ -20,12 +20,12 @@ try {
 	config();
 	injectPrototype();
 	i18init();
-	
+
 	const { client } = Singleton;
 
 	const startTime = new Date();
 	const eventModules: Record<
-		StealthModule["event"], 
+		StealthModule["event"],
 		Dictionary<{
 			module: StealthModule,
 			loaded: boolean
@@ -152,8 +152,7 @@ try {
 				}
 
 				/*
-					A lookup table for the listener to check the origin command module.
-					For example, the original module may look like:
+					The original module may look like:
 					{
 						name: {
 							key: "avatar.name",
@@ -165,25 +164,13 @@ try {
 						name: "Command world"
 					}
 
-					We store the key-value pair in the APICommands variable, namely
-					{
-						"avatar.name": "Command world"
-					}
-
-					Then, we use the localized string to lookup the original command.
+					A simple lookup can yield the original slash command.
 				*/
-
-				const originOfLocalizedName: Dictionary<string> = {};
-
-				for (const command of slashCommands) {
-					const commandNameLocalized = Localizer(command.name, guildLocale);
-					originOfLocalizedName[commandNameLocalized] = typeof command.name === "string" ? command.name : command.name.key;
-				}
 
 				const commands = await guild.commands.set(slashCommands.map(slashCommand => APISlashCommandAdapter(slashCommand, guildLocale)));
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				for (const [_, command] of commands) {
-					APICommands[command.id] = slashCommands.find(_command => (typeof _command.name === "string" ? _command.name : _command.name.key) === originOfLocalizedName[command.name])!;
+					APICommands[command.id] = slashCommands.find(_command => command.name === Localizer(_command.name, guildLocale))!;
 				}
 
 				guildRegistered[guild.id] = true;
@@ -208,21 +195,23 @@ try {
 			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
 				if (result) {
-					const _interaction = interaction as BaseCommandInteraction;
 					const options = new SlashCommandResult(result, interaction.id).localize(interaction.getLocale()).build();
 
-					if (command.defer) {
-						await _interaction.editReply(options);
-					} else {
-						await _interaction.reply(options);
+					if (interaction.isMessageComponent()) {
+						await interaction.editReply(options);
+					} else if (interaction.isCommand() || interaction.isContextMenu()) {
+						if (command.defer) {
+							await interaction.editReply(options);
+						} else {
+							await interaction.reply(options);
+						}
+						interactions[interaction.id] = interaction;
+						setTimeout(async () => {
+							delete interactions[interaction.id];
+							options.components!.pop();
+							await interaction.editReply(options);
+						}, 1000 * 60 * 5);
 					}
-
-					interactions[_interaction.id] = _interaction;
-					setTimeout(async () => {
-						delete interactions[_interaction.id];
-						options.components!.pop();
-						await _interaction.editReply(options);
-					}, 1000 * 60 * 5);
 				}
 			};
 
@@ -282,12 +271,14 @@ try {
 
 					if (result) return await sendResult();
 				}
-			} else if (interaction.isButton() || interaction.isMessageComponent() || interaction.isSelectMenu()) {
+			} else if (interaction.isMessageComponent()) {
 				// Lookup by source message's interaction's name
-				command = slashCommands.find(_command => _command.name === (interaction.message!.interaction! as MessageInteraction).commandName)!;
+				command = slashCommands.find(_command =>
+					Localizer(_command.name, interaction.guild?.getLocale() ?? Languages.English) === (interaction.message!.interaction! as MessageInteraction).commandName
+				)!;
 				if (command) {
 					if (command.defer)
-						await interaction.deferReply();
+						await interaction.deferUpdate();
 
 					if (interaction.isButton() && command.onButton) {
 						result = await command.onButton(interaction);
