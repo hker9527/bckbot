@@ -4,10 +4,7 @@ import { Embed } from "@type/Message/Embed";
 import { StealthModule } from "@type/StealthModule";
 import { TextChannel } from "discord.js";
 import { htmlToText } from "html-to-text";
-
-export const pimg = (url: string) => {
-	return url.replace("i.pximg.net", "i.pixiv.cat");
-};
+import fetch from "node-fetch";
 
 export const fetchInfo = async (illust_id: string) => {
 	try {
@@ -46,6 +43,12 @@ export const genEmbeds = async (illust_id: string, show_image = true, nsfw = fal
 	const illust = await fetchInfo(illust_id);
 	if (illust === null) {
 		return null;
+	}
+
+	for (let i = 0; i < Math.min(illust.pageCount, 4); i++) {
+		await fetch(`https://pixiv.cat/${illust_id}${(illust.pageCount > 1 ? `-${i + 1}` : "")}.jpg`, {
+			method: "HEAD"
+		});
 	}
 
 	const embeds: Embed[] = [
