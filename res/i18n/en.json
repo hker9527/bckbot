@@ -77,7 +77,8 @@
     "confidenceLevel": "Confidence level: {{similarity}}%",
     "unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
     "name": "Get sauce",
-    "another": "Another sauce?"
+    "another": "Another sauce?",
+    "error": "Error: {{error}}"
   },
   "pixiv": {
     "imageNotFound": "No image found for id {{id}}",

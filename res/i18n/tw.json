@@ -14,7 +14,8 @@
       "contextMenuCommand": "請在目標{{target}}上右鍵，並選擇｢$t({{command}})｣。",
       "slashCommand": "請使用/{{command}}。",
       "missingPermission": "本機器人已更新為斜槓命令。\n請聯繫管理員按下連結，讓機器人更新權限。\n網址：<https://discordapp.com/oauth2/authorize?&client_id={{id}}&scope=bot%20applications.commands&permissions=523328>"
-    }
+    },
+    "deletingOthersMessage": "你只可以刪除自己發出的訊息！"
   },
   "magicball": {
     "answer0": "這是必然。",
@@ -67,7 +68,8 @@
     "postNotFound": "找不到{{url}}的圖源！",
     "unknown": "不懂這是蝦米碗糕...\n```json\n{{json}}```",
     "name": "抓圖源",
-    "another": "另一個圖源？"
+    "another": "另一個圖源？",
+    "error": "發生錯誤：{{error}}"
   },
   "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。\n{{mineField}}",
   "pixiv": {
