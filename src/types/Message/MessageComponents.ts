@@ -37,7 +37,7 @@ const ZMessageComponentSelectMenuOption = z.object({
 	value: z.string().min(1).max(100),
 	description: ZLocalizable.optional(),
 	emoji: ZEmoji.optional(),
-	default: z.boolean().optional(),
+	default: z.boolean().optional()
 });
 
 const ZMessageComponentSelectMenu = z.object({

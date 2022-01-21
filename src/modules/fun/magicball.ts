@@ -13,7 +13,7 @@ export const module: SlashCommand = {
 	options: [{
 		name: "question",
 		description: "The question to ask",
-		type: "STRING",
+		type: "STRING"
 	}],
 	defer: true,
 	onCommand: async (interaction) => {

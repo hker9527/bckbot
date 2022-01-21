@@ -84,7 +84,7 @@ export abstract class Result<T extends MessageOptions> {
 								const base = {
 									type: component.type,
 									customId: "custom_id" in component ? component.custom_id : null,
-									disabled: component.disabled ?? false,
+									disabled: component.disabled ?? false
 								};
 								if (component.type === "BUTTON") {
 									return {
@@ -92,7 +92,7 @@ export abstract class Result<T extends MessageOptions> {
 										emoji: component.emoji ?? null,
 										label: component.label ?? null,
 										style: component.style,
-										url: component.style === "LINK" ? component.url : undefined,
+										url: component.style === "LINK" ? component.url : undefined
 									} as MessageButton;
 								} else {
 									return {

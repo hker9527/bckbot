@@ -30,7 +30,7 @@ export const module: ContextMenuCommand = {
 					name: `${user.username}'s avatar`
 				},
 				color: "#8dd272",
-				image: avatarURL,
+				image: avatarURL
 			}], ephemeral: true
 		};
 	}

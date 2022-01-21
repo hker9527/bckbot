@@ -37,7 +37,7 @@ export const Singleton: {
 					return Object.values(guilds)
 						.map((a) => Object.keys(a))
 						.flat();
-				},
+				}
 			})
 			.action(async (data) => {
 				const channel = Singleton.client.channels.cache.find(
@@ -86,7 +86,7 @@ export const Singleton: {
 			Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
 			Discord.Intents.FLAGS.DIRECT_MESSAGES,
 			Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
-		],
+		]
 	}),
 	osuClient: new Osu(process.env.osu_api!),
 	db: (() => {

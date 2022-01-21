@@ -32,11 +32,11 @@ export const module: SlashCommand = {
 						random(50, 100),
 						random(100, 300),
 						random(300, 600),
-						random(600, 1000),
+						random(600, 1000)
 					],
 					[0.1, 0.6, 0.2, 0.1]
 				)
 			)
 		});
-	},
+	}
 };
