@@ -1,8 +1,9 @@
-import { ResultData } from "./Base";
+import { Zod } from "@type/Zod";
+import { z } from "zod";
 
-export interface ArtstationData extends ResultData {
-	title:       string;
-    as_project:  string;
-    author_name: string;
-    author_url:  string;
-}
+export const ZAPISaucenaoArtstation = new Zod(z.object({
+	title: z.string(),
+	as_project: z.string(),
+	author_name: z.string(),
+	author_url: z.string()
+}));

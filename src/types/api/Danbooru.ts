@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-export type DanbooruApiResponse = DanbooruPost[];
+export type APIDanbooru = DanbooruPost[];
 
 interface DanbooruPost {
     id:                     number;

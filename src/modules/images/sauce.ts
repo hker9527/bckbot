@@ -1,5 +1,10 @@
 import { req2json } from "@app/utils";
-import { SaucenaoAPIResponse } from "@type/api/Saucenao";
+import { APISaucenao } from "@type/api/Saucenao";
+import { ZAPISaucenaoBase } from "@type/api/saucenao/Base";
+import { ZAPISaucenaoEHentai } from "@type/api/saucenao/EHentai";
+import { ZAPISaucenaoMoebooru } from "@type/api/saucenao/Moebooru";
+import { ZAPISaucenaoPixiv } from "@type/api/saucenao/Pixiv";
+import { ZAPISaucenaoTwitter } from "@type/api/saucenao/Twitter";
 import { Dictionary } from "@type/Dictionary";
 import { Embed } from "@type/Message/Embed";
 import { ContextMenuCommand, onFn } from "@type/SlashCommand";
@@ -7,7 +12,7 @@ import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "./moebooru";
 import { genEmbeds as genPixivEmbed } from "./pixiv";
 import { findImagesFromMessage } from "./_lib";
 
-type Results = SaucenaoAPIResponse["results"];
+type Results = APISaucenao["results"];
 
 const turn2thumbnail = (embed: Embed) => {
 	if (embed.image) {
@@ -19,12 +24,12 @@ const turn2thumbnail = (embed: Embed) => {
 };
 
 const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => {
-	if ("pixiv_id" in result.data) { // TODO: Check if Moebooru's source is pixiv
+	if (ZAPISaucenaoPixiv.check(result.data)) {
 		const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, true, nsfw);
 		if (_embeds !== null) {
 			return turn2thumbnail(_embeds[0]);
 		}
-	} else if ("creator" in result.data) { // MoebooruData
+	} else if (ZAPISaucenaoMoebooru.check(result.data)) {
 		let provider: keyof typeof ApiPortal | null = null;
 		let id: number | null = null;
 
@@ -60,11 +65,24 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => 
 				return turn2thumbnail(await genMoebooruEmbed(provider, imageObjects[0], true, nsfw));
 			}
 		}
+	} else if (ZAPISaucenaoEHentai.check(result.data)) {
+		// TODO: Fetch gallery info
+		return {
+			title: "E-Hentai",
+			description: [result.data.jp_name, result.data.eng_name].join("\n"),
+			footer: result.data.creator.join(", ")
+		}
+	} else if (ZAPISaucenaoTwitter.check(result.data)) {
+		// TODO: Fetch images from twitter
+		return {
+			title: "Twitter",
+			description: result.data.ext_urls[0]
+		};
 	}
 
 	// These types are not supported, but we try to give useful info
 
-	if ("ext_urls" in result.data) {
+	if (ZAPISaucenaoBase.check(result.data)) {
 		return {
 			title: "Unknown sauce",
 			description: result.data.ext_urls.join("\n"),
@@ -74,12 +92,13 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => 
 
 	return {
 		title: "Unknown sauce",
+		description: JSON.stringify(result.data, null, 2),
 		footer: result.header.index_name
 	};
 };
 
 const query = async (id: string, url: string, nsfw: boolean): Promise<ReturnType<onFn<any>>> => {
-	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as SaucenaoAPIResponse;
+	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
 
 	if (res.header.status === 0) {
 		if (res.results === null) {
@@ -135,7 +154,10 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<ReturnType
 			};
 		}
 	} else {
-		return `Error: ${res.header.message}`;
+		return {
+			key: "sauce.error",
+			data: { error: res.header.message }
+		};
 	}
 };
 

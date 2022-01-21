@@ -1,8 +1,8 @@
 import { req2json } from "@app/utils";
-import { DanbooruApiResponse } from "@type/api/Danbooru";
-import { KonachanAPIResponse } from "@type/api/Konachan";
-import { SankakuAPIResponse } from "@type/api/Sankaku";
-import { YandereAPIResponse } from "@type/api/Yandere";
+import { APIDanbooru } from "@type/api/Danbooru";
+import { APIKonachan } from "@type/api/Konachan";
+import { APISankaku } from "@type/api/Sankaku";
+import { APIYandere } from "@type/api/Yandere";
 import { Embed } from "@type/Message/Embed";
 import { StealthModule } from "@type/StealthModule";
 
@@ -32,7 +32,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 
 	switch (provider) {
 		case "kon": {
-			const result = res as KonachanAPIResponse;
+			const result = res as APIKonachan;
 			return result.map(a => {
 				return {
 					id: `${a.id}`,
@@ -46,7 +46,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 			});
 		}
 		case "yan": {
-			const result = res as YandereAPIResponse;
+			const result = res as APIYandere;
 			return result.map(a => {
 				return {
 					id: `${a.id}`,
@@ -60,7 +60,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 			});
 		}
 		case "dan": {
-			const result = res as DanbooruApiResponse;
+			const result = res as APIDanbooru;
 			return result.map(a => {
 				return {
 					id: `${a.id}`,
@@ -74,7 +74,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 			});
 		}
 		case "san": {
-			const result = res as SankakuAPIResponse;
+			const result = res as APISankaku;
 			return result.data.map(a => {
 				return {
 					id: `${a.id}`,

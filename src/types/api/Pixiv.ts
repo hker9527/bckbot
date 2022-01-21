@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-export interface PixivAPIResponse {
+export interface APIPixiv {
     error:   boolean;
     message: string;
     body:    Body | [];

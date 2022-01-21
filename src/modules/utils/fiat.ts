@@ -77,7 +77,7 @@ export const module: SlashCommand = {
 					}))
 				],
 				footer: {
-					text: "Updated at",
+					text: "Updated at"
 				},
 				timestamp: data.lastUpdate
 			}]

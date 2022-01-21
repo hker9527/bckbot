@@ -1,9 +1,11 @@
-import { ResultData } from "./Base";
+import { Zod } from "@type/Zod";
+import { z } from "zod";
 
-export interface HAnimeData extends ResultData {
-	source:    string;
-    anidb_aid: number;
-    part:      string;
-    year:      string;
-    est_time:  string;
-}
+export const ZAPISaucenaoHAnime = new Zod(z.object({
+	ext_urls: z.array(z.string().url()),
+	source: z.string(),
+	anidb_aid: z.number(),
+	part: z.string(),
+	year: z.string(),
+	est_time: z.string()
+}));

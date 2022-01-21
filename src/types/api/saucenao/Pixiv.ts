@@ -1,8 +1,10 @@
-import { ResultData } from "./Base";
+import { Zod } from "@type/Zod";
+import { z } from "zod";
 
-export interface PixivData extends ResultData {
-	title:       string;
-    pixiv_id:    number;
-    member_name: string;
-    member_id:   number;
-}
+export const ZAPISaucenaoPixiv = new Zod(z.object({
+	ext_urls: z.array(z.string().url()),
+	title: z.string(),
+	pixiv_id: z.number(),
+	member_name: z.string(),
+	member_id: z.number()
+}));

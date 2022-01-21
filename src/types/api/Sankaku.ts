@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-export interface SankakuAPIResponse {
+export interface APISankaku {
 	meta: any,
 	data: SankakuPost[]
 }
