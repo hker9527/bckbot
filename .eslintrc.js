@@ -9,6 +9,7 @@ module.exports = {
 		"eslint-config-alloy/typescript"
 	],
 	rules: {
+		"comma-dangle": ["error", "never"],
 		"indent": ["error", "tab", { "SwitchCase": 1 }],
 		"func-style": ["error", "expression"],
 		"@typescript-eslint/consistent-type-assertions": "off",
