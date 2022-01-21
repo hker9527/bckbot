@@ -69,7 +69,8 @@
     "unknown": "不懂這是蝦米碗糕...\n```json\n{{json}}```",
     "name": "抓圖源",
     "another": "另一個圖源？",
-    "error": "發生錯誤：{{error}}"
+    "error": "發生錯誤：{{error}}",
+    "whichImage": "想搜尋哪一張圖片？"
   },
   "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。\n{{mineField}}",
   "pixiv": {

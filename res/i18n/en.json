@@ -78,7 +78,8 @@
     "unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
     "name": "Get sauce",
     "another": "Another sauce?",
-    "error": "Error: {{error}}"
+    "error": "Error: {{error}}",
+    "whichImage": "Which image do you want to check?"
   },
   "pixiv": {
     "imageNotFound": "No image found for id {{id}}",

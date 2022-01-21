@@ -183,7 +183,9 @@ export const module: ContextMenuCommand = {
 			};
 		} else if (urls.length > 1) {
 			return {
-				content: "Which image do you want to check?",
+				content: {
+					key: "sauce.whichImage"
+				},
 				components: [
 					[
 						{
