@@ -136,7 +136,7 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<ReturnType
 											emoji: {
 												name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
 											},
-											label: `(${result.header.similarity}%) - ${result.header.index_name}`,
+											label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
 											value: `${id}_${i}`
 										}
 									}),
@@ -238,7 +238,7 @@ export const module: ContextMenuCommand = {
 											emoji: {
 												name: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴")
 											},
-											label: `(${result.header.similarity}%) - ${result.header.index_name}`,
+											label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
 											value: `${id}_${_i}`,
 											default: i === `${_i}`
 										}
