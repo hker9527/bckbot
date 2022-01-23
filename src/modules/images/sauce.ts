@@ -203,7 +203,7 @@ export const module: ContextMenuCommand = {
 			url = urls[0];
 		}
 
-		return query(interaction.id, url, nsfw);
+		return await query(interaction.id, url, nsfw);
 	},
 	onSelectMenu: async (interaction) => {
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
@@ -211,7 +211,7 @@ export const module: ContextMenuCommand = {
 		switch (interaction.customId) {
 			case "pickURL":
 				const url = interaction.values[0];
-				return query(interaction.id, url, nsfw);
+				return await query(interaction.id, url, nsfw);
 			case "checkOtherSauces":
 				const [id, i] = interaction.values[0].split("_");
 				const results = interactionResults[id];
