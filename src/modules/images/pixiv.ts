@@ -1,23 +1,24 @@
-import { report, req2json } from "@app/utils";
+import { req2json } from "@app/utils";
 import { APIPixiv } from "@type/api/Pixiv";
 import { Embed } from "@type/Message/Embed";
 import { StealthModule } from "@type/StealthModule";
 import { TextChannel } from "discord.js";
 import { htmlToText } from "html-to-text";
 import fetch from "node-fetch";
+import { Report } from "@app/reporting";
 
 export const fetchInfo = async (illust_id: string) => {
 	try {
 		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illust_id}?lang=ja`) as APIPixiv;
 
 		if (Array.isArray(res.body)) {
-			if (res.message === "該当作品は削除されたか、存在しない作品IDです。") {
-				return null;
+			if (res.message !== "該当作品は削除されたか、存在しない作品IDです。") {
+				Report.info("res: " + JSON.stringify(res));
 			}
-			report("res: " + JSON.stringify(res));
 			return null;
 		} else {
 			return {
+				type: res.body.illustType,
 				title: res.body.illustTitle,
 				pageCount: res.body.pageCount,
 				author: {
@@ -35,6 +36,7 @@ export const fetchInfo = async (illust_id: string) => {
 			};
 		}
 	} catch (e) {
+		Report.error(e as Error);
 		return null;
 	}
 };

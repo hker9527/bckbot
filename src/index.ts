@@ -6,15 +6,17 @@ import { Dictionary } from "@type/Dictionary";
 import { SlashCommandResult } from "@type/SlashCommand/result";
 import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
 import { exec } from "child_process";
-import { CommandInteraction, ContextMenuInteraction, Message, MessageComponentInteraction, MessageInteraction } from "discord.js";
+import { CommandInteraction, ContextMenuInteraction, InteractionReplyOptions, Message, MessageComponentInteraction, MessageInteraction } from "discord.js";
 import { config } from "dotenv-safe";
 import glob from "glob";
 import { APISlashCommandAdapter } from "./adapters/APISlashCommand";
 import { i18init, Languages } from "./i18n";
-import { pmError, report } from "./utils";
+import { msg2str, report } from "./utils";
 import { StealthModuleResult } from "@type/StealthModule/result";
 import { Localizer } from "./localizers";
 import { Command, ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
+import { Report } from "./reporting";
+import { assert } from "console";
 
 try {
 	config();
@@ -38,7 +40,7 @@ try {
 
 	const slashCommands: (SlashCommand | ContextMenuCommand)[] = [];
 
-	client.on("ready", async () => {
+	client.on("ready", () => {
 		Singleton.logger.delimiter("> ").show();
 
 		exec("git show -s --format=\"v.%h on %aI\"", (error, string) => {
@@ -125,7 +127,7 @@ try {
 							};
 						}
 					} catch (e) {
-						if (e instanceof Error) await pmError(message, e);
+						if (e instanceof Error) await Report.error(e, msg2str(message));
 					}
 				}
 				return;
@@ -190,37 +192,57 @@ try {
 			let result: ConstructorParameters<typeof SlashCommandResult>["0"] | null = null;
 			let command: Command;
 
+			const setRemoveDeleteButtonListener = (options: InteractionReplyOptions) => {
+				const _interaction = interaction as MessageComponentInteraction | CommandInteraction | ContextMenuInteraction;
+
+				interactions[_interaction.id] = _interaction;
+				setTimeout(async () => {
+					try {
+						delete interactions[_interaction.id];
+						options.components!.pop();
+						await _interaction.editReply(options);
+					} catch (e) {
+						// Nothing
+					}
+				}, 1000 * 60 * 5);
+			};
+
+			const sendOptions = async (options: InteractionReplyOptions) => {
+				if (interaction.isMessageComponent()) {
+					await interaction.editReply(options);
+					setRemoveDeleteButtonListener(options);
+				} else if (interaction.isCommand() || interaction.isContextMenu()) {
+					if (command.defer) {
+						await interaction.editReply(options);
+					} else {
+						await interaction.reply(options);
+					}
+					setRemoveDeleteButtonListener(options);
+				}
+			};
+
 			// Post-processing (Add delete button etc) and send it
 			const sendResult = async () => {
-				if (result) {
-					const after = () => {
-						const _interaction = interaction as MessageComponentInteraction | CommandInteraction | ContextMenuInteraction;
-
-						interactions[_interaction.id] = _interaction;
-						setTimeout(async () => {
-							try {
-								delete interactions[_interaction.id];
-								options.components!.pop();
-								await _interaction.editReply(options);
-							} catch (e) {
-								// Nothing
-							}
-						}, 1000 * 60 * 5);
-					};
-
-					const options = new SlashCommandResult(result, interaction.id).localize(interaction.getLocale()).build();
-
+				try {
+					assert(result);
+					const options = new SlashCommandResult(result!, interaction.id).localize(interaction.getLocale()).build();
+					await sendOptions(options);
+				} catch (e) {
+					let messageLink = `https://discord.com/channels/${interaction.guildId}/${interaction.channelId}`;
 					if (interaction.isMessageComponent()) {
-						await interaction.editReply(options);
-						after();
-					} else if (interaction.isCommand() || interaction.isContextMenu()) {
-						if (command.defer) {
-							await interaction.editReply(options);
-						} else {
-							await interaction.reply(options);
-						}
-						after();
+						messageLink += `/${interaction.message.id}`;	
+					} else if (interaction.isContextMenu()) {
+						if (interaction.targetType === "MESSAGE") 
+							messageLink += `/${interaction.targetId}`;
 					}
+
+					Report.error(e as Error, `Interaction: \`\`\`json\n${JSON.stringify(interaction.toJSON(), null, 2)}\`\`\`\nLink: ${messageLink}`);
+
+					const options = new SlashCommandResult({
+						key: "index.error"
+					}, interaction.id).localize(interaction.getLocale()).build();
+
+					await sendOptions(options);
 				}
 			};
 

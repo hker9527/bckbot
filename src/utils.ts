@@ -100,23 +100,7 @@ export const _req = async (url: string, json = false) => {
 };
 
 export const req2json = async (url: string) => {
-	return _req(url, true);
-};
-
-export const pm = async (text: string) => {
-	return (await Singleton.client!.channels.fetch(`${BigInt(process.env.error_chid!)}`) as TextChannel)!.send(text);
-};
-
-export const pmError = async (message: Message, error: Error) => {
-	const txt = [
-		"Original message =\t`" + msg2str(message) + "`",
-		"Error stack = ",
-		"```",
-		error.stack
-	].join("\n").substr(0, 1997) + "```";
-
-	report(txt);
-	return pm(txt);
+	return await _req(url, true);
 };
 
 export const enumStringKeys = (e: any) => {
