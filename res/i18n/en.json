@@ -15,7 +15,8 @@
       "slashCommand": "Please use /{{command}} instead.",
       "missingPermission": "The bot is updated to the newest slash command feature, but it fails to register in your guild.\nContact administrator to update the bot's permission by clicking the link.\nLink: <https://discordapp.com/oauth2/authorize?&client_id={{id}}&scope=bot%20applications.commands&permissions=523328>"
     },
-    "deletingOthersMessage": "You can only delete message authored by you."
+    "deletingOthersMessage": "You can only delete message authored by you.",
+    "error": "Error occured. Please wait for a fix!"
   },
   "magicball": {
     "answer0": "It is certain.",
