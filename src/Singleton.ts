@@ -33,16 +33,10 @@ export const Singleton: {
 		logger
 			.command("send [chid] [msg...]", "Send message.")
 			.autocomplete({
-				data: async () => {
-					return Object.values(guilds)
-						.map((a) => Object.keys(a))
-						.flat();
-				}
+				data: async () => Object.values(guilds).map((a) => Object.keys(a)).flat()
 			})
 			.action(async (data) => {
-				const channel = Singleton.client.channels.cache.find(
-					(_ch) => _ch.id === data.chid
-				) as TextChannel;
+				const channel = Singleton.client.channels.cache.find((_ch) => _ch.id === data.chid) as TextChannel;
 				if (channel) {
 					await channel.send(data.msg.join(" "));
 				} else {

@@ -62,7 +62,7 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Embed> => 
 				}
 
 				// If fetching the original source fails, fallback
-				return turn2thumbnail(await genMoebooruEmbed(provider, imageObjects[0], true, nsfw));
+				return turn2thumbnail(genMoebooruEmbed(provider, imageObjects[0], true, nsfw));
 			}
 		}
 	} else if (ZAPISaucenaoEHentai.check(result.data)) {
