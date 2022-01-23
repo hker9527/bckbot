@@ -90,7 +90,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 	}
 };
 
-export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
+export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
 	const embed: Embed = {
 		author: {
 			name: {
@@ -137,20 +137,7 @@ export const genEmbed = async (provider: keyof typeof ApiPortal, imageObject: Im
 export const module: StealthModule = {
 	event: "messageCreate",
 	action: async () => {
-		// const provider = obj.trigger.substr(0, 3) as keyof typeof ApiPortal;
-		// const nsfw = (obj.message.channel as TextChannel).nsfw;
-
-		// const list = await fetchList(provider, (obj.argv!.tags ?? "").split(" "), nsfw);
-
-		// if (!list.length) {
-		// 	return await obj.message.reply("`找不到結果。請檢查關鍵字`");
-		// }
-
-		// const imageObject = utils.randomArrayElement(list);
-
-		// return await obj.message.reply({
-		// 	embeds: [await genEmbed(provider, imageObject, true, (obj.message.channel as TextChannel).nsfw, obj.message.getLocale())]
-		// });
+		// TODO: Generate embed like pixiv
 		return false;
 	}
 };
