@@ -40,7 +40,8 @@ const info = async (txt: string) => {
 	});
 };
 
-const error = async (error: Error, message?: string) => {
+const error = async (_error: unknown, message?: string) => {
+	const error = _error instanceof Error ? _error : new Error(_error as string);
 	return await _send({
 		embeds: [{
 			title: "Error",

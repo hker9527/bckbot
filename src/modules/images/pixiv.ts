@@ -36,7 +36,7 @@ export const fetchInfo = async (illust_id: string) => {
 			};
 		}
 	} catch (e) {
-		Report.error(e as Error);
+		Report.error(e);
 		return null;
 	}
 };
