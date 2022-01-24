@@ -119,12 +119,31 @@ try {
 						const result = await module.action(argv);
 						if (typeof result !== "boolean") {
 							// await createDeleteAction(message);
-							const option = new StealthModuleResult(result.result, message.id).localize(message.getLocale()).build();
-							const msg = result.type === "reply" ? await message.reply(option) : await message.channel.send(option);
+							const options = new StealthModuleResult(result.result, message.id).localize(message.getLocale()).build();
+							const msg = result.type === "reply" ? await message.reply(options) : await message.channel.send(options);
 							stealthMessageData[message.id] = {
 								replyID: msg.id,
 								authorID: message.author.id
 							};
+
+							setTimeout(async () => {
+								try {
+									delete stealthMessageData[message.id];
+									assert(options.components !== undefined);
+									const lastRow = options.components[options.components.length - 1];
+									const lastComponent = lastRow.components[lastRow.components.length - 1];
+									assert("customId" in lastComponent && lastComponent.customId!.startsWith("delete"))
+									lastRow.components.pop();
+									// Check if empty last row
+									if (lastRow.components.length === 0) {
+										options.components.pop();
+									}
+			
+									await msg.edit(options);
+								} catch (e) {
+									Report.error(e, "Error deleting delete button");
+								}
+							}, 1000 * 60 * 5);
 						}
 					} catch (e) {
 						if (e instanceof Error) await Report.error(e, msg2str(message));
