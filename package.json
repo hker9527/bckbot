@@ -13,6 +13,7 @@
 		"@types/vorpal": "^1.12.0",
 		"@typescript-eslint/eslint-plugin": "^5.9.0",
 		"@typescript-eslint/parser": "^5.9.0",
+		"assert-ts": "^0.3.4",
 		"cld": "^2.7.0",
 		"decimal.js": "^10.3.1",
 		"deepai": "^1.0.17",
