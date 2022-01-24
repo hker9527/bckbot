@@ -1,10 +1,6 @@
 # bckbot
 
----
-
 > A discord bot powered by discord.js
-
----
 
 ## Functionalities
 
@@ -21,8 +17,6 @@
 
 [Here](https://discordapp.com/oauth2/authorize?&client_id=342373857555906562&scope=bot%20applications.commands&permissions=523328)
 
----
-
 ## How to run
 
 Check `.env.example` to find out what tokens are required. Then, just run
@@ -31,8 +25,6 @@ Check `.env.example` to find out what tokens are required. Then, just run
 yarn
 yarn start
 ```
-
----
 
 ## Main libraries
 
