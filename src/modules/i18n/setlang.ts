@@ -1,4 +1,4 @@
-import { getString, Languages } from "@app/i18n";
+import { Languages } from "@app/i18n";
 import { SlashCommand } from "@type/SlashCommand";
 
 export const module: SlashCommand = {
@@ -39,18 +39,36 @@ export const module: SlashCommand = {
 		}
 	],
 	onCommand: async (interaction) => {
-		const language = interaction.options.getString("language", true);
+		const _language = interaction.options.getString("language", true);
+		const language = _language === "na" ? undefined : _language as Languages;
 		const target = interaction.options.getString("target", true);
 
 		switch (target) {
 			case "channel":
-				interaction.channel!.setLocale(language === "na" ? undefined : language as Languages);
+				if (interaction.memberPermissions?.has("ADMINISTRATOR")) {
+					interaction.channel!.setLocale(language);
+				} else {
+					return {
+						key: "i18n.fail"
+					};
+				}
 				break;
 			case "guild":
-				interaction.guild!.setLocale(language === "na" ? undefined : language as Languages);
+				if (interaction.memberPermissions?.has("ADMINISTRATOR")) {
+					interaction.guild!.setLocale(language);
+				} else {
+					return {
+						key: "i18n.fail"
+					};
+				}
+				break;
+			case "user":
+				interaction.user.setLocale(language);
 				break;
 		}
 
-		return getString("i18n.success", language === "na" ? Languages.English : language as Languages);
+		return {
+			key: "i18n.success"
+		};
 	}
 };

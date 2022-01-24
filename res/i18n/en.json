@@ -104,7 +104,8 @@
     "offset": "with `{{offset}}` $t(dice.offsetDescription)"
   },
   "i18n": {
-    "success": "Switched language."
+    "success": "Switched language.",
+    "fail": "You do not have permissions to do that!"
   },
   "fiat": {
     "description": "Spot currency conversion"

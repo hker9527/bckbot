@@ -75,7 +75,7 @@ Message.prototype.getLocale = function () {
 Interaction.prototype.getLocale = function () {
 	const locale: Languages | null = parseLocaleString(this.locale);
 
-	return locale ?? this.channel?.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
+	return locale ?? this.user.getLocale() ?? this.channel?.getLocale() ?? this.guild?.getLocale() ?? Languages.English;
 };
 
 ContextMenuInteraction.prototype.getMessage = function () {
