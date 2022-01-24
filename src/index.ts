@@ -16,7 +16,7 @@ import { StealthModuleResult } from "@type/StealthModule/result";
 import { Localizer } from "./localizers";
 import { Command, ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
 import { Report } from "./reporting";
-import { assert } from "console";
+import { assert } from "assert-ts";
 
 try {
 	config();
@@ -199,10 +199,19 @@ try {
 				setTimeout(async () => {
 					try {
 						delete interactions[_interaction.id];
-						options.components!.pop();
+						assert(options.components !== undefined);
+						const lastRow = options.components[options.components.length - 1];
+						const lastComponent = lastRow.components[lastRow.components.length - 1];
+						assert("customId" in lastComponent && lastComponent.customId!.startsWith("delete"))
+						lastRow.components.pop();
+						// Check if empty last row
+						if (lastRow.components.length === 0) {
+							options.components.pop();
+						}
+
 						await _interaction.editReply(options);
 					} catch (e) {
-						// Nothing
+						Report.error(e, "Error deleting delete button");
 					}
 				}, 1000 * 60 * 5);
 			};

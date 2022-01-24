@@ -2,8 +2,6 @@ import { ZLocalizable } from "@app/localizers/Data";
 import { MessageButtonStyle, Snowflake } from "discord.js";
 import { z } from "zod";
 
-console.log(ZLocalizable);
-
 const ZEmoji = z.union([
 	z.object({
 		id: z.custom<Snowflake>()
@@ -30,7 +28,7 @@ const ZMessageComponentLinkButton = ZMessageComponentBaseButton.merge(z.object({
 	url: z.string().url()
 }));
 
-const ZMessageComponentButton = z.union([ZMessageComponentColoredButton, ZMessageComponentLinkButton]);
+export const ZMessageComponentButton = z.union([ZMessageComponentColoredButton, ZMessageComponentLinkButton]);
 
 const ZMessageComponentSelectMenuOption = z.object({
 	label: ZLocalizable,
@@ -40,7 +38,7 @@ const ZMessageComponentSelectMenuOption = z.object({
 	default: z.boolean().optional()
 });
 
-const ZMessageComponentSelectMenu = z.object({
+export const ZMessageComponentSelectMenu = z.object({
 	type: z.custom<"SELECT_MENU">(),
 	custom_id: z.string().max(100),
 	disabled: z.boolean().optional(),

@@ -6,34 +6,41 @@ import { Languages } from "@app/i18n";
 import { Localizer } from "@localizer/index";
 import { isZod } from "@app/utils";
 import { LocalizableMessage } from "@localizer/MessageFields";
-import { MessageComponentButton } from "./MessageComponents";
+import { MessageComponentButton, ZMessageComponentButton } from "./MessageComponents";
+import { Zod } from "@type/Zod";
+import { Report } from "@app/reporting";
 
 export abstract class Result<T extends MessageOptions> {
 	protected _result: LocalizableMessage<T>;
 
 	public constructor(__result: LocalizableMessage<T> | Localizable) {
-		this._result = isZod(__result, ZLocalizable) ? { content: __result } as LocalizableMessage<T> : __result;		
+		this._result = isZod(__result, ZLocalizable) ? { content: __result } as LocalizableMessage<T> : __result;
 	}
 
 	protected addDeleteButton(id: string) {
-		const deleteButton = [
-			{
-				type: "BUTTON",
-				custom_id: `delete${id}`,
-				emoji: {
-					name: "🗑️"
-				},
-				style: "DANGER",
-				label: {
-					key: "delete"
-				}
-			} as MessageComponentButton
-		];
+		const deleteButton = {
+			type: "BUTTON",
+			custom_id: `delete${id}`,
+			emoji: {
+				name: "🗑️"
+			},
+			style: "DANGER",
+			label: {
+				key: "delete"
+			}
+		} as MessageComponentButton;
 
 		if (this._result.components) {
-			this._result.components.push(deleteButton);
+			const lastRow = this._result.components[this._result.components.length - 1];
+			if (new Zod(ZMessageComponentButton.array()).check(lastRow)) {
+				lastRow.push(deleteButton);
+			} else if (this._result.components.length < 5) {
+				this._result.components.push([deleteButton]);
+			} else {
+				Report.info("Failed to insert delete button.");
+			}
 		} else {
-			this._result.components = [deleteButton];
+			this._result.components = [[deleteButton]];
 		}
 	}
 
@@ -98,7 +105,7 @@ export abstract class Result<T extends MessageOptions> {
 									return {
 										...base,
 										maxValues: component.max_values ?? null,
-										minValues: component.min_values ?? null, 
+										minValues: component.min_values ?? null,
 										placeholder: component.placeholder ?? null,
 										options: component.options.map(option => ({
 											default: option.default ?? false,
@@ -118,7 +125,7 @@ export abstract class Result<T extends MessageOptions> {
 					break;
 				case "embeds":
 					ret.embeds = this._result.embeds?.map(embed => {
-						const {thumbnail, image, ...x} = embed;
+						const { thumbnail, image, ...x } = embed;
 						return {
 							...x,
 							thumbnail: {
