@@ -352,7 +352,7 @@ try {
 				}
 			}
 
-			report(`Unknown ${interaction.type} interaction received: ${JSON.stringify(interaction, null, 4)}`);
+			Report.info(`Unknown ${interaction.type} interaction received: \`\`\`json\n${JSON.stringify(interaction, null, 2)}\``);
 		});
 
 		report(`Finished loading in ${+new Date() - +startTime}ms`);
