@@ -35,6 +35,7 @@
 		"osu-bpdpc": "^0.3.0",
 		"osu.ts": "^0.1.1",
 		"sightengine": "^1.3.1",
+		"source-map-support": "^0.5.21",
 		"sqlite": "^4.0.23",
 		"sqlite3": "^5.0.2",
 		"table": "^6.7.1",

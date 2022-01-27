@@ -1,4 +1,5 @@
 import "module-alias/register";
+import "source-map-support/register";
 
 import { injectPrototype } from "@app/prototype";
 import { Singleton } from "@app/Singleton";
@@ -309,7 +310,7 @@ try {
 							break;
 					}
 				} catch (e) {
-					// Nothing
+					Report.error(e, `Failed to delete ${interaction.customId[6] === "m" ? "message" : "interaction"}`);
 				}
 
 				return;
