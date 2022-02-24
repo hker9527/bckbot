@@ -122,7 +122,7 @@ export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObj
 			name: {
 				key: "moebooru.sourceHeader"
 			},
-			value: imageObject.source?.replace(/https:\/\/i.pximg.net\/img-original\/img\/\d{4}\/(\d{2}\/){5}(\d+)_p\d+\..+/, "https://www.pixiv.net/artworks/$2") ?? "(未知)"
+			value: (imageObject.source?.length ? imageObject.source : undefined) ?? "(未知)"
 		}],
 		timestamp: imageObject.created_at
 	};
