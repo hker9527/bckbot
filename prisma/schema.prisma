@@ -1,0 +1,29 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:./db.sqlite"
+}
+
+model OsuLink {
+    discord_id String @id
+    osu_id     String @unique
+}
+
+model CurrencyUpdateInfo {
+    id      String           @id @default(uuid())
+    time    DateTime         @default(now())
+    records CurrencyRecord[]
+}
+
+model CurrencyRecord {
+    src        String
+    dst        String
+    value      Float
+    updateID   String
+    updateInfo CurrencyUpdateInfo @relation(fields: [updateID], references: [id])
+
+    @@unique([src, dst, updateID])
+}
