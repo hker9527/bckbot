@@ -1,4 +1,5 @@
 import { Dictionary } from "@type/Dictionary";
+import { readFileSync, writeFileSync } from "fs";
 import glob from "glob";
 import i18next from "i18next";
 
@@ -23,12 +24,20 @@ export const parseLocaleString = (str: string) => {
 	}
 };
 
+let jsonDB: Dictionary<Dictionary<Languages>> = {};
+
 export const getLocale = (type: "user" | "channel" | "guild", id: string): Languages | null => {
-	return Languages.English;
+	return jsonDB[type][id] || null;
 };
 
 export const setLocale = (type: "user" | "channel" | "guild", id: string, language?: Languages) => {
-	
+	if (language) {
+		jsonDB[type][id] = language;
+	} else {
+		delete jsonDB[type][id];
+	}
+
+	writeFileSync("@root/language.json", JSON.stringify(jsonDB));
 };
 
 export const i18init = async () => {
@@ -44,6 +53,8 @@ export const i18init = async () => {
 		fallbackLng: "en",
 		resources
 	});
+
+	jsonDB = await import(`@root/${"language.json"}`);
 };
 
 export const getString = <T>(key: T, language: Languages, options?: Dictionary<string | number>): T => {
