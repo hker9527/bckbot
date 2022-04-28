@@ -103,8 +103,8 @@ export const req2json = async (url: string) => {
 	return await _req(url, true);
 };
 
-export const enumStringKeys = (e: any) => {
-	return Object.keys(e).filter(value => isNaN(Number(value)));
+export const enumStringKeys = <T>(e: T) => {
+	return Object.keys(e).filter(value => isNaN(Number(value))) as (keyof T)[];
 };
 
 export const isZod = <T>(o: unknown, z: ZodType<T>): o is T => {
