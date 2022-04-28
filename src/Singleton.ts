@@ -1,16 +1,11 @@
-import { arr2obj, enumStringKeys, report } from "@app/utils";
-import { Currencies, Database } from "@type/Database";
+import { report } from "@app/utils";
 import { Dictionary } from "@type/Dictionary";
 import Discord, { Client, GuildChannel, TextChannel, ThreadChannel } from "discord.js";
-import { JSONFileSync, LowSync } from "lowdb";
-import Osu from "osu.ts";
 import Vorpal from "vorpal";
 
 export const Singleton: {
 	logger: Vorpal,
-	client: Client,
-	osuClient: Osu,
-	db: LowSync<Database>
+	client: Client
 } = {
 	logger: (() => {
 		const logger = new Vorpal();
@@ -81,45 +76,5 @@ export const Singleton: {
 			Discord.Intents.FLAGS.DIRECT_MESSAGES,
 			Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
 		]
-	}),
-	osuClient: new Osu(process.env.osu_api!),
-	db: (() => {
-		const adapter = new JSONFileSync<Database>("db.json");
-		const db = new LowSync<Database>(adapter);
-
-		// Read from disk
-		db.read();
-
-		// Set default value
-		db.data ||= {
-			language: {
-				guilds: {},
-				channels: {},
-				users: {}
-			},
-			osuLink: {},
-			currency: {
-				data: arr2obj(
-					enumStringKeys(Currencies),
-					enumStringKeys(Currencies).map(() => arr2obj(
-						enumStringKeys(Currencies),
-						enumStringKeys(Currencies).map(() => 0)
-					))
-				) as Record<keyof typeof Currencies, Record<keyof typeof Currencies, number>>,
-				lastUpdate: new Date()
-			}
-		};
-
-		// Sync worker
-		let _data = JSON.stringify(db.data);
-		setInterval(() => {
-			const data = JSON.stringify(db.data);
-			if (_data !== data) {
-				db.write();
-				_data = data;
-			}
-		}, 5000);
-
-		return db;
-	})()
+	})
 };
