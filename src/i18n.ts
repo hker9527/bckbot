@@ -1,7 +1,6 @@
 import { Dictionary } from "@type/Dictionary";
 import glob from "glob";
 import i18next from "i18next";
-import { Singleton } from "./Singleton";
 
 export enum Languages {
 	English = "en",
@@ -25,15 +24,11 @@ export const parseLocaleString = (str: string) => {
 };
 
 export const getLocale = (type: "user" | "channel" | "guild", id: string): Languages | null => {
-	return Singleton.db.data!.language[`${type}s`][id] ?? null;
+	return Languages.English;
 };
 
 export const setLocale = (type: "user" | "channel" | "guild", id: string, language?: Languages) => {
-	if (language) {
-		Singleton.db.data!.language[`${type}s`][id] = language;
-	} else {
-		delete Singleton.db.data!.language[`${type}s`][id];
-	}
+	
 };
 
 export const i18init = async () => {
