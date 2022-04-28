@@ -1,16 +1,11 @@
 {
 	"name": "bckbot",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"main": "src/index.ts",
 	"author": "Nasu#7336",
 	"license": "MIT",
 	"dependencies": {
-		"@types/dotenv-safe": "^8.1.1",
-		"@types/linkifyjs": "^2.1.4",
-		"@types/node": "^15.12.5",
-		"@types/node-emoji": "^1.8.1",
-		"@types/twitter": "^1.7.1",
-		"@types/vorpal": "^1.12.0",
+		"@prisma/client": "^3.13.0",
 		"@typescript-eslint/eslint-plugin": "^5.9.0",
 		"@typescript-eslint/parser": "^5.9.0",
 		"assert-ts": "^0.3.4",
@@ -28,18 +23,12 @@
 		"i18next": "^21.2.4",
 		"jsdom": "^16.6.0",
 		"linkifyjs": "^3.0.0-beta.3",
-		"lowdb": "github:dankreiger/lowdb#chore/esm-cjs-hybrid-WITH-LIB",
 		"minimist": "^1.2.5",
 		"module-alias": "^2.2.2",
 		"node-emoji": "^1.10.0",
-		"osu-bpdpc": "^0.3.0",
-		"osu.ts": "^0.1.1",
+		"prisma": "^3.13.0",
 		"sightengine": "^1.3.1",
 		"source-map-support": "^0.5.21",
-		"sqlite": "^4.0.23",
-		"sqlite3": "^5.0.2",
-		"table": "^6.7.1",
-		"twit": "^2.2.11",
 		"typescript": "^4.5.4",
 		"typescript-eslint-parser": "^22.0.0",
 		"vorpal": "^1.12.0",
@@ -47,12 +36,18 @@
 		"zod": "^3.11.6"
 	},
 	"devDependencies": {
+		"@types/dotenv-safe": "^8.1.1",
 		"@types/html-to-text": "^8.0.1",
+		"@types/linkifyjs": "^2.1.4",
+		"@types/node": "^15.12.5",
+		"@types/node-emoji": "^1.8.1",
 		"@types/node-fetch": "^2.5.10",
+		"@types/vorpal": "^1.12.0",
 		"ts-node": "^10.0.0"
 	},
 	"scripts": {
-		"start": "yarn run eslint 'src/**' && yarn run tsc && node bin/index.js"
+		"start": "yarn run tsc && node bin/index.js",
+		"dev": "npx nodemon"
 	},
 	"_moduleAliases": {
 		"@root": ".",
