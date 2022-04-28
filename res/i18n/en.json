@@ -108,7 +108,10 @@
     "fail": "You do not have permissions to do that!"
   },
   "fiat": {
-    "description": "Spot currency conversion"
+    "description": "Spot currency conversion",
+    "sourceDescription": "From what currency",
+    "amountDescription": "How much",
+    "targetDescription": "To what currency, defaults to all"
   },
   "nudity": {
     "name": "Get NSFW level",
