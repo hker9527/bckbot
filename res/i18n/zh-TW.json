@@ -52,7 +52,6 @@
   "osu": {
     "link.exists": "您已經有連結過您的Osu!賬號了。",
     "link.linked": "已將 {{discord_id}} 與 {{osu_id}}連結。",
-    "error": "無法取得賬號`{{id}}`的資訊。",
     "stat.notLinked": "該用戶沒有連結Osu!賬號！",
     "stat.retrieving": "獲取資訊..."
   },
@@ -62,16 +61,38 @@
     "_lower_description": "下限",
     "_upper_description": "上限",
     "invalidRange": "無效範圍 {{lower}} - {{upper}}！",
-    "_name": "隨機數字"
+    "_name": "隨機數字",
+    "_lower_name": "下限",
+    "_upper_name": "上限"
   },
   "scam": {
-    "scam": "🚨偵測到潛在有害鏈接 `{{link}}` ！\n風險類別：`{{threatType}}`\n影響平台：`{{platformType}}`"
+    "scam": "🚨偵測到潛在有害鏈接 `{{link}}` ！\n風險類別：`{{threatType}}`\n影響平台：`{{platformType}}`",
+    "ALL_PLATFORMS": "所有平台",
+    "ANDROID": "安卓",
+    "ANY_PLATFORM": "任何平台",
+    "CHROME": "Chrome",
+    "EXECUTABLE": "可執行檔",
+    "IOS": "iOS",
+    "LINUX": "Linux",
+    "MALWARE": "有害軟體",
+    "OSX": "OSX",
+    "PLATFORM_TYPE_UNSPECIFIED": "未指定",
+    "POTENTIALLY_HARMFUL_APPLICATION": "可能有害的應用程式",
+    "SOCIAL_ENGINEERING": "社交工程",
+    "THREAT_ENTRY_TYPE_UNSPECIFIED": "未指定",
+    "THREAT_TYPE_UNSPECIFIED": "未指定",
+    "UNWANTED_SOFTWARE": "不需要的軟體",
+    "URL": "網址",
+    "WINDOWS": "Windows"
   },
   "slap": {
     "slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。",
     "_description": "賞他一巴掌！",
     "_tool_description": "用什麼扇他",
-    "_victim_description": "要扇誰"
+    "_victim_description": "要扇誰",
+    "_name": "扇",
+    "_tool_name": "工具",
+    "_victim_name": "受害者"
   },
   "sauce": {
     "confidenceLevel": "信心值：{{similarity}}%",
@@ -82,10 +103,19 @@
     "name": "抓圖源",
     "another": "另一個圖源？",
     "error": "發生錯誤：{{error}}",
-    "whichImage": "想搜尋哪一張圖片？"
+    "whichImage": "想搜尋哪一張圖片？",
+    "_name": "抓圖源"
   },
   "mine": {
-    "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。\n{{mineField}}"
+    "mine": "{{h}}x{{w}}，**__{{mineCount}}__**顆地雷。\n{{mineField}}",
+    "_description": "手機或許會比較難玩，所以推薦使用電腦",
+    "_h_description": "地雷陣的高度",
+    "_h_name": "高",
+    "_n_description": "多少顆地雷",
+    "_n_name": "數",
+    "_name": "踩地雷",
+    "_w_description": "地雷陣的寬度",
+    "_w_name": "寬"
   },
   "pixiv": {
     "descriptionHeader": "說明：",
@@ -96,19 +126,16 @@
     "titlePlaceholder": "Pixiv圖片"
   },
   "dice": {
-    "_offset_description": "偏移量",
+    "_offset_description": "加減多少",
     "roll": "{{n}}d{{faces}}{{offset}} = {{result}}",
     "offset": "加上$t(dice.offsetDescription)`{{offset}}`",
     "_description": "擲骰子",
-    "_faces_description": "多少面",
-    "_n_description": "多少顆"
-  },
-  "i18n": {
-    "success": "已切換語言。",
-    "fail": "你沒有足夠的權限去做這個！"
-  },
-  "fiat": {
-    "_description": "法幣匯率兌換"
+    "_faces_description": "骰子多少面",
+    "_n_description": "多少顆骰子",
+    "_faces_name": "面",
+    "_n_name": "顆",
+    "_name": "擲骰子",
+    "_offset_name": "偏移量"
   },
   "moebooru": {
     "dimensions": "大小",
@@ -118,9 +145,9 @@
   "nudity": {
     "invalidMessage": "該訊息沒有可用圖片！",
     "items": "檢出項目",
-    "_name": "這有多色？"
+    "_name": "這有多色？",
+    "multipleImages": "請選擇其中一張圖片。"
   },
-  "delete": {},
   "ping": {
     "_description": "敲敲門",
     "_name": "測試"
@@ -128,5 +155,20 @@
   "invite": {
     "_name": "邀請鏈接",
     "_description": "獲取這個機械人的邀請鏈接"
+  },
+  "currency": {
+    "_TWD_name": "台幣",
+    "_EUR_name": "歐元",
+    "_HKD_name": "港幣",
+    "_USD_name": "美元",
+    "_JPY_name": "日圓",
+    "_amount_description": "預設為1",
+    "_amount_name": "金額",
+    "_description": "轉換貨幣",
+    "_name": "轉換",
+    "_source_description": "來源貨幣",
+    "_source_name": "來源",
+    "_target_description": "預設為全部",
+    "_target_name": "目標"
   }
 }
