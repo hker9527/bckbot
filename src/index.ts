@@ -63,47 +63,51 @@ try {
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		for (const [_, guild] of client.guilds.cache) {
-			await guild.commands.set(commands.map((command: Command): ApplicationCommandDataResolvable => {
-				if ("onCommand" in command) {
-					return {
-						...getName(command.name),
-						...getDescription(command.name),
-						options: Object.entries(command.options ?? {}).map((arr: [string, LocalizableApplicationCommandOptionData]): ApplicationCommandOptionData => {
-							const [name, option] = arr;
+			try {
+				await guild.commands.set(commands.map((command: Command): ApplicationCommandDataResolvable => {
+					if ("onCommand" in command) {
+						return {
+							...getName(command.name),
+							...getDescription(command.name),
+							options: Object.entries(command.options ?? {}).map((arr: [string, LocalizableApplicationCommandOptionData]): ApplicationCommandOptionData => {
+								const [name, option] = arr;
 
-							let _ret: Record<string, any> = {
-								...getName(command.name, name),
-								...getDescription(command.name, name),
-								type: option.type
-							};
+								let _ret: Record<string, any> = {
+									...getName(command.name, name),
+									...getDescription(command.name, name),
+									type: option.type
+								};
 
-							if (option.choices) {
-								_ret.choices = Object.entries(option.choices).map(([key, value]) => ({
-									...getName(command.name, key),
-									value
-								}));
-							}
+								if (option.choices) {
+									_ret.choices = Object.entries(option.choices).map(([key, value]) => ({
+										...getName(command.name, key),
+										value
+									}));
+								}
 
-							switch (option.type) {
-								case "NUMBER":
-								case "INTEGER":
-									const ret = _ret as ApplicationCommandNumericOptionData;
-									ret.min_value = option.min;
-									ret.max_value = option.max;
+								switch (option.type) {
+									case "NUMBER":
+									case "INTEGER":
+										const ret = _ret as ApplicationCommandNumericOptionData;
+										ret.min_value = option.min;
+										ret.max_value = option.max;
 
-									return ret;
-								default:
-									return _ret as ApplicationCommandOptionData;
-							}
-						})
-					};
-				} else {
-					return {
-						type: command.type === "USER" ? ApplicationCommandTypes.USER : ApplicationCommandTypes.MESSAGE,
-						...getName(command.name)
+										return ret;
+									default:
+										return _ret as ApplicationCommandOptionData;
+								}
+							})
+						};
+					} else {
+						return {
+							type: command.type === "USER" ? ApplicationCommandTypes.USER : ApplicationCommandTypes.MESSAGE,
+							...getName(command.name)
+						}
 					}
-				}
-			}));
+				}));
+			} catch (e) {
+				error("bot.setCommand", "Failed to set command for guild " + guild.name);
+			}
 		}
 
 		client.on("interactionCreate", async (interaction) => {
