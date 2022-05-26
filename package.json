@@ -1,6 +1,6 @@
 {
 	"name": "bckbot",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"main": "src/index.ts",
 	"author": "Nasu#7336",
 	"license": "MIT",
@@ -11,12 +11,12 @@
 		"assert-ts": "^0.3.4",
 		"cld": "^2.7.0",
 		"decimal.js": "^10.3.1",
-		"deepai": "^1.0.17",
 		"discord.js": "^13.6.0",
 		"dotenv-safe": "^8.2.0",
 		"eslint": "^8.6.0",
 		"eslint-config-alloy": "^4.4.0",
 		"eslint-plugin-typescript": "^0.14.0",
+		"form-data": "^4.0.0",
 		"glob": "^7.1.7",
 		"glob-promise": "^4.2.0",
 		"html-to-text": "^8.0.0",
@@ -24,14 +24,15 @@
 		"jsdom": "^16.6.0",
 		"linkifyjs": "^3.0.0-beta.3",
 		"minimist": "^1.2.5",
-		"module-alias": "^2.2.2",
 		"node-emoji": "^1.10.0",
+		"node-fetch": "2.6.7",
 		"prisma": "^3.13.0",
+		"queue-promise": "^2.2.1",
 		"sightengine": "^1.3.1",
 		"source-map-support": "^0.5.21",
-		"typescript": "^4.5.4",
+		"ts-transformer-keys": "^0.4.3",
+		"typescript": "^4.6.4",
 		"typescript-eslint-parser": "^22.0.0",
-		"vorpal": "^1.12.0",
 		"xml2json": "^0.12.0",
 		"zod": "^3.11.6"
 	},
@@ -41,20 +42,12 @@
 		"@types/linkifyjs": "^2.1.4",
 		"@types/node": "^15.12.5",
 		"@types/node-emoji": "^1.8.1",
-		"@types/node-fetch": "^2.5.10",
-		"@types/vorpal": "^1.12.0",
-		"ts-node": "^10.0.0"
+		"@types/node-fetch": "^2.6.1",
+		"ts-node": "^10.0.0",
+		"tsconfig-paths": "^4.0.0"
 	},
 	"scripts": {
-		"start": "yarn run tsc && node bin/index.js",
+		"start": "npx ts-node -r tsconfig-paths/register src/index.ts",
 		"dev": "npx nodemon"
-	},
-	"_moduleAliases": {
-		"@root": ".",
-		"@res": "res",
-		"@app": "bin",
-		"@localizer": "bin/localizers",
-		"@type": "bin/types",
-		"@module": "bin/modules"
 	}
 }
