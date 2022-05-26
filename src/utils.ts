@@ -1,34 +1,14 @@
 import { Dictionary } from "@type/Dictionary";
 import assert from "assert";
 import { Decimal } from "decimal.js";
-import { DMChannel, Message, TextChannel } from "discord.js";
+import { Message } from "discord.js";
 import fetch from "node-fetch";
 import { ZodType } from "zod";
 
 export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-export const timeFormat = () => {
-	return new Date().toISOString().replace(/T/, " ").replace(/\..+/, "");
-};
-
 export const round = (number: number, precision = 2) => {
 	return parseFloat(new Decimal(number).toFixed(precision));
-};
-
-export const msg2str = (message: Message) => {
-	return [
-		(message.guild ? message.guild.name : "PrivateMessage") +
-		(message.channel instanceof DMChannel ? "" : `(${(message.channel as TextChannel).name})`),
-		"\t",
-		message.author.username,
-		": ",
-		`"${message.cleanContent}"`,
-		(message.attachments.size ? ` [${message.attachments.size}]` : "")
-	].join("");
-};
-
-export const report = (string: string) => {
-	console.log(`${timeFormat()}\t${string}`);
 };
 
 export const random = (low: number, high: number) => {
