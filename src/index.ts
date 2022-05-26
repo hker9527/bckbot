@@ -61,10 +61,7 @@ try {
 		})
 			.filter((command): command is Command => command !== null);
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		for (const [_, guild] of client.guilds.cache) {
-			try {
-				await guild.commands.set(commands.map((command: Command): ApplicationCommandDataResolvable => {
+		const APICommands = commands.map((command: Command): ApplicationCommandDataResolvable => {
 					if ("onCommand" in command) {
 						return {
 							...getName(command.name),
@@ -105,9 +102,33 @@ try {
 							...getName(command.name)
 						}
 					}
-				}));
+		});
+
+		if (process.env.DEBUG) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			for (const [_, guild] of client.guilds.cache) {
+				try {
+					await guild.commands.set(APICommands);
 			} catch (e) {
 				error("bot.setCommand", "Failed to set command for guild " + guild.name);
+			}
+		}
+		} else {
+			report("Clearing guild commands");
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			for (const [_, guild] of client.guilds.cache) {
+				try {
+					await guild.commands.set([]);
+				} catch (e) {
+					error("bot.setCommand", "Failed to clear command for guild " + guild.name);
+				}
+			}
+
+			report("Setting global commands");
+			try {
+				await client.application!.commands.set(APICommands);
+			} catch (e) {
+				error("bot.setCommand", e);
 			}
 		}
 
