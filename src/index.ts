@@ -75,6 +75,7 @@ try {
 								let _ret: Record<string, any> = {
 									...getName(command.name, name),
 									...getDescription(command.name, name),
+									required: option.required,
 									type: option.type
 								};
 
@@ -292,7 +293,7 @@ try {
 			});
 		}
 
-		console.log("client->ready", "Ready!");
+		console.log("client->ready", `Logged in as ${client.user!.tag}!`);
 	});
 
 	client.login(process.env.TOKEN);
