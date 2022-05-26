@@ -114,16 +114,6 @@ try {
 				}
 			}
 		} else {
-			report("Clearing guild commands");
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			for (const [_, guild] of client.guilds.cache) {
-				try {
-					await guild.commands.set([]);
-				} catch (e) {
-					error("bot.setCommand", "Failed to clear command for guild " + guild.name);
-				}
-			}
-
 			report("Setting global commands");
 			try {
 				await client.application!.commands.set(APICommands);
