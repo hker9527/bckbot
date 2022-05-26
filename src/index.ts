@@ -1,397 +1,297 @@
-import "module-alias/register";
-import "source-map-support/register";
-
-import { injectPrototype } from "@app/prototype";
-import { Singleton } from "@app/Singleton";
-import { Dictionary } from "@type/Dictionary";
-import { SlashCommandResult } from "@type/SlashCommand/result";
-import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
-import { exec } from "child_process";
-import { CommandInteraction, ContextMenuInteraction, InteractionReplyOptions, Message, MessageComponentInteraction, MessageInteraction } from "discord.js";
+import { LocalizableApplicationCommandOptionData, LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
+import { LocalizableMessageActionRowAdapter } from "@localizer/MessageActionRowOptions";
+import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
+import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
+import { StealthModule } from "@type/StealthModule";
+import { ApplicationCommandDataResolvable, ApplicationCommandNumericOptionData, ApplicationCommandOptionData, Client, Intents, Message, MessageInteraction, InteractionReplyOptions } from "discord.js";
+import { ApplicationCommandTypes } from "discord.js/typings/enums";
 import { config } from "dotenv-safe";
-import glob from "glob";
-import { APISlashCommandAdapter } from "./adapters/APISlashCommand";
-import { i18init, Languages } from "./i18n";
-import { msg2str, report } from "./utils";
-import { StealthModuleResult } from "@type/StealthModule/result";
-import { Localizer } from "./localizers";
-import { Command, ContextMenuCommand, SlashCommand } from "@type/SlashCommand";
-import { Report } from "./reporting";
-import { assert } from "assert-ts";
+import { readdirSync } from "fs";
+import { getDescription, getName } from "./Localizations";
+import { injectPrototype } from "./prototype";
+import { debug, error } from "./Reporting";
+import { random } from "./utils";
+
+const client = new Client({
+	intents: [
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_MESSAGES,
+		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+		Intents.FLAGS.DIRECT_MESSAGES,
+		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+	]
+});
+
+const loadCommand = async (path: string) => {
+	const module = await import(path);
+
+	if (!("command" in module)) {
+		throw path + ": Invalid module format";
+	}
+
+	return { path, command: module.command };
+};
+
+const loadModule = async (path: string): Promise<{ path: string, module: StealthModule }> => {
+	const module = await import(path);
+
+	if (!("module" in module)) {
+		throw path + ": Invalid module format";
+	}
+
+	return { path, module: module.module };
+};
 
 try {
 	config();
 	injectPrototype();
-	i18init();
 
-	const { client } = Singleton;
+	client.once("ready", async () => {
+		// Command
+		const commands: Command[] = (await Promise.allSettled(readdirSync("./src/commands/")
+			.filter(file => !file.startsWith("_") && file.endsWith(".ts"))
+			.map(async file => await loadCommand("./commands/" + file)))
+		).map((result) => {
+			if (result.status === "fulfilled") {
+				debug("bot.loadCommand", "Loaded file: " + result.value.path);
+				return result.value.command;
+			}
+			error("bot.loadCommand", "Failed to load file " + result.reason);
+			return null;
+		})
+			.filter((command): command is Command => command !== null);
 
-	const startTime = new Date();
-	const eventModules: Record<
-		StealthModule["event"],
-		Dictionary<{
-			module: StealthModule,
-			loaded: boolean
-		}>
-	> = {
-		"messageCreate": {},
-		"messageDelete": {},
-		"messageUpdate": {}
-	};
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		for (const [_, guild] of client.guilds.cache) {
+			await guild.commands.set(commands.map((command: Command): ApplicationCommandDataResolvable => {
+				if ("onCommand" in command) {
+					return {
+						...getName(command.name),
+						...getDescription(command.name),
+						options: Object.entries(command.options ?? {}).map((arr: [string, LocalizableApplicationCommandOptionData]): ApplicationCommandOptionData => {
+							const [name, option] = arr;
 
-	const slashCommands: (SlashCommand | ContextMenuCommand)[] = [];
+							let _ret: Record<string, any> = {
+								...getName(command.name, name),
+								...getDescription(command.name, name),
+								type: option.type
+							};
 
-	client.on("ready", () => {
-		Singleton.logger.delimiter("> ").show();
+							if (option.choices) {
+								_ret.choices = Object.entries(option.choices).map(([key, value]) => ({
+									...getName(command.name, key),
+									value
+								}));
+							}
 
-		exec("git show -s --format=\"v.%h on %aI\"", (error, string) => {
-			if (error) {
-				report(error.message);
-			} else {
-				client.user!.setActivity(string, {
-					type: "WATCHING"
+							switch (option.type) {
+								case "NUMBER":
+								case "INTEGER":
+									const ret = _ret as ApplicationCommandNumericOptionData;
+									ret.min_value = option.min;
+									ret.max_value = option.max;
+
+									return ret;
+								default:
+									return _ret as ApplicationCommandOptionData;
+							}
+						})
+					};
+				} else {
+					return {
+						type: command.type === "USER" ? ApplicationCommandTypes.USER : ApplicationCommandTypes.MESSAGE,
+						...getName(command.name)
+					}
+				}
+			}));
+		}
+
+		client.on("interactionCreate", async (interaction) => {
+			if (!interaction.isRepliable()) return;
+
+			const deleteButton = new LocalizableMessageActionRowAdapter([
+				{
+					type: "BUTTON",
+					style: "DANGER",
+					custom_id: "delete",
+					label: {
+						key: "index.delete"
+					},
+					emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
+				}
+			]).build(interaction.getLocale());
+
+			const reply = async (response: InteractionReplyOptions) => {
+				if (!(response.ephemeral === true)) {
+					if (response.components) {
+						response.components.push(deleteButton);
+					} else {
+						response.components = [deleteButton];
+					}
+				}
+
+				return interaction.replied || interaction.deferred ? await interaction.editReply(response) : await interaction.reply(response);
+			};
+			try {
+				// Delete button
+				if (interaction.isButton() && interaction.customId === "delete") {
+					const sourceMessage = interaction.message;
+
+					if (sourceMessage && "delete" in sourceMessage) {
+						// Check if the interaction issuer is the message author or is an admin
+						const guildUser = (await interaction.guild?.members.fetch(interaction.user))!;
+
+						if (sourceMessage.interaction!.user.id === interaction.user.id || guildUser.permissions.has("ADMINISTRATOR")) {
+							await sourceMessage.delete();
+						} else {
+							await reply(
+								new LocalizableInteractionReplyOptionsAdapter({
+									content: {
+										key: "index.deletingOthersMessage"
+									},
+									ephemeral: true
+								}).build(interaction.getLocale())
+							);
+						}
+					}
+				} else if (interaction.isCommand()) {
+					const command = commands.find(command => command.name === interaction.command?.name) as SlashApplicationCommands | undefined;
+					if (command) {
+						if (command.defer) {
+							await interaction.deferReply();
+						}
+
+						let response: InteractionReplyOptions = {
+							content: "Error..."
+						};
+
+						try {
+							response = new LocalizableInteractionReplyOptionsAdapter(
+								await command.onCommand(interaction)
+							).build(interaction.getLocale());
+						} catch (e) {
+							error("client->interactionCreate", e);
+						}
+
+						await reply(response);
+					}
+				} else if (interaction.isContextMenu()) {
+					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
+					if (command) {
+						if (command.defer) {
+							await interaction.deferReply();
+						}
+						let response: InteractionReplyOptions = {
+							content: "Error..."
+						};
+
+						try {
+							response = new LocalizableInteractionReplyOptionsAdapter(
+								await command.onContextMenu(interaction)
+							).build(interaction.getLocale());
+						} catch (e) {
+							error("client->interactionCreate", e);
+						}
+
+						await reply(response);
+					}
+				} else if (interaction.isMessageComponent()) {
+					const command = commands.find(command => getName(command.name).name === (interaction.message.interaction as MessageInteraction).commandName) as Command | undefined;
+					if (!command) return;
+
+					if (interaction.isButton() && !command.onButton) return;
+					if (interaction.isSelectMenu() && !command.onSelectMenu) return;
+
+					if (command.defer) {
+						await interaction.deferUpdate();
+					}
+
+					let response: InteractionReplyOptions = {
+						content: "Error..."
+					};
+
+					try {
+						if (interaction.isButton()) {
+							response = new LocalizableInteractionReplyOptionsAdapter(
+								await command.onButton!(interaction)
+							).build(interaction.getLocale());
+						} else if (interaction.isSelectMenu()) {
+							response = new LocalizableInteractionReplyOptionsAdapter(
+								await command.onSelectMenu!(interaction)
+							).build(interaction.getLocale());
+						}
+					} catch (e) {
+						error("client->interactionCreate", e);
+					}
+
+					await reply(response);
+				} else if (interaction.isModalSubmit()) {
+					// TODO: Modal submit
+				}
+			} catch (e) {
+				error("interaction", e);
+				await reply({
+					content: "Error!!!!"
 				});
 			}
 		});
 
-		for (const [event, modules] of Object.entries(eventModules)) {
-			// Pre-processing (init, interval)
-			for (let moduleName of Object.keys(modules)) {
-				const _module = modules[moduleName];
-				const module = _module.module;
-
-				if (module.init) {
-					try {
-						// Parallel loading
-						(async () => {
-							await module.init!();
-							_module.loaded = true;
-						})();
-					} catch (e) {
-						if (e instanceof Error)
-							report(`Init failed for module ${moduleName}: ${e.message}`);
-					}
-				} else {
-					_module.loaded = true;
-				}
-
-				if (module.interval) {
-					const f = async () => {
-						try {
-							await module.interval!.f();
-							setTimeout(f, module.interval!.t);
-						} catch (e) {
-							if (e instanceof Error)
-								report(`Interval failed for module ${moduleName}: ${e.message}`);
-						}
-					};
-					setTimeout(f, module.interval.t);
-				}
+		// StealthModule
+		const stealthModules: StealthModule[] = (await Promise.allSettled(readdirSync("./src/modules/")
+			.filter(file => !file.startsWith("_") && file.endsWith(".ts"))
+			.map(async file => await loadModule("./modules/" + file)))
+		).map((result) => {
+			if (result.status === "fulfilled") {
+				debug("bot.loadModule", "Loaded file: " + result.value.path);
+				return result.value.module;
 			}
+			if (!["command", "module"].includes(result.reason)) error("bot.loadModule", "Failed to load file " + result.reason);
+			return null;
+		})
+			.filter((module): module is StealthModule => module !== null);
 
-			// Build listeners
+		for (const event of ["messageCreate", "messageUpdate", "messageDelete"]) {
 			client.on(event, async (message: Message) => {
-				if (message.channel.id === process.env.error_chid || message.author === client.user) return;
+				if (message.author.bot) return;
 
-				for (const moduleName in modules) {
+				for (const module of stealthModules.filter(module => module.event === event)) {
+					let matches;
+
+					if (module.pattern) {
+						matches = message.content.match(module.pattern) ?? undefined;
+						if (!matches) continue;
+					}
+
 					try {
-						const _module = modules[moduleName];
-						const module = _module.module;
-
-						if (!_module.loaded) continue;
-						let matches: RegExpMatchArray | undefined;
-						if (module.pattern) {
-							matches = message.content.match(module.pattern) || undefined;
-							if (!matches) continue;
-						}
-
-						const argv: StealthModuleActionArgument = {
+						const _result = await module.action({
 							message,
 							matches
-						};
+						});
 
-						if (module.eval) {
-							argv.eval = {};
-							for (const name in module.eval) {
-								argv.eval[name] = eval(module.eval[name]);
+						if (typeof _result === "object") {
+							const result = new LocalizableMessageOptionsAdapter(
+								_result.result
+							).build(message.getLocale());
+
+							if (_result.type === "send") {
+								await message.channel.send(result);
+							} else {
+								await message.reply(result);
 							}
-						}
-
-						const result = await module.action(argv);
-						if (typeof result !== "boolean") {
-							// await createDeleteAction(message);
-							const options = new StealthModuleResult(result.result, message.id).localize(message.getLocale()).build();
-							const msg = result.type === "reply" ? await message.reply(options) : await message.channel.send(options);
-							stealthMessageData[message.id] = {
-								replyID: msg.id,
-								authorID: message.author.id
-							};
-
-							setTimeout(async () => {
-								try {
-									delete stealthMessageData[message.id];
-									assert(options.components !== undefined);
-									const lastRow = options.components[options.components.length - 1];
-									const lastComponent = lastRow.components[lastRow.components.length - 1];
-									assert("customId" in lastComponent && lastComponent.customId!.startsWith("delete"))
-									lastRow.components.pop();
-									// Check if empty last row
-									if (lastRow.components.length === 0) {
-										options.components.pop();
-									}
-			
-									await msg.edit(options);
-								} catch (e) {
-									Report.error(e, "Error deleting delete button");
-								}
-							}, 1000 * 60 * 5);
+						} else {
+							if (_result) break;
 						}
 					} catch (e) {
-						if (e instanceof Error) await Report.error(e, msg2str(message));
+						error(event, e);
 					}
 				}
-				return;
 			});
 		}
 
-		const APICommands: Dictionary<SlashCommand | ContextMenuCommand> = {};
-		const guildRegistered: Dictionary<boolean> = {};
-
-		// Application Command registration
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		for (const [_, guild] of client.guilds.cache) {
-			const guildLocale = guild.getLocale() ?? Languages.English;
-
-			const worker = async () => {
-				if (guildRegistered[guild.id]) return;
-
-				try {
-					await guild.commands.fetch(); // Check for permissions
-				} catch (e) {
-					guildRegistered[guild.id] = false;
-					setTimeout(worker, 1000 * 60 * 5);
-					return;
-				}
-
-				/*
-					The original module may look like:
-					{
-						name: {
-							key: "avatar.name",
-							value: { hello: "world" }
-						}	
-					}
-					The registered module would contain the *localized* version of the command name, like:
-					{
-						name: "Command world"
-					}
-
-					A simple lookup can yield the original slash command.
-				*/
-
-				const commands = await guild.commands.set(slashCommands.map(slashCommand => APISlashCommandAdapter(slashCommand, guildLocale)));
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				for (const [_, command] of commands) {
-					APICommands[command.id] = slashCommands.find(_command => command.name === Localizer(_command.name, guildLocale))!;
-				}
-
-				guildRegistered[guild.id] = true;
-			};
-
-			worker();
-		}
-
-		const stealthMessageData: Dictionary<{
-			replyID: string;
-			authorID: string;
-		}> = {};
-		// Save all interactions for delete button
-		const interactions: Dictionary<MessageComponentInteraction | CommandInteraction | ContextMenuInteraction> = {};
-
-		client.on("interactionCreate", async (interaction) => {
-			let result: ConstructorParameters<typeof SlashCommandResult>["0"] | null = null;
-			let command: Command;
-
-			const setRemoveDeleteButtonListener = (options: InteractionReplyOptions) => {
-				const _interaction = interaction as MessageComponentInteraction | CommandInteraction | ContextMenuInteraction;
-
-				interactions[_interaction.id] = _interaction;
-				setTimeout(async () => {
-					try {
-						delete interactions[_interaction.id];
-						assert(options.components !== undefined);
-						const lastRow = options.components[options.components.length - 1];
-						const lastComponent = lastRow.components[lastRow.components.length - 1];
-						assert("customId" in lastComponent && lastComponent.customId!.startsWith("delete"))
-						lastRow.components.pop();
-						// Check if empty last row
-						if (lastRow.components.length === 0) {
-							options.components.pop();
-						}
-
-						await _interaction.editReply(options);
-					} catch (e) {
-						Report.error(e, "Error deleting delete button");
-					}
-				}, 1000 * 60 * 5);
-			};
-
-			const sendOptions = async (options: InteractionReplyOptions) => {
-				if (interaction.isMessageComponent()) {
-					await interaction.editReply(options);
-					setRemoveDeleteButtonListener(options);
-				} else if (interaction.isCommand() || interaction.isContextMenu()) {
-					if (command.defer) {
-						await interaction.editReply(options);
-					} else {
-						await interaction.reply(options);
-					}
-					setRemoveDeleteButtonListener(options);
-				}
-			};
-
-			// Post-processing (Add delete button etc) and send it
-			const sendResult = async () => {
-				try {
-					assert(result);
-					const options = new SlashCommandResult(result!, interaction.id).localize(interaction.getLocale()).build();
-					await sendOptions(options);
-				} catch (e) {
-					let messageLink = `https://discord.com/channels/${interaction.guildId}/${interaction.channelId}`;
-					if (interaction.isMessageComponent()) {
-						messageLink += `/${interaction.message.id}`;	
-					} else if (interaction.isContextMenu()) {
-						if (interaction.targetType === "MESSAGE") 
-							messageLink += `/${interaction.targetId}`;
-					}
-
-					Report.error(e as Error, `Interaction: \`\`\`json\n${JSON.stringify(interaction.toJSON(), null, 2)}\`\`\`\nLink: ${messageLink}`);
-
-					const options = new SlashCommandResult({
-						key: "index.error"
-					}, interaction.id).localize(interaction.getLocale()).build();
-
-					await sendOptions(options);
-				}
-			};
-
-			// Delete button
-			if (interaction.isButton() && interaction.customId.startsWith("delete")) {
-				const reject = async () => {
-					await interaction.reply({
-						content: Localizer({
-							key: "index.deletingOthersMessage"
-						}, interaction.getLocale()),
-						ephemeral: true
-					});
-				};
-
-				try {
-					const id = interaction.customId.substring(7);
-					switch (interaction.customId[6]) {
-						case "m":
-							const reply = await interaction.channel?.messages.fetch(stealthMessageData[id].replyID);
-
-							if (reply) {
-								if (interaction.user.id === stealthMessageData[id].authorID || interaction.memberPermissions?.has("ADMINISTRATOR"))
-									await reply.delete();
-								else
-									await reject();
-							}
-							break;
-						case "i":
-							const originalInteraction = interactions[id];
-							if (originalInteraction) {
-								if (interaction.user === originalInteraction.user || interaction.memberPermissions?.has("ADMINISTRATOR"))
-									await originalInteraction.deleteReply();
-								else
-									await reject();
-							}
-							break;
-					}
-				} catch (e) {
-					Report.error(e, `Failed to delete ${interaction.customId[6] === "m" ? "message" : "interaction"}`);
-				}
-
-				return;
-			}
-
-			if (interaction.isCommand() || interaction.isContextMenu()) {
-				// Lookup by id
-				command = APICommands[interaction.commandId];
-				if (command) {
-					if (command.defer)
-						await interaction.deferReply();
-
-					if (interaction.isCommand() && "onCommand" in command) {
-						result = await (command as SlashCommand).onCommand(interaction);
-					} else if (interaction.isContextMenu() && "onContextMenu" in command) {
-						result = await (command as ContextMenuCommand).onContextMenu(interaction);
-					}
-
-					if (result) return await sendResult();
-				}
-			} else if (interaction.isMessageComponent()) {
-				// Lookup by source message's interaction's name
-				command = slashCommands.find(_command =>
-					Localizer(_command.name, interaction.guild?.getLocale() ?? Languages.English) === (interaction.message!.interaction! as MessageInteraction).commandName
-				)!;
-				if (command) {
-					if (command.defer)
-						await interaction.deferUpdate();
-
-					if (interaction.isButton() && command.onButton) {
-						result = await command.onButton(interaction);
-					} else if (interaction.isMessageComponent() && command.onMessageComponent) {
-						result = await command.onMessageComponent(interaction);
-					} else if (interaction.isSelectMenu() && command.onSelectMenu) {
-						result = await command.onSelectMenu(interaction);
-					}
-
-					if (result) return await sendResult();
-				}
-			}
-
-			Report.info(`Unknown ${interaction.type} interaction received: \`\`\`json\n${JSON.stringify(interaction, null, 2)}\``);
-		});
-
-		report(`Finished loading in ${+new Date() - +startTime}ms`);
+		console.log("client->ready", "Ready!");
 	});
 
-	// Init
-	glob("./bin/modules/**/*.js", async (error, fileList) => {
-		if (error) throw error;
-		for (let file of fileList.filter((_file) => {
-			// Don't load modules starting with _
-			return _file.split("/").pop()![0] !== "_";
-		})) {
-			const fileName = file.split("/").pop()!;
-			const moduleName = fileName.slice(0, -3);
-
-			const __module = await import(`@app/${file.slice(6)}`);
-			const _module = __module.module;
-			let tmp: StealthModule | SlashCommand | ContextMenuCommand;
-			if ("action" in _module) {
-				tmp = _module as StealthModule;
-				eventModules[tmp.event][moduleName] = {
-					module: tmp,
-					loaded: false
-				};
-			} else if ("name" in _module) {
-				tmp = _module as SlashCommand | ContextMenuCommand;
-				slashCommands.push(tmp);
-			} else {
-				report(`Unknown module ${fileName}!`);
-				process.exit();
-			}
-
-			report(`Loaded module ${fileName}`);
-		}
-
-		await client.login(process.env.bot_token);
-		report("Logged in as " + client.user!.tag);
-	});
+	client.login(process.env.TOKEN);
 } catch (e) {
-	if (e instanceof Error)
-		report("Error occurred: " + e.toString());
+	console.error("client->ready", e);
 }

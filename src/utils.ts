@@ -1,4 +1,3 @@
-import { Singleton } from "@app/Singleton";
 import { Dictionary } from "@type/Dictionary";
 import assert from "assert";
 import { Decimal } from "decimal.js";
@@ -29,12 +28,12 @@ export const msg2str = (message: Message) => {
 };
 
 export const report = (string: string) => {
-	Singleton.logger.log(`${timeFormat()}\t${string}`);
+	console.log(`${timeFormat()}\t${string}`);
 };
 
 export const random = (low: number, high: number) => {
 	if (low === high) return low;
-	return Math.floor(Math.random() * (high - low + 1) + low);
+	return (Math.random() * (high - low + 1) + low) | 0;
 };
 
 export const arr2obj = <T>(a1: (string | number)[], a2: T[]): Dictionary<T> => {

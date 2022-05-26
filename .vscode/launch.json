@@ -5,8 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"command": "npm run dev",
+			"command": "yarn dev",
 			"name": "Dev",
+			"env": {
+				"DEBUG": "1"
+			},
 			"request": "launch",
 			"type": "node-terminal"
 		}
