@@ -1,168 +1,166 @@
 {
-	"avatar": {
-		"avatarNotFound": "The user has no avatar!",
-		"_name": "avatar"
-	},
-	"choice": {
-		"_name": "choice",
-		"_description": "Curbs your decidophobia",
-		"_choices_name": "choices",
-		"_choices_description": "Separated by spaces",
-		"notEnoughChoices": "Not enough choices!",
-		"result": "Result: {{result}}"
-	},
-	"index": {
-		"stillLoading": "Module is still loading!",
-		"argvError": "Required argment `{{argName}}` at position {{position}} not found!\nUsage: `b!{{trigger}} {{usage}}`",
-		"legacyPrompt": {
-			"contextMenuCommand": "Please use the context menu on target {{target}} and select \"$t({{command}})\".",
-			"slashCommand": "Please use /{{command}} instead.",
-			"missingPermission": "The bot is updated to the newest slash command feature, but it fails to register in your guild.\nContact administrator to update the bot's permission by clicking the link.\nLink: <https://discordapp.com/oauth2/authorize?&client_id={{id}}&scope=bot%20applications.commands&permissions=523328>"
-		},
-		"deletingOthersMessage": "You can only delete message authored by you.",
-		"error": "Error occured. Please wait for a fix!",
-		"delete": "Delete"
-	},
-	"invite": {
-		"_name": "invite",
-		"_description": "Get the invite link for the bot."
-	},
-	"ask": {
-		"_name": "ask",
-		"_description": "Ask the mysterious 8 ball.",
-		"_question_name": "question",
-		"_question_description": "The question you want to ask",
-		"answer0": "It is certain.",
-		"answer1": "It is decidedly so.",
-		"answer2": "Without a doubt.",
-		"answer3": "Yes - definitely.",
-		"answer4": "You may rely on it.",
-		"answer5": "As I see it, yes.",
-		"answer6": "Most likely.",
-		"answer7": "Outlook good.",
-		"answer8": "Yes.",
-		"answer9": "Signs point to yes.",
-		"answer10": "Reply hazy, try again.",
-		"answer11": "Ask again later.",
-		"answer12": "Better not tell you now.",
-		"answer13": "Cannot predict now.",
-		"answer14": "Concentrate and ask again.",
-		"answer15": "Don't count on it.",
-		"answer16": "My reply is no.",
-		"answer17": "My sources say no.",
-		"answer18": "Outlook not so good.",
-		"answer19": "Very doubtful."
-	},
-	"mine": {
-		"_name": "mine",
-		"_description": "Minesweeper game.",
-		"_h_name": "h",
-		"_h_description": "Height of the board",
-		"_w_name": "w",
-		"_w_description": "Width of the board",
-		"_n_name": "n",
-		"_n_description": "Number of mines",
-		"mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. \n{{mineField}}"
-	},
-	"roll": {
-		"_name": "roll",
-		"roll": "`{{points}}` points.",
-		"_description": "Defaults to 0-100",
-		"_upper_name": "upper",
-		"_upper_description": "The maximum number",
-		"_lower_name": "lower",
-		"_lower_description": "The minimum number",
-		"invalidRange": "Invalid number range {{lower}} - {{upper}}!"
-	},
-	"scam": {
-		"scam": "🚨Possibly hazardous link `{{link}}` found! \nThreat type: `$t(scam.{{threatType}})`\nPlatform type: `$t(scam.{{platformType}})`\nEntry type: `$t(scam.{{entryType}})`",
-		"THREAT_TYPE_UNSPECIFIED": "Unknown.",
-		"MALWARE": "Malware threat type.",
-		"SOCIAL_ENGINEERING": "Social engineering threat type.",
-		"UNWANTED_SOFTWARE": "Unwanted software threat type.",
-		"POTENTIALLY_HARMFUL_APPLICATION": "Potentially harmful application threat type.",
-		"PLATFORM_TYPE_UNSPECIFIED": "Unknown platform.",
-		"WINDOWS": "Threat posed to Windows.",
-		"LINUX": "Threat posed to Linux.",
-		"ANDROID": "Threat posed to Android.",
-		"OSX": "Threat posed to OS X.",
-		"IOS": "Threat posed to iOS.",
-		"ANY_PLATFORM": "Threat posed to at least one of the defined platforms.",
-		"ALL_PLATFORMS": "Threat posed to all defined platforms.",
-		"CHROME": "Threat posed to Chrome.",
-		"THREAT_ENTRY_TYPE_UNSPECIFIED": "Unspecified.",
-		"URL": "A URL.",
-		"EXECUTABLE": "An executable program."
-	},
-	"slap": {
-		"_name": "slap",
-		"slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points.",
-		"_description": "Slap the user!",
-		"_tool_name": "tool",
-		"_tool_description": "What to use to slap.",
-		"_victim_name": "victim",
-		"_victim_description": "The target you want to slap."
-	},
-	"sauce": {
-		"_name": "What is the sauce?",
-		"postNotFound": "The related post {{url}} is not found!",
-		"noSauce": "No sauce found!",
-		"invalidUrl": "No usable image found!",
-		"confidenceLevel": "Confidence level: {{similarity}}%",
-		"unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
-		"name": "Get sauce",
-		"another": "Another sauce?",
-		"error": "Error: {{error}}",
-		"whichImage": "Which image do you want to check?"
-	},
-	"pixiv": {
-		"imageNotFound": "No image found for id {{id}}",
-		"titlePlaceholder": "Pixiv illustration",
-		"sauceHeader": "Sauce:",
-		"sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\t[Author: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
-		"descriptionHeader": "Description:",
-		"descriptionPlaceholder": "(None)"
-	},
-	"moebooru": {
-		"searchResult": "Search Result",
-		"dimensions": "Dimensions",
-		"sourceHeader": "Source"
-	},
-	"dice": {
-		"_name": "dice",
-		"_description": "Roll a dice.",
-		"_n_name": "n",
-		"_n_description": "Number of dices",
-		"_faces_name": "faces",
-		"_faces_description": "How many face are there of a dice",
-		"_offset_name": "offset",
-		"_offset_description": "Offset",
-		"roll": "{{n}}d{{faces}}{{offset}} = {{result}}",
-		"offset": "with `{{offset}}` $t(dice.offsetDescription)"
-	},
-	"currency": {
-		"_name": "currency",
-		"_description": "Spot currency conversion",
-		"_source_name": "source",
-		"_source_description": "From what currency",
-		"_amount_name": "amount",
-		"_amount_description": "How much",
-		"_target_name": "target",
-		"_target_description": "To what currency, defaults to all",
-		"_TWD_name": "Taiwan Dollar",
-		"_HKD_name": "Hong Kong Dollar",
-		"_USD_name": "US Dollar",
-		"_EUR_name": "Euro",
-		"_JPY_name": "Japanese Yen"
-	},
-	"nudity": {
-		"_name": "Get NSFW level",
-		"multipleImages": "Which image do you want to check?",
-		"invalidMessage": "The message has no usable image!",
-		"items": "Items"
-	},
-	"ping": {
-		"_name": "ping",
-		"_description": "Ping the bot."
-	}
+  "ask": {
+    "_description": "Ask the mysterious 8 ball.",
+    "_name": "ask",
+    "_question_description": "The question you want to ask",
+    "_question_name": "question",
+    "answer0": "It is certain.",
+    "answer1": "It is decidedly so.",
+    "answer10": "Reply hazy, try again.",
+    "answer11": "Ask again later.",
+    "answer12": "Better not tell you now.",
+    "answer13": "Cannot predict now.",
+    "answer14": "Concentrate and ask again.",
+    "answer15": "Don't count on it.",
+    "answer16": "My reply is no.",
+    "answer17": "My sources say no.",
+    "answer18": "Outlook not so good.",
+    "answer19": "Very doubtful.",
+    "answer2": "Without a doubt.",
+    "answer3": "Yes - definitely.",
+    "answer4": "You may rely on it.",
+    "answer5": "As I see it, yes.",
+    "answer6": "Most likely.",
+    "answer7": "Outlook good.",
+    "answer8": "Yes.",
+    "answer9": "Signs point to yes."
+  },
+  "avatar": {
+    "_name": "avatar",
+    "avatarNotFound": "The user has no avatar!"
+  },
+  "choice": {
+    "_choices_description": "Separated by spaces",
+    "_choices_name": "choices",
+    "_description": "Curbs your decidophobia",
+    "_name": "choice",
+    "notEnoughChoices": "Not enough choices!",
+    "result": "Result: {{result}}"
+  },
+  "currency": {
+    "_EUR_name": "Euro",
+    "_HKD_name": "Hong Kong Dollar",
+    "_JPY_name": "Japanese Yen",
+    "_TWD_name": "Taiwan Dollar",
+    "_USD_name": "US Dollar",
+    "_amount_description": "How much",
+    "_amount_name": "amount",
+    "_description": "Spot currency conversion",
+    "_name": "currency",
+    "_source_description": "From what currency",
+    "_source_name": "source",
+    "_target_description": "To what currency, defaults to all",
+    "_target_name": "target"
+  },
+  "delete": {
+    "_name": "Delete bot message",
+    "deleted": "Message deleted.",
+    "deletingOthersMessage": "You can only delete messages authored by you.",
+    "notMyMessage": "Cannot delete messages from other users!"
+  },
+  "dice": {
+    "_description": "Roll a dice.",
+    "_faces_description": "How many face are there of a dice",
+    "_faces_name": "faces",
+    "_n_description": "Number of dices",
+    "_n_name": "n",
+    "_name": "dice",
+    "_offset_description": "Offset",
+    "_offset_name": "offset",
+    "offset": "with `{{offset}}` $t(dice.offsetDescription)",
+    "roll": "{{n}}d{{faces}}{{offset}} = {{result}}"
+  },
+  "index": {
+    "delete": "Delete",
+    "error": "Error occured. Please wait for a fix!"
+  },
+  "invite": {
+    "_description": "Get the invite link for the bot.",
+    "_name": "invite"
+  },
+  "mine": {
+    "_description": "Minesweeper game.",
+    "_h_description": "Height of the board",
+    "_h_name": "h",
+    "_n_description": "Number of mines",
+    "_n_name": "n",
+    "_name": "mine",
+    "_w_description": "Width of the board",
+    "_w_name": "w",
+    "mine": "There are **__{{mineCount}}__** mines in this {{h}}x{{w}} field. \n{{mineField}}"
+  },
+  "moebooru": {
+    "dimensions": "Dimensions",
+    "searchResult": "Search Result",
+    "sourceHeader": "Source"
+  },
+  "nudity": {
+    "_name": "Get NSFW level",
+    "invalidMessage": "The message has no usable image!",
+    "items": "Items",
+    "multipleImages": "Which image do you want to check?"
+  },
+  "ping": {
+    "_description": "Ping the bot.",
+    "_name": "ping"
+  },
+  "pixiv": {
+    "descriptionHeader": "Description:",
+    "descriptionPlaceholder": "(None)",
+    "imageNotFound": "No image found for id {{id}}",
+    "sauceContent": "[ID: {{illust_id}}](https://www.pixiv.net/en/artworks/{{illust_id}})\t[Author: {{author}}](https://www.pixiv.net/en/users/{{author_id}})",
+    "sauceHeader": "Sauce:",
+    "titlePlaceholder": "Pixiv illustration"
+  },
+  "roll": {
+    "_description": "Defaults to 0-100",
+    "_lower_description": "The minimum number",
+    "_lower_name": "lower",
+    "_name": "roll",
+    "_upper_description": "The maximum number",
+    "_upper_name": "upper",
+    "invalidRange": "Invalid number range {{lower}} - {{upper}}!",
+    "roll": "`{{points}}` points."
+  },
+  "sauce": {
+    "_name": "What is the sauce?",
+    "another": "Another sauce?",
+    "confidenceLevel": "Confidence level: {{similarity}}%",
+    "error": "Error: {{error}}",
+    "invalidUrl": "No usable image found!",
+    "name": "Get sauce",
+    "noSauce": "No sauce found!",
+    "postNotFound": "The related post {{url}} is not found!",
+    "unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
+    "whichImage": "Which image do you want to check?"
+  },
+  "scam": {
+    "ALL_PLATFORMS": "Threat posed to all defined platforms.",
+    "ANDROID": "Threat posed to Android.",
+    "ANY_PLATFORM": "Threat posed to at least one of the defined platforms.",
+    "CHROME": "Threat posed to Chrome.",
+    "EXECUTABLE": "An executable program.",
+    "IOS": "Threat posed to iOS.",
+    "LINUX": "Threat posed to Linux.",
+    "MALWARE": "Malware threat type.",
+    "OSX": "Threat posed to OS X.",
+    "PLATFORM_TYPE_UNSPECIFIED": "Unknown platform.",
+    "POTENTIALLY_HARMFUL_APPLICATION": "Potentially harmful application threat type.",
+    "SOCIAL_ENGINEERING": "Social engineering threat type.",
+    "THREAT_ENTRY_TYPE_UNSPECIFIED": "Unspecified.",
+    "THREAT_TYPE_UNSPECIFIED": "Unknown.",
+    "UNWANTED_SOFTWARE": "Unwanted software threat type.",
+    "URL": "A URL.",
+    "WINDOWS": "Threat posed to Windows.",
+    "scam": "🚨Possibly hazardous link `{{link}}` found! \nThreat type: `$t(scam.{{threatType}})`\nPlatform type: `$t(scam.{{platformType}})`\nEntry type: `$t(scam.{{entryType}})`"
+  },
+  "slap": {
+    "_description": "Slap the user!",
+    "_name": "slap",
+    "_tool_description": "What to use to slap.",
+    "_tool_name": "tool",
+    "_victim_description": "The target you want to slap.",
+    "_victim_name": "victim",
+    "slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
+  }
 }
