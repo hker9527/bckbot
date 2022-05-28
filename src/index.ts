@@ -173,17 +173,13 @@ try {
 							const { components, ...x } = response;
 							await interaction.editReply({ components: _components ?? [], ...x });
 							delete timeouts[id];
-						} catch (e) {
-							error("bot.deleteMessage", e);
-						}
+						} catch (e) { }
 					}, 1000 * 15);
 
 					if (interaction.isApplicationCommand()) {
-						console.log(`root: ${interaction.id}`);
 						timeouts[interaction.id] = timeout;
 					} else if (interaction.isMessageComponent()) {
 						const parent = interaction.message.interaction!.id;
-						console.log(`child: ${interaction.id} -> ${parent}`);
 						clearTimeout(timeouts[parent]);
 						timeouts[parent] = timeout;
 						id = parent;
@@ -200,13 +196,28 @@ try {
 						// Check if the interaction issuer is the message author or is an admin
 						const guildUser = (await interaction.guild?.members.fetch(interaction.user))!;
 
-						if (sourceMessage.interaction!.user.id === interaction.user.id || guildUser.permissions.has("ADMINISTRATOR")) {
+						if (sourceMessage.author.id !== interaction.client.user!.id) {
+							await reply(
+								new LocalizableInteractionReplyOptionsAdapter({
+									content: {
+										key: "delete.notMyMessage"
+									},
+									ephemeral: true
+								}).build(interaction.getLocale())
+							);
+						}
+
+						if (
+							sourceMessage.mentions.repliedUser?.id === interaction.user.id
+							|| sourceMessage.interaction && sourceMessage.interaction.user.id === interaction.user.id
+							|| guildUser.permissions.has("ADMINISTRATOR")
+						) {
 							await sourceMessage.delete();
 						} else {
 							await reply(
 								new LocalizableInteractionReplyOptionsAdapter({
 									content: {
-										key: "index.deletingOthersMessage"
+										key: "delete.deletingOthersMessage"
 									},
 									ephemeral: true
 								}).build(interaction.getLocale())
