@@ -4,7 +4,7 @@ import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
-import { ApplicationCommandDataResolvable, ApplicationCommandNumericOptionData, ApplicationCommandOptionData, Client, Intents, InteractionReplyOptions, Message, MessageInteraction } from "discord.js";
+import { ApplicationCommandDataResolvable, ApplicationCommandNumericOptionData, ApplicationCommandOptionData, Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageInteraction } from "discord.js";
 import { ApplicationCommandTypes } from "discord.js/typings/enums";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
@@ -328,15 +328,39 @@ try {
 						});
 
 						if (typeof _result === "object") {
+							const deleteButton = new LocalizableMessageActionRowAdapter([
+								{
+									type: "BUTTON",
+									style: "DANGER",
+									custom_id: "delete",
+									label: {
+										key: "index.delete"
+									},
+									emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
+								}
+							]).build(message.getLocale());
+
+
 							const result = new LocalizableMessageOptionsAdapter(
 								_result.result
 							).build(message.getLocale());
 
-							if (_result.type === "send") {
-								await message.channel.send(result);
-							} else {
-								await message.reply(result);
-							}
+							const _components = result.components?.slice() ?? [];
+
+							result.components = result.components ? [...result.components, deleteButton] : [deleteButton];
+
+							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply(result);
+
+							setTimeout(async () => {
+								try {
+									// eslint-disable-next-line @typescript-eslint/no-unused-vars
+									const { components, ...x } = result;
+									await msg.edit({
+										components: _components,
+										...x
+									} as MessageEditOptions);
+								} catch (e) { }
+							}, 1000 * 15);
 						} else {
 							if (_result) break;
 						}
