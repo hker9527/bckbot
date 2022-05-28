@@ -2,6 +2,7 @@ import { LocalizableApplicationCommandOptionData, LocalizableInteractionReplyOpt
 import { LocalizableMessageActionRowAdapter } from "@localizer/MessageActionRowOptions";
 import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
+import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
 import { ApplicationCommandDataResolvable, ApplicationCommandNumericOptionData, ApplicationCommandOptionData, Client, Intents, InteractionReplyOptions, Message, MessageInteraction } from "discord.js";
 import { ApplicationCommandTypes } from "discord.js/typings/enums";
@@ -122,6 +123,9 @@ try {
 			}
 		}
 
+		// Linked list storing all interaction ids and it's parent, null if it's the root
+		const timeouts: Dictionary<NodeJS.Timeout> = {};
+
 		client.on("interactionCreate", async (interaction) => {
 			if (!interaction.isRepliable()) return;
 
@@ -138,16 +142,55 @@ try {
 			]).build(interaction.getLocale());
 
 			const reply = async (response: InteractionReplyOptions) => {
-				if (!(response.ephemeral === true)) {
+				if (response.ephemeral) {
+					if (interaction.replied || interaction.deferred) {
+						await interaction.editReply(response)
+					} else {
+						await interaction.reply(response);
+					}
+				} else {
+					const _components = response.components?.slice();
+
 					if (response.components) {
 						response.components.push(deleteButton);
 					} else {
 						response.components = [deleteButton];
 					}
-				}
 
-				return interaction.replied || interaction.deferred ? await interaction.editReply(response) : await interaction.reply(response);
+					if (interaction.replied || interaction.deferred) {
+						await interaction.editReply(response)
+					} else {
+						await interaction.reply(response);
+					}
+
+					// Add interaction id to linked list
+					// Root level commands
+
+					let id = interaction.id;
+					const timeout = setTimeout(async () => {
+						try {
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							const { components, ...x } = response;
+							await interaction.editReply({ components: _components ?? [], ...x });
+							delete timeouts[id];
+						} catch (e) {
+							error("bot.deleteMessage", e);
+						}
+					}, 1000 * 15);
+
+					if (interaction.isApplicationCommand()) {
+						console.log(`root: ${interaction.id}`);
+						timeouts[interaction.id] = timeout;
+					} else if (interaction.isMessageComponent()) {
+						const parent = interaction.message.interaction!.id;
+						console.log(`child: ${interaction.id} -> ${parent}`);
+						clearTimeout(timeouts[parent]);
+						timeouts[parent] = timeout;
+						id = parent;
+					}
+				}
 			};
+
 			try {
 				// Delete button
 				if (interaction.isButton() && interaction.customId === "delete") {
