@@ -304,7 +304,7 @@ try {
 				report("Loaded file: " + result.value.path);
 				return result.value.module;
 			}
-			if (!["command", "module"].includes(result.reason)) error("bot.loadModule", "Failed to load file " + result.reason);
+			error("bot.loadModule", "Failed to load file " + result.reason);
 			return null;
 		})
 			.filter((module): module is StealthModule => module !== null);
