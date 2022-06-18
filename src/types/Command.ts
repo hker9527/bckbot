@@ -1,7 +1,7 @@
-import { LocalizableApplicationCommandOptionData, LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { LocalizableApplicationCommandOptionData } from "@app/adapters/ApplicationCommandOptionData";
+import { LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
 import { Dictionary } from "./Dictionary";
-
 
 type onFn<T> = (interaction: T) => Promise<LocalizableInteractionReplyOptions>;
 

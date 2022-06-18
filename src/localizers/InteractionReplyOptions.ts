@@ -1,30 +1,9 @@
 import { Localizer } from "@app/Localizations";
-import { Dictionary } from "@type/Dictionary";
 import { LocalizableFieldNames, LocalizableFields } from "@type/Localizable";
 import { LocaleString } from "discord-api-types/v9";
-import { ApplicationCommandOptionChoiceData, BaseApplicationCommandOptionsData, InteractionReplyOptions } from "discord.js";
+import { InteractionReplyOptions } from "discord.js";
 import { LocalizableMessageActionRowAdapter } from "./MessageActionRowOptions";
 import { LocalizableMessageEmbedAdapter } from "./MessageEmbedOptions";
-
-type LocalizableOption = Omit<BaseApplicationCommandOptionsData, "name" | "nameLocalizations" | "description" | "descriptionLocalizations">;
-
-interface LocalizableOptionWithChoices extends LocalizableOption {
-	choices?: Dictionary<ApplicationCommandOptionChoiceData["value"]>
-}
-
-interface LocalizableStringOption extends LocalizableOptionWithChoices {
-	type: "STRING"
-}
-
-interface LocalizableNumberOption extends LocalizableOptionWithChoices {
-	type: "NUMBER" | "INTEGER",
-	min?: number,
-	max?: number
-}
-
-export type LocalizableApplicationCommandOptionData =
-	| LocalizableStringOption
-	| LocalizableNumberOption;
 
 export type LocalizableInteractionReplyOptions = LocalizableFields & Omit<InteractionReplyOptions, LocalizableFieldNames>;
 
