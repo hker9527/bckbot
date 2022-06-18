@@ -1,14 +1,14 @@
-import { LocalizableApplicationCommandOptionData, LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
+import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import { LocalizableMessageActionRowAdapter } from "@localizer/MessageActionRowOptions";
 import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
-import { ApplicationCommandDataResolvable, ApplicationCommandNumericOptionData, ApplicationCommandOptionData, Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageInteraction } from "discord.js";
-import { ApplicationCommandTypes } from "discord.js/typings/enums";
+import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageInteraction } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
-import { getDescription, getName } from "./Localizations";
+import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
+import { getName } from "./Localizations";
 import { injectPrototype } from "./prototype";
 import { error, report } from "./Reporting";
 import { random } from "./utils";
@@ -62,48 +62,7 @@ try {
 		})
 			.filter((command): command is Command => command !== null);
 
-		const APICommands = commands.map((command: Command): ApplicationCommandDataResolvable => {
-			if ("onCommand" in command) {
-				return {
-					...getName(command.name),
-					...getDescription(command.name),
-					options: Object.entries(command.options ?? {}).map((arr: [string, LocalizableApplicationCommandOptionData]): ApplicationCommandOptionData => {
-						const [name, option] = arr;
-
-						let _ret: Record<string, any> = {
-							...getName(command.name, name),
-							...getDescription(command.name, name),
-							required: option.required,
-							type: option.type
-						};
-
-						if (option.choices) {
-							_ret.choices = Object.entries(option.choices).map(([key, value]) => ({
-								...getName(command.name, key),
-								value
-							}));
-						}
-
-						switch (option.type) {
-							case "NUMBER":
-							case "INTEGER":
-								const ret = _ret as ApplicationCommandNumericOptionData;
-								ret.min_value = option.min;
-								ret.max_value = option.max;
-
-								return ret;
-							default:
-								return _ret as ApplicationCommandOptionData;
-						}
-					})
-				};
-			} else {
-				return {
-					type: command.type === "USER" ? ApplicationCommandTypes.USER : ApplicationCommandTypes.MESSAGE,
-					...getName(command.name)
-				}
-			}
-		});
+		const APICommands = commands.map(command => new ApplicationCommandDataResolvableAdapter(command).build());
 
 		if (process.env.DEBUG) {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -122,6 +81,9 @@ try {
 				error("bot.setCommand", e);
 			}
 		}
+
+		// A mapping from the source message's author id that triggered stealth modules to the replied message
+		const sources: Dictionary<string> = {};
 
 		// Linked list storing all interaction ids and it's parent, null if it's the root
 		const timeouts: Dictionary<NodeJS.Timeout> = {};
@@ -188,9 +150,12 @@ try {
 			};
 
 			try {
-				// Delete button
-				if (interaction.isButton() && interaction.customId === "delete") {
-					const sourceMessage = interaction.message;
+				// Delete function
+				if (
+					interaction.isButton() && interaction.customId === "delete"
+					|| interaction.isContextMenu() && interaction.command?.name === getName("delete").name
+				) {
+					const sourceMessage = interaction.isContextMenu() ? interaction.getMessage() : interaction.message;
 
 					if (sourceMessage && "delete" in sourceMessage) {
 						// Check if the interaction issuer is the message author or is an admin
@@ -208,7 +173,8 @@ try {
 						}
 
 						if (
-							sourceMessage.mentions.repliedUser?.id === interaction.user.id
+							sources[sourceMessage.id] === interaction.user.id
+							|| sourceMessage.mentions.repliedUser?.id === interaction.user.id
 							|| sourceMessage.interaction && sourceMessage.interaction.user.id === interaction.user.id
 							|| guildUser.permissions.has("ADMINISTRATOR")
 						) {
@@ -361,6 +327,8 @@ try {
 							result.components = result.components ? [...result.components, deleteButton] : [deleteButton];
 
 							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply(result);
+
+							sources[msg.id] = message.author.id;
 
 							setTimeout(async () => {
 								try {
