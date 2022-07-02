@@ -162,5 +162,17 @@
     "_victim_description": "The target you want to slap.",
     "_victim_name": "victim",
     "slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
+  },
+  "vpn": {
+    "_description": "Game VPN",
+    "_game_description": "The game",
+    "_game_name": "game",
+    "_kc_name": "Kantai Collection",
+    "_knsb_name": "KonoSuba: Fantastic Days!",
+    "_krr_name": "Kirara Fantasia",
+    "_name": "vpn",
+    "_pcr_name": "Princess Connect! Re:Dive",
+    "_uma_name": "Umamusume",
+    "_wf_name": "World Flipper"
   }
 }

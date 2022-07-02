@@ -169,5 +169,15 @@
     "_victim_description": "要扇誰",
     "_victim_name": "受害者",
     "slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。"
+  },
+  "vpn": {
+    "_description": "獲得經測試可用的的日遊VPN代理",
+    "_game_description": "遊戲名",
+    "_game_name": "遊戲",
+    "_kc_name": "艦隊收藏",
+    "_knsb_name": "為美好的世界獻上祝福！Fantastic Days",
+    "_pcr_name": "超異域公主連結！Re:Dive",
+    "_uma_name": "賽馬娘",
+    "_wf_name": "彈射世界"
   }
 }
