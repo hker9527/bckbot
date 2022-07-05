@@ -65,7 +65,7 @@ try {
 
 		const APICommands = commands.map(command => new ApplicationCommandDataResolvableAdapter(command).build());
 
-		if (false && process.env.DEBUG) {
+		if (process.env.DEBUG) {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			for (const [_, guild] of client.guilds.cache) {
 				try {
