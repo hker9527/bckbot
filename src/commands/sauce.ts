@@ -108,68 +108,58 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 const query = async (id: string, url: string, nsfw: boolean): Promise<LocalizableInteractionReplyOptions> => {
 	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
 
-	if (res.header.status === 0) {
-		if (res.results === null) {
-			return {
-				content: {
-					key: "sauce.noSauce"
-				}
-			};
-		}
-
-		// TODO: Select dropdown for user to check other sauces
-		const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
-		try {
-			interactionResults[id] = results;
-
-			for (const result of results) {
-				const embed = await genEmbed(result, nsfw);
-				const similarity = parseFloat(result.header.similarity);
-
-				if (embed) {
-					return {
-						content: {
-							key: "sauce.confidenceLevel",
-							data: { similarity }
-						},
-						embeds: [embed],
-						components: [
-							[
-								{
-									type: "SELECT_MENU",
-									placeholder: {
-										key: "sauce.another"
-									},
-									options: results.map((result, i) => {
-										const _similarity = parseFloat(result.header.similarity);
-										return {
-											emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
-											label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
-											value: `${id}_${i}`
-										}
-									}),
-									custom_id: "checkOtherSauces"
-								}
-							]
-						]
-					};
-				}
-			}
-			throw "Unknown";
-		} catch (e) {
-			error("sauce", e);
-			return {
-				content: {
-					key: "sauce.noSauce"
-				}
-			};
-		}
-	} else {
-		error("sauce", res.header.message);
+	if (res.results === null) {
 		return {
 			content: {
-				key: "sauce.error",
-				data: { error: res.header.message ?? "idk" }
+				key: "sauce.noSauce"
+			}
+		};
+	}
+
+	// TODO: Select dropdown for user to check other sauces
+	const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
+	try {
+		interactionResults[id] = results;
+
+		for (const result of results) {
+			const embed = await genEmbed(result, nsfw);
+			const similarity = parseFloat(result.header.similarity);
+
+			if (embed) {
+				return {
+					content: {
+						key: "sauce.confidenceLevel",
+						data: { similarity }
+					},
+					embeds: [embed],
+					components: [
+						[
+							{
+								type: "SELECT_MENU",
+								placeholder: {
+									key: "sauce.another"
+								},
+								options: results.map((result, i) => {
+									const _similarity = parseFloat(result.header.similarity);
+									return {
+										emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
+										label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
+										value: `${id}_${i}`
+									}
+								}),
+								custom_id: "checkOtherSauces"
+							}
+						]
+					]
+				};
+			}
+		}
+		throw "Unknown";
+	} catch (e) {
+		error("sauce", e);
+		return {
+			content: {
+				key: "sauce.noSauce"
 			}
 		};
 	}
