@@ -4,7 +4,8 @@ import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
-import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageInteraction } from "discord.js";
+import assert from "assert-ts";
+import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
@@ -64,7 +65,7 @@ try {
 
 		const APICommands = commands.map(command => new ApplicationCommandDataResolvableAdapter(command).build());
 
-		if (process.env.DEBUG) {
+		if (false && process.env.DEBUG) {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			for (const [_, guild] of client.guilds.cache) {
 				try {
@@ -192,48 +193,51 @@ try {
 					}
 				} else if (interaction.isCommand()) {
 					const command = commands.find(command => command.name === interaction.command?.name) as SlashApplicationCommands | undefined;
-					if (command) {
-						if (command.defer) {
-							await interaction.deferReply();
-						}
+					assert(command !== undefined);
 
-						let response: InteractionReplyOptions = {
-							content: "Error..."
-						};
-
-						try {
-							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onCommand(interaction)
-							).build(interaction.getLocale());
-						} catch (e) {
-							error("client->interactionCreate", e);
-						}
-
-						await reply(response);
+					if (command.defer) {
+						await interaction.deferReply();
 					}
+
+					let response: InteractionReplyOptions = {
+						content: "Error..."
+					};
+
+					try {
+						response = new LocalizableInteractionReplyOptionsAdapter(
+							await command.onCommand(interaction)
+						).build(interaction.getLocale());
+					} catch (e) {
+						error("client->interactionCreate", e);
+					}
+
+					await reply(response);
 				} else if (interaction.isContextMenu()) {
 					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
-					if (command) {
-						if (command.defer) {
-							await interaction.deferReply();
-						}
-						let response: InteractionReplyOptions = {
-							content: "Error..."
-						};
+					assert(command !== undefined);
 
-						try {
-							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onContextMenu(interaction)
-							).build(interaction.getLocale());
-						} catch (e) {
-							error("client->interactionCreate", e);
-						}
-
-						await reply(response);
+					if (command.defer) {
+						await interaction.deferReply();
 					}
+					let response: InteractionReplyOptions = {
+						content: "Error..."
+					};
+
+					try {
+						response = new LocalizableInteractionReplyOptionsAdapter(
+							await command.onContextMenu(interaction)
+						).build(interaction.getLocale());
+					} catch (e) {
+						error("client->interactionCreate", e);
+					}
+
+					await reply(response);
 				} else if (interaction.isMessageComponent()) {
-					const command = commands.find(command => getName(command.name).name === (interaction.message.interaction as MessageInteraction).commandName) as Command | undefined;
-					if (!command) return;
+					assert(interaction.message.interaction !== null && interaction.message.interaction !== undefined);
+					const commandName = "commandName" in interaction.message.interaction ? interaction.message.interaction.commandName : interaction.message.interaction.name;
+
+					const command = commands.find(command => getName(command.name).name === commandName) as Command | undefined;
+					assert(command !== undefined);
 
 					if (interaction.isButton() && !command.onButton) return;
 					if (interaction.isSelectMenu() && !command.onSelectMenu) return;
