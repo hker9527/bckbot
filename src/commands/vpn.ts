@@ -13,7 +13,7 @@ const getFlagEmoji = (countryCode: string) => {
 
 const HOST = "http://127.0.0.1:3000";
 
-const sites = ["uma", "pcr", "wf", "kc", "knsb", "krr"];
+const sites = ["uma", "wf", "kc", "knsb", "krr"];
 
 export const command: Command = {
 	defer: true,
