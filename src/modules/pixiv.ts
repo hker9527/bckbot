@@ -99,7 +99,7 @@ export const genEmbeds = async (illust_id: string, show_image = true, nsfw = fal
 
 export const module: StealthModule = {
 	event: "messageCreate",
-	pattern: /(artworks\/|illust_id=)(\d{1,8})/,
+	pattern: /(artworks\/|illust_id=)(\d+)/,
 	action: async (obj) => {
 		const illust_id = obj.matches![2];
 
