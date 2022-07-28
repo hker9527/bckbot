@@ -156,9 +156,9 @@ try {
 					interaction.isButton() && interaction.customId === "delete"
 					|| interaction.isContextMenu() && interaction.command?.name === getName("delete").name
 				) {
-					const sourceMessage = interaction.isContextMenu() ? interaction.getMessage() : interaction.message;
+					const sourceMessage = (interaction.isContextMenu() ? interaction.getMessage() : interaction.message) as Message;
 
-					if (sourceMessage && "delete" in sourceMessage) {
+					if (sourceMessage.deletable) {
 						// Check if the interaction issuer is the message author or is an admin
 						const guildUser = (await interaction.guild?.members.fetch(interaction.user))!;
 
