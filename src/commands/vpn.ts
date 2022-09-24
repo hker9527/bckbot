@@ -11,7 +11,10 @@ const getFlagEmoji = (countryCode: string) => {
 	return String.fromCodePoint(...codePoints);
 };
 
-const HOST = "http://127.0.0.1:3000";
+const hosts = {
+	hk: "http://127.0.0.1:3000",
+	us: "http://nasuvps.ddns.net:3000"
+};
 
 const sites = ["uma", "wf", "kc", "knsb", "krr"];
 
@@ -23,11 +26,17 @@ export const command: Command = {
 			type: "STRING",
 			required: true,
 			choices: arr2obj(sites, sites)
+		},
+		server: {
+			type: "STRING",
+			choices: arr2obj(Object.keys(hosts), Object.keys(hosts))
 		}
 	},
 	onCommand: async (interaction) => {
 		const game = interaction.options.getString("game", true);
-		const response = await fetch(`${HOST}/site/${game}`);
+		const server = (interaction.options.getString("server") || "hk") as keyof typeof hosts;
+		const host = hosts[server];
+		const response = await fetch(`${host}/site/${game}`);
 
 		const servers: {
 			ip: string;
@@ -44,8 +53,8 @@ export const command: Command = {
 						type: "SELECT_MENU",
 						custom_id: "uwu",
 						options: servers.map(server => ({
-							label: `${server.country} ${((server.speed / 1024 / 1024 * 1000) | 0) / 1000} Mbps - ${server.ping}ms`,
-							value: `${server.ip}_${game}`,
+							label: `${server.ip} ${((server.speed / 1024 / 1024 * 1000) | 0) / 1000} Mbps - ${server.ping}ms`,
+							value: `${host}_${server.ip}_${game}`,
 							emoji: getFlagEmoji(server.country) ?? "🏳️"
 						}))
 					}
@@ -54,8 +63,8 @@ export const command: Command = {
 		};
 	},
 	onSelectMenu: async (interaction) => {
-		const [ip, game] = interaction.values[0].split("_");
-		const response = await fetch(`${HOST}/ip/${ip}`);
+		const [host, ip, game] = interaction.values[0].split("_");
+		const response = await fetch(`${host}/ip/${ip}`);
 
 		const server: ({
 			ip: string

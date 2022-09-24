@@ -167,11 +167,15 @@
     "_description": "Game VPN",
     "_game_description": "The game",
     "_game_name": "game",
+    "_hk_name": "Hong Kong",
     "_kc_name": "Kantai Collection",
     "_knsb_name": "KonoSuba: Fantastic Days!",
     "_krr_name": "Kirara Fantasia",
     "_name": "vpn",
+    "_server_description": "The testing server",
+    "_server_name": "server",
     "_uma_name": "Umamusume",
+    "_us_name": "US Oregon",
     "_wf_name": "World Flipper"
   }
 }
