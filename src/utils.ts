@@ -82,7 +82,7 @@ export const req2json = async (url: string) => {
 	return await _req(url, true);
 };
 
-export const enumStringKeys = <T>(e: T) => {
+export const enumStringKeys = <T extends object>(e: T) => {
 	return Object.keys(e).filter(value => isNaN(Number(value))) as (keyof T)[];
 };
 
