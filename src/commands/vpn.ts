@@ -12,7 +12,7 @@ const getFlagEmoji = (countryCode: string) => {
 };
 
 const hosts = {
-	hk: "http://127.0.0.1:3000",
+	hk: "http://nasuser.ddns.net:3000",
 	us: "http://nasuvps.ddns.net:3000"
 };
 
@@ -36,7 +36,7 @@ export const command: Command = {
 		const game = interaction.options.getString("game", true);
 		const server = (interaction.options.getString("server") || "hk") as keyof typeof hosts;
 		const host = hosts[server];
-		const response = await fetch(`${host}/site/${game}`);
+		const response = await fetch(`${host}/api/game/${game}`);
 
 		const servers: {
 			ip: string;
