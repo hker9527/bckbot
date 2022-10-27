@@ -11,7 +11,7 @@ interface LocalizableBaseButtonOptions {
 interface LocalizableInteractionButtonOptions extends Omit<InteractionButtonOptions, "customId" | "type" | "style" | "label">, LocalizableBaseButtonOptions {
 	custom_id: string;
 	style: Exclude<keyof typeof MessageButtonStyles, "LINK">,
-	label: Localizable
+	label?: Localizable
 };
 
 interface LocalizableLinkButtonOptions extends Omit<LinkButtonOptions, "type" | "style">, LocalizableBaseButtonOptions {
@@ -61,7 +61,7 @@ export class LocalizableMessageActionRowAdapter {
 						default:
 							const { label, ...y } = component;
 							actionRow.components.push({
-								label: Localizer(label, locale),
+								label: label ? Localizer(label, locale) : undefined,
 								...y
 							});
 							break;
