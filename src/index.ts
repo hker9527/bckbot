@@ -97,9 +97,6 @@ try {
 					type: "BUTTON",
 					style: "DANGER",
 					custom_id: "delete",
-					label: {
-						key: "index.delete"
-					},
 					emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
 				}
 			]).build(interaction.getLocale());
@@ -314,9 +311,6 @@ try {
 									type: "BUTTON",
 									style: "DANGER",
 									custom_id: "delete",
-									label: {
-										key: "index.delete"
-									},
 									emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
 								}
 							]).build(message.getLocale());
