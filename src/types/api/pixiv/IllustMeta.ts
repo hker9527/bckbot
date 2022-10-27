@@ -4,10 +4,10 @@
 //
 //   "Set quicktype target language"
 
-export interface APIPixiv {
+export interface APIPixivIllustMeta {
     error:   boolean;
     message: string;
-    body:    Body | [];
+    body:    Body | never[];
 }
 
 interface Body {
@@ -21,7 +21,7 @@ interface Body {
     createDate:              string;
     uploadDate:              string;
     restrict:                0 | 1;
-    xRestrict:               0 | 1;
+    xRestrict:               number;
     sl:                      2 | 4 | 6; // Sanity level
     urls:                    Urls;
     tags:                    Tags;
