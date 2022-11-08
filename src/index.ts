@@ -186,7 +186,7 @@ try {
 
 			const generalErrorReply = new LocalizableInteractionReplyOptionsAdapter({
 				content: {
-					key: "error"
+					key: "index.error"
 				}
 			}).build(interaction.getLocale());
 
