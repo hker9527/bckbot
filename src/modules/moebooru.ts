@@ -135,6 +135,7 @@ export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObj
 };
 
 export const module: StealthModule = {
+	name: "moebooru",
 	event: "messageCreate",
 	action: async () => {
 		// TODO: Generate embed like pixiv

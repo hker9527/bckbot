@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 import { getString } from "@app/Localizations";
 
 export const module: StealthModule = {
+	name: "scam",
 	event: "messageCreate",
 	action: async (obj: StealthModuleActionArgument) => {
 		const urls = find(obj.message.content).filter(result => result.type === "url").map(result => result.href);

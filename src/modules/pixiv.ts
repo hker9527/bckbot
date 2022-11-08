@@ -119,6 +119,7 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 };
 
 export const module: StealthModule = {
+	name: "pixiv",
 	event: "messageCreate",
 	pattern: /(artworks\/|illust_id=)(\d{2,10})/,
 	action: async (obj) => {

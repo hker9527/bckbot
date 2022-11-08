@@ -7,6 +7,7 @@ export interface StealthModuleActionArgument {
 };
 
 export interface StealthModule {
+	name: string,
 	event: "messageCreate" | "messageDelete" | "messageUpdate",
 	pattern?: RegExp,
 	action: (obj: StealthModuleActionArgument) => Promise<boolean | {
