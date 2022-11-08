@@ -4,16 +4,15 @@ import { Command } from "@type/Command";
 import assert from "assert";
 import { z } from "zod";
 
-enum Currency {
-	TWD, HKD, JPY, USD, EUR
-}
+const currencies = [
+	"TWD", "HKD", "JPY", "USD", "EUR"
+];
 
 const prisma = new PrismaClient();
 
 const worker = async () => {
 	try {
 		const updateInfo = await prisma.currencyUpdateInfo.create({ data: {} });
-		const currencies = enumStringKeys(Currency);
 
 		for (let i = 0; i < currencies.length - 1; i++) {
 			const currency = currencies[i];
@@ -59,7 +58,7 @@ export const command: Command = {
 		source: {
 			type: "STRING",
 			required: true,
-			choices: arr2obj(enumStringKeys(Currency), enumStringKeys(Currency))
+			choices: arr2obj(currencies, currencies)
 		},
 		amount: {
 			type: "NUMBER",
@@ -67,15 +66,13 @@ export const command: Command = {
 		},
 		target: {
 			type: "STRING",
-			choices: arr2obj(enumStringKeys(Currency), enumStringKeys(Currency))
+			choices: arr2obj(currencies, currencies)
 		}
 	},
 	onCommand: async (interaction) => {
-		const source = interaction.options.getString("source", true) as keyof typeof Currency;
+		const source = interaction.options.getString("source", true);
 		const amount = interaction.options.getNumber("amount") ?? 1;
-		const target = interaction.options.getString("target") as keyof typeof Currency ?? null;
-
-		const currencies = enumStringKeys(Currency);
+		const target = interaction.options.getString("target") ?? null;
 
 		const records = await prisma.currencyRecord.findMany({
 			where: {
