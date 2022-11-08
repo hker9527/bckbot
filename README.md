@@ -39,6 +39,6 @@ yarn start
 |[pixiv](https://www.pixiv.net/en/)|Fetch images from pixiv|
 |[deepai](https://deepai.org/machine-learning-model/nsfw-detector)|Nudity detection|
 |[saucenao](https://saucenao.com/)|Reverse image search|
-|[currencyconverterapi](https://www.currencyconverterapi.com/)|Currency conversion|
+|[exchangerate.host](https://exchangerate.host/)|Currency conversion|
 |[quotable.io](https://github.com/lukePeavey/quotable)|Get random quotes|
 |[Google Safebrowsing](https://safebrowsing.google.com/)|Detect malicious URLs|
