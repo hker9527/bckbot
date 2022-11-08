@@ -12,27 +12,24 @@ const worker = async () => {
 		const updateInfo = await prisma.currencyUpdateInfo.create({ data: {} });
 		const currencies = enumStringKeys(Currency);
 
-		const requestPairs = [
-			[...new Array(currencies.length - 1)].map((_, i) =>
-				[...new Array(currencies.length - i - 1)].map((_, j) => [currencies[i], currencies[j + i + 1]]))
-		].flat().flat();
+		for (let i = 0; i < currencies.length - 1; i++) {
+			const currency = currencies[i];
+			const otherCurrencies = currencies.filter((_, ii) => ii > i);
 
-		for (let i = 0; i < Math.floor(requestPairs.length / 2); i++) {
-			const pairs = requestPairs.slice(i * 2, (i + 1) * 2);
-			const response = await req2json(`https://free.currconv.com/api/v7/convert?q=${pairs.map(p => p.join("_")).join(",")}&compact=ultra&apiKey=${process.env.currency}`);
+			const response = await req2json(`https://api.exchangerate.host/latest?base=${currency}&symbols=${otherCurrencies.join(",")}`);
 			const Z = z.object({
-				[pairs[0].join("_")]: z.number(),
-				[pairs[1].join("_")]: z.number()
+				success: z.literal(true),
+				rates: z.object(arr2obj(otherCurrencies, otherCurrencies.map(_ => z.number())))
 			});
 			const data = Z.safeParse(response);
 			assert(data.success);
 
-			for (const pair of pairs) {
+			for (const _currency of otherCurrencies) {
 				await prisma.currencyRecord.create({
 					data: {
-						src: pair[0],
-						dst: pair[1],
-						value: data.data[`${pair[0]}_${pair[1]}`],
+						src: currency,
+						dst: _currency,
+						value: data.data.rates[_currency],
 						updateInfo: {
 							connect: {
 								id: updateInfo.id
