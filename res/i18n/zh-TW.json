@@ -72,8 +72,7 @@
   },
   "index": {
     "delete": "刪除",
-    "error": "出包了……請等待修復！",
-    "legacyPrompt": {}
+    "error": "出包了……請等待修復！"
   },
   "invite": {
     "_description": "獲取這個機械人的邀請鏈接",

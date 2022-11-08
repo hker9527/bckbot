@@ -72,7 +72,7 @@
   },
   "index": {
     "delete": "Delete",
-    "error": "Error occured. Please wait for a fix!"
+    "error": "Error has been reported to bot author. Please wait for a fix!"
   },
   "invite": {
     "_description": "Get the invite link for the bot.",
@@ -162,6 +162,10 @@
     "_victim_description": "The target you want to slap.",
     "_victim_name": "victim",
     "slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
+  },
+  "test": {
+    "_name": "test",
+    "_description": "Test"
   },
   "vpn": {
     "_description": "Game VPN",

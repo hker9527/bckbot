@@ -5,13 +5,13 @@ import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } fro
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
 import assert from "assert-ts";
-import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions } from "discord.js";
+import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, TextChannel } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
 import { getName } from "./Localizations";
 import { injectPrototype } from "./prototype";
-import { error, report } from "./Reporting";
+import { report } from "./Reporting";
 import { random } from "./utils";
 
 const client = new Client({
@@ -49,6 +49,43 @@ try {
 	injectPrototype();
 
 	client.once("ready", async () => {
+		// Error reporting
+		const errorChannel = await client.channels.fetch(process.env.error_chid!) as TextChannel;
+		const error = async (tag: string, e: unknown) => {
+			const embed = e instanceof Error ?
+				new MessageEmbed({
+					title: e.name,
+					fields: [
+						{
+							"name": "Tag",
+							"value": tag,
+						},
+						{
+							"name": "Stack",
+							"value": "```\n" + e.stack + "\n```" ?? "(none)"
+						}
+					]
+				}) :
+				new MessageEmbed({
+					title: "Error",
+					fields: [
+						{
+							"name": "Tag",
+							"value": tag,
+						}
+					]
+				});
+
+			await errorChannel.send({
+				content: new Date().toISOString(),
+				embeds: [embed]
+			});
+		};
+
+		client.on("error", async (e) => {
+			await error("client->error", e);
+		});
+
 		// Command
 		const commands: Command[] = (await Promise.allSettled(readdirSync("./src/commands/")
 			.filter(file => !file.startsWith("_") && file.endsWith(".ts"))
@@ -147,6 +184,12 @@ try {
 				}
 			};
 
+			const generalErrorReply = new LocalizableInteractionReplyOptionsAdapter({
+				content: {
+					key: "error"
+				}
+			}).build(interaction.getLocale());
+
 			try {
 				// Delete function
 				if (
@@ -196,16 +239,14 @@ try {
 						await interaction.deferReply();
 					}
 
-					let response: InteractionReplyOptions = {
-						content: "Error..."
-					};
+					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onCommand(interaction)
 						).build(interaction.getLocale());
 					} catch (e) {
-						error("client->interactionCreate", e);
+						error(`commands/${command.name}.onCommand`, e);
 					}
 
 					await reply(response);
@@ -225,7 +266,7 @@ try {
 							await command.onContextMenu(interaction)
 						).build(interaction.getLocale());
 					} catch (e) {
-						error("client->interactionCreate", e);
+						error(`commands/${command.name}.onContextMenu`, e);
 					}
 
 					await reply(response);
@@ -243,9 +284,7 @@ try {
 						await interaction.deferUpdate();
 					}
 
-					let response: InteractionReplyOptions = {
-						content: "Error..."
-					};
+					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
 						if (interaction.isButton()) {
@@ -258,7 +297,7 @@ try {
 							).build(interaction.getLocale());
 						}
 					} catch (e) {
-						error("client->interactionCreate", e);
+						error(`commands/${command.name}.${interaction.isButton()? "onButton" : "onSelectMenu"}`, e);
 					}
 
 					await reply(response);
@@ -266,10 +305,8 @@ try {
 					// TODO: Modal submit
 				}
 			} catch (e) {
-				error("interaction", e);
-				await reply({
-					content: "Error!!!!"
-				});
+				error("client->interactionCreate", e);
+				await reply(generalErrorReply);
 			}
 		});
 
@@ -342,7 +379,7 @@ try {
 							if (_result) break;
 						}
 					} catch (e) {
-						error(event, e);
+						error(`modules/${module.name}.${event}`, e);
 					}
 				}
 			});
@@ -353,5 +390,5 @@ try {
 
 	client.login(process.env.TOKEN);
 } catch (e) {
-	error("client->ready", e);
+	console.error("client", e);
 }
