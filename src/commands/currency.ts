@@ -1,9 +1,12 @@
 import { arr2obj, enumStringKeys, req2json, round } from "@app/utils";
 import { PrismaClient } from "@prisma/client";
 import { Command } from "@type/Command";
-import { Currency } from "@type/Currency";
 import assert from "assert";
 import { z } from "zod";
+
+enum Currency {
+	TWD, HKD, JPY, USD, EUR
+}
 
 const prisma = new PrismaClient();
 
