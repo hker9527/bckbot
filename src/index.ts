@@ -58,11 +58,11 @@ try {
 					fields: [
 						{
 							"name": "Tag",
-							"value": tag,
+							"value": tag
 						},
 						{
 							"name": "Stack",
-							"value": "```\n" + e.stack + "\n```" ?? "(none)"
+							"value": "```\n" + e.stack?.substring(0, 1000) + "\n```" ?? "(none)"
 						}
 					]
 				}) :
@@ -71,7 +71,11 @@ try {
 					fields: [
 						{
 							"name": "Tag",
-							"value": tag,
+							"value": tag
+						},
+						{
+							"name": "Error",
+							"value": "```\n" + (e + "").substring(0, 1000) + "\n```" ?? "(none)"
 						}
 					]
 				});
