@@ -29,7 +29,7 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 	if (ZAPISaucenaoPixiv.check(result.data)) {
 		const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, true, nsfw);
 		if (_embeds !== null) {
-			return turn2thumbnail(_embeds[0]);
+			return turn2thumbnail(_embeds.embeds[0]);
 		}
 	} else if (ZAPISaucenaoMoebooru.check(result.data)) {
 		let provider: keyof typeof ApiPortal | null = null;
@@ -60,7 +60,7 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 
 				if (matches) {
 					let embeds = await genPixivEmbed(matches.filter(m => m)[1], true, nsfw);
-					if (embeds) return turn2thumbnail(embeds[0]);
+					if (embeds) return turn2thumbnail(embeds.embeds[0]);
 				}
 
 				// If fetching the original source fails, fallback
