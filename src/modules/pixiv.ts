@@ -1,12 +1,15 @@
 import { debug, error } from "@app/Reporting";
 import { req2json } from "@app/utils";
 import { LocalizableMessageEmbedOptions } from "@localizer/MessageEmbedOptions";
-import { APIPixivIllustMeta } from "@type/api/pixiv/IllustMeta";
+import { APIPixivIllustMeta, IllustType } from "@type/api/pixiv/IllustMeta";
 import { APIPixivUgoiraMeta } from "@type/api/pixiv/UgoiraMeta";
 import { StealthModule } from "@type/StealthModule";
-import { TextChannel } from "discord.js";
+import { MessageAttachment, TextChannel } from "discord.js";
 import { htmlToText } from "html-to-text";
 import fetch from "node-fetch";
+import JSZip from "jszip";
+import assert from "assert-ts";
+import { Image, Frame, GIF } from "imagescript";
 
 export const fetchIllustMetadata = async (illustID: string) => {
 	try {
@@ -57,11 +60,14 @@ const fetchUgoiraMeta = async (illustID: string) => {
 	}
 };
 
-export const genEmbeds = async (illustID: string, showImage: boolean, isChannelNSFW: boolean): Promise<LocalizableMessageEmbedOptions[] | null> => {
+export const genEmbeds = async (illustID: string, showImage: boolean, isChannelNSFW: boolean) => {
 	const illust = await fetchIllustMetadata(illustID);
 	if (illust === null) {
 		return null;
 	}
+
+	let embeds: LocalizableMessageEmbedOptions[];
+	let files: MessageAttachment[] | undefined = undefined;
 
 	// Try to hint the CDN to cache our files
 	for (let i = 0; i < illust.pageCount; i++) {
@@ -71,10 +77,47 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 		});
 	}
 
-	let embeds: LocalizableMessageEmbedOptions[] = [...new Array(Math.min(illust.pageCount, 4))].map((_, i) => ({
+	embeds = [...new Array(Math.min(illust.pageCount, 4))].map((_, i) => ({
 		image: `https://pixiv.cat/${illustID}${illust.pageCount > 1 ? `-${i + 1}` : ""}.jpg`,
 		url: `https://www.pixiv.net/artworks/${illustID}`
 	}));
+
+	if (illust.type === IllustType.Ugoira) {
+		const ugoiraMeta = await fetchUgoiraMeta(illustID);
+		if (ugoiraMeta !== null) {
+			const arrayBuffer = await (await fetch(ugoiraMeta.originalSrc, {
+				headers: {
+					"Referer": "https://www.pixiv.net/"
+				}
+			})).arrayBuffer();
+			const zip = await JSZip.loadAsync(arrayBuffer);
+
+			// const match = ugoiraMeta.originalSrc.match(/(\d+)x(\d+)/);
+			// assert(match !== null, "Failed to extract width and height from ugoira filename");
+			// const width = parseInt(match[1]);
+			// const height = parseInt(match[2]);
+
+
+			// const gifBuffer = await gifEncoder.encode();
+			
+			const frames: Frame[] = [];
+			for (const frameFile of ugoiraMeta.frames) {
+				const zipFile = zip.file(frameFile.file);
+				assert(zipFile !== null, `Cannot find frame ${frameFile} in zip`);
+				const frameData = await zipFile.async("uint8array");
+				// Source library does not have type definition
+				const image = await (Image as any).decode(frameData) as Image;
+				const frame = Frame.from(image, frameFile.delay);
+				frames.push(frame);
+			}
+
+			const gif = new GIF(frames, -1);
+			const gifBuffer = await gif.encode();
+			const attachment = new MessageAttachment(Buffer.from(gifBuffer), `${illustID}.gif`);
+			files = [attachment];
+			embeds[0].image = `attachment://${illustID}.gif`;
+		}
+	}
 
 	// If the images shouldn't be showed
 	if (!showImage || illust.restrict && !isChannelNSFW) {
@@ -115,7 +158,7 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 		}
 	};
 
-	return embeds;
+	return { embeds, files };
 };
 
 export const module: StealthModule = {
@@ -126,13 +169,13 @@ export const module: StealthModule = {
 		const illustID = obj.matches![2];
 
 		if (!isNaN(parseInt(illustID))) {
-			const embeds = await genEmbeds(illustID, true, (obj.message.channel as TextChannel).nsfw);
-			if (embeds) {
+			const result = await genEmbeds(illustID, true, (obj.message.channel as TextChannel).nsfw);
+			if (result) {
 				try {
 					await obj.message.suppressEmbeds(true);
 					return {
 						type: "send",
-						result: { embeds }
+						result: { embeds: result.embeds, files: result.files }
 					}
 				} catch (e) { // No permission?
 					return false;

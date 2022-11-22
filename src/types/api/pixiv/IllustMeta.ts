@@ -62,7 +62,7 @@ interface Body {
     request:                 null;
 }
 
-enum IllustType {
+export enum IllustType {
 	Illustration,
 	Manga,
 	Ugoira,
