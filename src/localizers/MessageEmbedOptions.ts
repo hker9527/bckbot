@@ -13,7 +13,7 @@ interface LocalizableMessageEmbedField extends Omit<EmbedFieldData, "name" | "va
 };
 
 interface LocalizableMessageEmbedFooter extends Omit<MessageEmbedFooter, "text"> {
-	text: Localizable	
+	text: Localizable
 };
 
 interface LocalizableMessageEmbedProvider extends Omit<MessageEmbedProvider, "name"> {
@@ -94,7 +94,7 @@ export class LocalizableMessageEmbedAdapter {
 				url: thumbnail
 			};
 		}
-		
+
 		return embed;
 	}
 }
