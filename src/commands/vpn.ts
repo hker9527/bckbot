@@ -1,7 +1,6 @@
 import { arr2obj } from "@app/utils";
 import { Command } from "@type/Command";
 import { MessageAttachment } from "discord.js";
-import fetch from "node-fetch";
 
 const getFlagEmoji = (countryCode: string) => {
 	const codePoints = countryCode

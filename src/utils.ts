@@ -2,7 +2,6 @@ import { Dictionary } from "@type/Dictionary";
 import assert from "assert";
 import { Decimal } from "decimal.js";
 import { Message } from "discord.js";
-import fetch from "node-fetch";
 import { ZodType } from "zod";
 
 export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
