@@ -150,7 +150,7 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 				name: {
 					key: "pixiv.descriptionHeader"
 				},
-				value: illust.description || {
+				value: illust.description.substring(0, 1020) || {
 					key: "pixiv.descriptionPlaceholder"
 				}
 			}],
