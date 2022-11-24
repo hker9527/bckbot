@@ -5,19 +5,19 @@
 //   "Set quicktype target language"
 
 export interface APIPixivUgoiraMeta {
-    error:   boolean;
-    message: string;
-    body:    Body | never[];
+    ugoira_metadata: UgoiraMetadata;
 }
 
-export interface Body {
-    src:         string;
-    originalSrc: string;
-    mime_type:   string;
-    frames:      Frame[];
+export interface UgoiraMetadata {
+    zip_urls: ZipUrls;
+    frames:   Frame[];
 }
 
 export interface Frame {
     file:  string;
     delay: number;
+}
+
+export interface ZipUrls {
+    medium: string;
 }

@@ -10,6 +10,13 @@ import fetch from "node-fetch";
 import JSZip from "jszip";
 import assert from "assert-ts";
 import { Image, Frame, GIF } from "imagescript";
+import FormData from "form-data";
+import { PrismaClient } from "@prisma/client";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PixivApi = require("pixiv-api-client");
+const pixiv = new PixivApi();
+
+const client = new PrismaClient();
 
 export const fetchIllustMetadata = async (illustID: string) => {
 	try {
@@ -47,13 +54,11 @@ export const fetchIllustMetadata = async (illustID: string) => {
 
 const fetchUgoiraMeta = async (illustID: string) => {
 	try {
-		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illustID}/ugoira_meta?lang=en`) as APIPixivUgoiraMeta;
-
-		if (res.error || Array.isArray(res.body)) {
-			return null;
-		} else {
-			return res.body;
-		}
+		const res = await pixiv.ugoiraMetaData(illustID) as APIPixivUgoiraMeta;
+		return {
+			originalSrc: res.ugoira_metadata.zip_urls.medium.replace("_ugoira600x600", "_ugoira1920x1080"),
+			frames: res.ugoira_metadata.frames
+		};
 	} catch (e) {
 		error("pixiv.fetchUgoiraMeta", e);
 		return null;
@@ -82,47 +87,90 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 		url: `https://www.pixiv.net/artworks/${illustID}`
 	}));
 
-	if (illust.type === IllustType.Ugoira) {
-		const ugoiraMeta = await fetchUgoiraMeta(illustID);
-		if (ugoiraMeta !== null) {
-			const arrayBuffer = await (await fetch(ugoiraMeta.originalSrc, {
-				headers: {
-					"Referer": "https://www.pixiv.net/"
-				}
-			})).arrayBuffer();
-			const zip = await JSZip.loadAsync(arrayBuffer);
-
-			// const match = ugoiraMeta.originalSrc.match(/(\d+)x(\d+)/);
-			// assert(match !== null, "Failed to extract width and height from ugoira filename");
-			// const width = parseInt(match[1]);
-			// const height = parseInt(match[2]);
-
-
-			// const gifBuffer = await gifEncoder.encode();
-			
-			const frames: Frame[] = [];
-			for (const frameFile of ugoiraMeta.frames) {
-				const zipFile = zip.file(frameFile.file);
-				assert(zipFile !== null, `Cannot find frame ${frameFile} in zip`);
-				const frameData = await zipFile.async("uint8array");
-				// Source library does not have type definition
-				const image = await (Image as any).decode(frameData) as Image;
-				const frame = Frame.from(image, frameFile.delay);
-				frames.push(frame);
-			}
-
-			const gif = new GIF(frames, -1);
-			const gifBuffer = await gif.encode();
-			const attachment = new MessageAttachment(Buffer.from(gifBuffer), `${illustID}.gif`);
-			files = [attachment];
-			embeds[0].image = `attachment://${illustID}.gif`;
-		}
-	}
-
 	// If the images shouldn't be showed
 	if (!showImage || illust.restrict && !isChannelNSFW) {
 		embeds = [embeds[0]];
 		delete embeds[0].image;
+		if (illust.restrict) {
+			embeds[0].thumbnail = "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/322/no-one-under-eighteen_1f51e.png";
+		}
+	} else if (illust.type === IllustType.Ugoira) {
+		// Find if there's a valid cached file
+		const cache = await client.pixivCache.findFirst({
+			where: {
+				id: illustID
+			}
+		});
+
+		if (cache && +new Date() - +cache.time < 1000 * 60 * 60 * 24) {
+			switch (cache.type) {
+				case "l": // Litterbox
+					embeds[0].image = `https://litter.catbox.moe/${cache.hash}.gif`;
+					break;
+				// TODO: Add more hosting services?
+			}
+		} else {
+			const ugoiraMeta = await fetchUgoiraMeta(illustID);
+			if (ugoiraMeta === null) {
+				throw new Error("Failed to fetch ugoira metadata: " + illustID);
+			} else {
+				const zipBuffer = await (await fetch(ugoiraMeta.originalSrc, {
+					headers: {
+						"Referer": "https://www.pixiv.net/"
+					}
+				})).arrayBuffer();
+				const zip = await JSZip.loadAsync(zipBuffer);
+
+				const frames: Frame[] = [];
+				for (const frameFile of ugoiraMeta.frames) {
+					const zipFile = zip.file(frameFile.file);
+					assert(zipFile !== null, `Cannot find frame ${frameFile} in zip`);
+					const frameData = await zipFile.async("uint8array");
+					// Source library does not have type definition
+					const image = await (Image as any).decode(frameData) as Image;
+					const frame = Frame.from(image, frameFile.delay);
+					frames.push(frame);
+				}
+
+				const gif = new GIF(frames, -1);
+				const gifData = Buffer.from(await gif.encode());
+
+				// Upload to litterbox
+				const formData = new FormData();
+				formData.append("reqtype", "fileupload");
+				formData.append("fileToUpload", gifData, {
+					filename: `${illustID}.gif`,
+					contentType: "image/gif"
+				});
+				formData.append("time", "24h");
+
+				const url = await (await fetch("https://litterbox.catbox.moe/resources/internals/api.php", {
+					method: "POST",
+					body: formData
+				})).text();
+
+				assert(url.startsWith("https://litter.catbox.moe/"), "Failed to upload ugoira to litterbox: " + url);
+
+				embeds[0].image = url;
+
+				// Update database cache
+				const hash = url.split("/").pop()!.split(".")[0];
+				await client.pixivCache.upsert({
+					where: {
+						id: illustID
+					},
+					create: {
+						id: illustID,
+						type: "l",
+						hash
+					},
+					update: {
+						type: "l",
+						hash
+					}
+				});
+			}
+		}
 	}
 
 	// Add metadata to the first embed
@@ -160,6 +208,13 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 
 	return { embeds, files };
 };
+
+const worker = () => {
+	pixiv.refreshAccessToken(process.env.pixiv_refresh_token);
+};
+
+setInterval(worker, 3000 * 1000);
+worker();
 
 export const module: StealthModule = {
 	name: "pixiv",
