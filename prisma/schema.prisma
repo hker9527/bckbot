@@ -7,11 +7,6 @@ datasource db {
     url      = "file:./db.sqlite"
 }
 
-model OsuLink {
-    discord_id String @id
-    osu_id     String @unique
-}
-
 model CurrencyUpdateInfo {
     id      String           @id @default(uuid())
     time    DateTime         @default(now())
@@ -26,4 +21,11 @@ model CurrencyRecord {
     updateInfo CurrencyUpdateInfo @relation(fields: [updateID], references: [id])
 
     @@unique([src, dst, updateID])
+}
+
+model PixivCache {
+    id   String   @id
+    type String
+    hash String
+    time DateTime @default(now())
 }
