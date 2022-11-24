@@ -63,26 +63,15 @@ export const command: Command = {
 	},
 	onSelectMenu: async (interaction) => {
 		const [host, ip, game] = interaction.values[0].split("_");
-		const response = await fetch(`${host}/ip/${ip}`);
+		const response = await fetch(`${host}/api/ip/${ip}`);
 
 		const server: ({
 			ip: string
 			hostname: string
 			country: string
-			uptime: number
-			totalUsers: number
-			totalTraffic: number
 			speed: number
 			config: string
 			isp: string | null
-		} & {
-			test: {
-				time: Date;
-				results: {
-					site: string;
-					ping: number;
-				}[];
-			};
 		}) | null = await response.json();
 
 		if (!server) {
@@ -109,20 +98,8 @@ export const command: Command = {
 						}, {
 							name: "ISP",
 							value: server.isp ?? "Unknown"
-						}, {
-							name: "VPN ping",
-							value: `${server.test.results.find(result => result.site === "connect")?.ping}ms` ?? "Unknown",
-							inline: true
-						}, {
-							name: "Game ping",
-							value: `${server.test.results.find(result => result.site === game)?.ping}ms` ?? "Unknown",
-							inline: true
 						}
-					],
-					footer: {
-						text: "Tested at"
-					},
-					timestamp: server.test.time
+					]
 				}
 			],
 			files: [configFile]
