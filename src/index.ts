@@ -142,7 +142,7 @@ try {
 				}
 			]).build(interaction.getLocale());
 
-			const reply = async (response: InteractionReplyOptions) => {
+			const reply = async (response: InteractionReplyOptions, onTimeout?: Command["onTimeout"]) => {
 				if (response.ephemeral) {
 					if (interaction.replied || interaction.deferred) {
 						await interaction.editReply(response)
@@ -172,7 +172,11 @@ try {
 						try {
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
 							const { components, ...x } = response;
-							await interaction.editReply({ components: _components ?? [], ...x });
+							const msg = await interaction.editReply({ components: _components ?? [], ...x });
+							if (onTimeout) {
+								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.getLocale());
+								await interaction.editReply(reply);
+							}
 							delete timeouts[id];
 						} catch (e) { }
 					}, 1000 * 15);
@@ -253,7 +257,7 @@ try {
 						error(`commands/${command.name}.onCommand`, e);
 					}
 
-					await reply(response);
+					await reply(response, command.onTimeout);
 				} else if (interaction.isContextMenu()) {
 					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
 					assert(command !== undefined);
@@ -273,7 +277,7 @@ try {
 						error(`commands/${command.name}.onContextMenu`, e);
 					}
 
-					await reply(response);
+					await reply(response, command.onTimeout);
 				} else if (interaction.isMessageComponent()) {
 					assert(interaction.message.interaction !== null && interaction.message.interaction !== undefined);
 					const commandName = "commandName" in interaction.message.interaction ? interaction.message.interaction.commandName : interaction.message.interaction.name;
@@ -301,10 +305,10 @@ try {
 							).build(interaction.getLocale());
 						}
 					} catch (e) {
-						error(`commands/${command.name}.${interaction.isButton()? "onButton" : "onSelectMenu"}`, e);
+						error(`commands/${command.name}.${interaction.isButton() ? "onButton" : "onSelectMenu"}`, e);
 					}
 
-					await reply(response);
+					await reply(response, command.onTimeout);
 				} else if (interaction.isModalSubmit()) {
 					// TODO: Modal submit
 				}
@@ -356,7 +360,6 @@ try {
 								}
 							]).build(message.getLocale());
 
-
 							const result = new LocalizableMessageOptionsAdapter(
 								_result.result
 							).build(message.getLocale());
@@ -373,10 +376,17 @@ try {
 								try {
 									// eslint-disable-next-line @typescript-eslint/no-unused-vars
 									const { components, ...x } = result;
-									await msg.edit({
+									const edited = await msg.edit({
 										components: _components,
 										...x
 									} as MessageEditOptions);
+
+									if (module.onTimeout) {
+										const reply = new LocalizableMessageOptionsAdapter(
+											await module.onTimeout(edited)
+										).build(message.getLocale());
+										await edited.edit(reply as MessageEditOptions);
+									}
 								} catch (e) { }
 							}, 1000 * 15);
 						} else {
