@@ -37,7 +37,6 @@ yarn start
 | Name | Purposes |
 | ---- | -------- |
 |[pixiv](https://www.pixiv.net/en/)|Fetch images from pixiv|
-|[deepai](https://deepai.org/machine-learning-model/nsfw-detector)|Nudity detection|
 |[saucenao](https://saucenao.com/)|Reverse image search|
 |[exchangerate.host](https://exchangerate.host/)|Currency conversion|
 |[quotable.io](https://github.com/lukePeavey/quotable)|Get random quotes|
