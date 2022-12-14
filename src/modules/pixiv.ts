@@ -114,11 +114,12 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 			if (ugoiraMeta === null) {
 				throw new Error("Failed to fetch ugoira metadata: " + illustID);
 			} else {
-				const zipBuffer = await (await fetch(ugoiraMeta.originalSrc, {
+				const zipResponse = await fetch(ugoiraMeta.originalSrc, {
 					headers: {
 						"Referer": "https://www.pixiv.net/"
 					}
-				})).arrayBuffer();
+				});
+				const zipBuffer = await zipResponse.buffer();
 				const zip = await JSZip.loadAsync(zipBuffer);
 
 				const frames: Frame[] = [];
