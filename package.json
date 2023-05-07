@@ -1,6 +1,6 @@
 {
 	"name": "bckbot",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"main": "src/index.ts",
 	"author": "Nasu#7336",
 	"license": "MIT",
@@ -11,7 +11,7 @@
 		"assert-ts": "^0.3.4",
 		"cld": "^2.8.4",
 		"decimal.js": "^10.4.2",
-		"discord.js": "^13.6.0",
+		"discord.js": "^14.11.0",
 		"dotenv-safe": "^8.2.0",
 		"eslint": "^8.28.0",
 		"eslint-config-alloy": "^4.7.0",
