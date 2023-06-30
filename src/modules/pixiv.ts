@@ -1,7 +1,6 @@
-import { debug, error } from "@app/Reporting";
-import { req2json } from "@app/utils";
+import { error } from "@app/Reporting";
 import { LocalizableMessageEmbedOptions } from "@localizer/MessageEmbedOptions";
-import { APIPixivIllustMeta, IllustType } from "@type/api/pixiv/IllustMeta";
+import { IllustType } from "@type/api/pixiv/IllustMeta";
 import { APIPixivUgoiraMeta } from "@type/api/pixiv/UgoiraMeta";
 import { StealthModule } from "@type/StealthModule";
 import { MessageAttachment, TextChannel } from "discord.js";
@@ -18,36 +17,34 @@ const pixiv = new PixivApi();
 
 const client = new PrismaClient();
 
-export const fetchIllustMetadata = async (illustID: string) => {
+export const fetchIllustMeta = async (illustID: string) => {
 	try {
-		const res = await req2json(`https://www.pixiv.net/ajax/illust/${illustID}?lang=en`) as APIPixivIllustMeta;
-
-		if (Array.isArray(res.body)) {
-			if (res.message !== "Work has been deleted or the ID does not exist.") {
-				debug("pixiv.fetchInfo", "res: " + JSON.stringify(res));
-			}
-			return null;
-		} else {
-			return {
-				type: res.body.illustType,
-				title: res.body.illustTitle,
-				pageCount: res.body.pageCount,
-				author: {
-					id: res.body.userId,
-					name: res.body.userName
+		const res = await pixiv.illustDetail(illustID);
+		
+		return {
+			type: res.illust.type,
+			title: res.illust.title,
+			pageCount: res.illust.page_count,
+			author: {
+				id: res.illust.user.id,
+				name: res.illust.user.name
+			},
+			description: htmlToText(res.illust.caption, {
+				limits: {
+					maxInputLength: 1500
 				},
-				description: htmlToText(res.body.description, {
-					limits: {
-						maxInputLength: 1500
-					},
-					tags: { "a": { format: "anchor", options: { ignoreHref: true } } }
-				}),
-				date: res.body.uploadDate,
-				restrict: res.body.restrict > 0 || res.body.xRestrict > 0
-			};
-		}
+				tags: { "a": { format: "anchor", options: { ignoreHref: true } } }
+			}),
+			date: res.illust.create_date,
+			restrict: res.illust.restrict > 0 || res.illust.x_restrict > 0,
+			imageUrls: (res.illust.page_count === 1 ? 
+				[res.illust.meta_single_page.original_image_url] :
+				res.illust.meta_pages.map((page: any) => page.image_urls.original))
+				.slice(0, 10) // Discord API Limit
+				.map((url: string) => url.replace("i.pximg.net", "i.nasu-ser.me")) // DON'T ABUSE THIS PLEASE, BUILD YOUR OWN!
+		};
 	} catch (e) {
-		error("pixiv.fetchInfo", e);
+		error("pixiv.fetchIllustMeta", e);
 		return null;
 	}
 };
@@ -66,7 +63,7 @@ const fetchUgoiraMeta = async (illustID: string) => {
 };
 
 export const genEmbeds = async (illustID: string, showImage: boolean, isChannelNSFW: boolean) => {
-	const illust = await fetchIllustMetadata(illustID);
+	const illust = await fetchIllustMeta(illustID);
 	if (illust === null) {
 		return null;
 	}
@@ -75,15 +72,15 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 	let files: MessageAttachment[] | undefined = undefined;
 
 	// Try to hint the CDN to cache our files
-	for (let i = 0; i < illust.pageCount; i++) {
+	for (const imageUrl of illust.imageUrls) {
 		// No need to wait for it
-		fetch(`https://pixiv.cat/${illustID}${(illust.pageCount > 1 ? `-${i + 1}` : "")}.jpg`, {
+		fetch(imageUrl, {
 			method: "HEAD"
 		});
 	}
 
-	embeds = [...new Array(Math.min(illust.pageCount, 4))].map((_, i) => ({
-		image: `https://pixiv.cat/${illustID}${illust.pageCount > 1 ? `-${i + 1}` : ""}.jpg`,
+	embeds = illust.imageUrls.map((url: string) => ({
+		image: url,
 		url: `https://www.pixiv.net/artworks/${illustID}`
 	}));
 
