@@ -144,7 +144,10 @@ export const genEmbeds = async (illustID: string, showImage: boolean, isChannelN
 
 				const url = await (await fetch("https://litterbox.catbox.moe/resources/internals/api.php", {
 					method: "POST",
-					body: formData
+					body: formData,
+					headers: {
+						"User-Agent": "bckbot (https://github.com/hker9527/bckbot/"
+					}
 				})).text();
 
 				assert(url.startsWith("https://litter.catbox.moe/"), "Failed to upload ugoira to litterbox: " + url);
