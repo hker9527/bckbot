@@ -11,7 +11,7 @@ import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
 import { getName } from "./Localizations";
 import { injectPrototype } from "./prototype";
-import { report } from "./Reporting";
+import { debug, report } from "./Reporting";
 import { random } from "./utils";
 
 const client = new Client({
@@ -111,6 +111,7 @@ try {
 			for (const [_, guild] of client.guilds.cache) {
 				try {
 					await guild.commands.set(APICommands);
+					debug("bot.setCommand", "Setting commands for guild " + guild.name);
 				} catch (e) {
 					error("bot.setCommand", "Failed to set command for guild " + guild.name);
 				}
