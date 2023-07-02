@@ -31,7 +31,7 @@
     "userAvatar": "User avatar",
     "guildAvatar": "Guild avatar",
     "banner": "Banner",
-    "link": "✅ [Link]({{url}})",
+    "link": "✅ [Link]({{link}})",
     "none": "❌ None"
   },
   "choice": {
