@@ -26,8 +26,13 @@
     "answer9": "Signs point to yes."
   },
   "avatar": {
-    "_name": "avatar",
-    "avatarNotFound": "The user has no avatar!"
+    "_name": "User Images",
+    "user": "User",
+    "userAvatar": "User avatar",
+    "guildAvatar": "Guild avatar",
+    "banner": "Banner",
+    "link": "✅ [Link]({{url}})",
+    "none": "❌ None"
   },
   "choice": {
     "_choices_description": "Separated by spaces",

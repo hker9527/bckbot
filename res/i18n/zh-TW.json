@@ -26,8 +26,13 @@
     "answer9": "種種跡象指出「是的」。"
   },
   "avatar": {
-    "_name": "頭像",
-    "avatarNotFound": "該成員沒有頭像！"
+    "_name": "用戶圖像",
+    "user": "用戶",
+    "userAvatar": "用戶頭像",
+    "guildAvatar": "伺服器頭像",
+    "banner": "橫幅",
+    "link": "✅ [連結]({{link}})",
+    "none": "❌ 無"
   },
   "choice": {
     "_choices_description": "用空格分開",
