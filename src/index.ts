@@ -80,10 +80,16 @@ try {
 					]
 				});
 
-			await errorChannel.send({
+			const obj = {
 				content: new Date().toISOString(),
 				embeds: [embed]
-			});
+			};
+
+			if (process.env.DEBUG) {
+				console.error(obj.embeds[0].fields[1].value);
+			} else {
+				await errorChannel.send(obj);
+			}
 		};
 
 		client.on("error", async (e) => {
