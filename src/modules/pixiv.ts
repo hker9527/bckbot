@@ -41,7 +41,7 @@ export const fetchIllustMeta = async (illustID: string) => {
 				[res.illust.meta_single_page.original_image_url] :
 				res.illust.meta_pages.map((page: any) => page.image_urls.original))
 				.slice(0, 10) // Discord API Limit
-				.map((url: string) => url.replace("i.pximg.net", "i.nasu-ser.me")) // DON'T ABUSE THIS PLEASE, BUILD YOUR OWN!
+				.map((url: string) => url.replace("i.pximg.net", "i.nasu-ser.link")) // DON'T ABUSE THIS PLEASE, BUILD YOUR OWN!
 		};
 	} catch (e) {
 		error("pixiv.fetchIllustMeta", e);
