@@ -11,7 +11,7 @@ import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
 import { getName } from "./Localizations";
 import { injectPrototype } from "./prototype";
-import { report } from "./Reporting";
+import { debug, report } from "./Reporting";
 import { random } from "./utils";
 
 const client = new Client({
@@ -80,10 +80,16 @@ try {
 					]
 				});
 
-			await errorChannel.send({
+			const obj = {
 				content: new Date().toISOString(),
 				embeds: [embed]
-			});
+			};
+
+			if (process.env.DEBUG) {
+				console.error(obj.embeds[0].fields[1].value);
+			} else {
+				await errorChannel.send(obj);
+			}
 		};
 
 		client.on("error", async (e) => {
@@ -111,6 +117,7 @@ try {
 			for (const [_, guild] of client.guilds.cache) {
 				try {
 					await guild.commands.set(APICommands);
+					debug("bot.setCommand", "Setting commands for guild " + guild.name);
 				} catch (e) {
 					error("bot.setCommand", "Failed to set command for guild " + guild.name);
 				}
