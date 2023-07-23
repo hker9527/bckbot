@@ -246,7 +246,7 @@ try {
 							);
 						}
 					}
-				} else if (interaction.isCommand()) {
+				} else if (interaction.isChatInputCommand()) {
 					const command = commands.find(command => command.name === interaction.command?.name) as SlashApplicationCommands | undefined;
 					assert(command !== undefined);
 
@@ -265,7 +265,7 @@ try {
 					}
 
 					await reply(response, command.onTimeout);
-				} else if (interaction.isContextMenu()) {
+				} else if (interaction.isUserContextMenuCommand()) {
 					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
 					assert(command !== undefined);
 
@@ -278,7 +278,27 @@ try {
 
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
-							await command.onContextMenu(interaction)
+							await command.onUserContextMenu!(interaction)
+						).build(interaction.locale);
+					} catch (e) {
+						error(`commands/${command.name}.onContextMenu`, e);
+					}
+
+					await reply(response, command.onTimeout);
+				} else if (interaction.isMessageContextMenuCommand()) {
+					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
+					assert(command !== undefined);
+
+					if (command.defer) {
+						await interaction.deferReply();
+					}
+					let response: InteractionReplyOptions = {
+						content: "Error..."
+					};
+
+					try {
+						response = new LocalizableInteractionReplyOptionsAdapter(
+							await command.onMessageContextMenu!(interaction)
 						).build(interaction.locale);
 					} catch (e) {
 						error(`commands/${command.name}.onContextMenu`, e);
@@ -287,7 +307,7 @@ try {
 					await reply(response, command.onTimeout);
 				} else if (interaction.isMessageComponent()) {
 					assert(interaction.message.interaction !== null && interaction.message.interaction !== undefined);
-					const commandName = "commandName" in interaction.message.interaction ? interaction.message.interaction.commandName : interaction.message.interaction.name;
+					const commandName = interaction.message.interaction.commandName;
 
 					const command = commands.find(command => getName(command.name).name === commandName) as Command | undefined;
 					assert(command !== undefined);
