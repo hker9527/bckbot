@@ -1,6 +1,6 @@
 import { LocalizableApplicationCommandOptionData } from "@app/adapters/ApplicationCommandOptionData";
 import { LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, MessageComponentInteraction, MessageContextMenuCommandInteraction, SelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 import { Dictionary } from "./Dictionary";
 
 type onFn<T> = (interaction: T) => Promise<LocalizableInteractionReplyOptions>;
@@ -19,12 +19,12 @@ interface ApplicationCommand<D extends boolean> {
 export interface SlashApplicationCommand<D extends boolean> extends ApplicationCommand<D> {
 	options?: Dictionary<LocalizableApplicationCommandOptionData>;
 
-	onCommand: onFn<CommandInteraction>;
+	onCommand: onFn<ChatInputCommandInteraction>;
 };
 
 export interface ContextMenuApplicationCommand<D extends boolean> extends ApplicationCommand<D> {
-	onMessageContextMenu?: onFn<ContextMenuInteraction>;
-	onUserContextMenu?: onFn<ContextMenuInteraction>;
+	onMessageContextMenu?: onFn<MessageContextMenuCommandInteraction>;
+	onUserContextMenu?: onFn<UserContextMenuCommandInteraction>;
 };
 
 export type SlashApplicationCommands = SlashApplicationCommand<true> | SlashApplicationCommand<false>;
