@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 import FormData from "form-data";
 import { PrismaClient } from "@prisma/client";
 import Pixiv, { PixivIllust } from "pixiv.ts";
-import { mkdir, rmdir, writeFile } from "fs/promises";
+import { mkdir, rm, writeFile } from "fs/promises";
 import { createReadStream, createWriteStream } from "fs";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -199,7 +199,7 @@ class Ugoira extends Illust {
 		}
 
 		// Delete tmpdir
-		await rmdir(tmpdir, {
+		await rm(tmpdir, {
 			recursive: true
 		});
 
