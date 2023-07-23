@@ -11,25 +11,41 @@ import { ZAPISaucenaoPixiv } from "@type/api/saucenao/Pixiv";
 import { ZAPISaucenaoTwitter } from "@type/api/saucenao/Twitter";
 import { Command } from "@type/Command";
 import { Dictionary } from "@type/Dictionary";
-import { genEmbeds as genPixivEmbed } from "../modules/pixiv";
+import { IllustMessageFactory } from "../modules/pixiv";
 import { findImagesFromMessage } from "./_lib";
 
 type Results = APISaucenao["results"];
 
 const turn2thumbnail = (embed: LocalizableMessageEmbedOptions) => {
-	if (embed.image) {
-		embed.thumbnail = embed.image;
-		delete embed.image;
-	}
+	embed.thumbnail = embed.image;
+	delete embed.image;
 
 	return embed;
 };
 
+const genPixivEmbed = async (pixiv_id: number | string, nsfw: boolean) => {
+	const illustMessageFactory = new IllustMessageFactory(pixiv_id);
+	await illustMessageFactory.getDetail();
+	if (illustMessageFactory.getType() !== null) {
+		const message = await illustMessageFactory.toMessage(nsfw);
+		if (message !== null) {
+			if (Array.isArray(message.embeds) && "image" in message.embeds[0]) {
+				return turn2thumbnail(message.embeds[0]);
+			}
+		}		
+	}
+
+	return null;
+};
+
 const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LocalizableMessageEmbedOptions> => {
 	if (ZAPISaucenaoPixiv.check(result.data)) {
-		const _embeds = await genPixivEmbed(`${result.data.pixiv_id}`, true, nsfw);
-		if (_embeds !== null) {
-			return turn2thumbnail(_embeds.embeds[0]);
+		const pixiv_id = result.data.pixiv_id ?? null;
+		if (pixiv_id !== null) {
+			const embed = await genPixivEmbed(pixiv_id, nsfw);
+			if (embed !== null) {
+				return embed;
+			}
 		}
 	} else if (ZAPISaucenaoMoebooru.check(result.data)) {
 		let provider: keyof typeof ApiPortal | null = null;
@@ -59,8 +75,14 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 				const matches = imageObject.source?.match(/illust_id=(\d{2,})|\d{4}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/\d{2}\/(\d{2,})_p|artworks\/(\d{2,})|img\/.*?\/(\d{2,})\./);
 
 				if (matches) {
-					let embeds = await genPixivEmbed(matches.filter(m => m)[1], true, nsfw);
-					if (embeds) return turn2thumbnail(embeds.embeds[0]);
+					const pixiv_id = matches.filter(m => m)[1];
+
+					if (pixiv_id) {
+						const embed = await genPixivEmbed(pixiv_id, nsfw);
+						if (embed !== null) {
+							return embed;
+						}
+					}
 				}
 
 				// If fetching the original source fails, fallback
@@ -77,7 +99,6 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 			}
 		}
 	} else if (ZAPISaucenaoTwitter.check(result.data)) {
-		// TODO: Fetch images from twitter
 		return {
 			title: "Twitter",
 			description: result.data.ext_urls[0]
@@ -105,6 +126,13 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<Localizabl
 	};
 };
 
+// Some sauces are juicier than others...
+const PREFERENCE = [
+	5, // Pixiv
+	8, // Nico Nico Seiga
+	41 // Twitter
+];
+
 const query = async (id: string, url: string, nsfw: boolean): Promise<LocalizableInteractionReplyOptions> => {
 	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
 
@@ -116,8 +144,29 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<Localizabl
 		};
 	}
 
-	// TODO: Select dropdown for user to check other sauces
-	const results = res.results.sort((r1, r2) => parseFloat(r1.header.similarity) < parseFloat(r2.header.similarity) ? 1 : -1);
+	const results = res.results.sort((r1, r2) => {
+		// For high similarities, sort by preference
+		if (parseFloat(r1.header.similarity) > 90 && parseFloat(r2.header.similarity) > 90) {
+			let i1 = PREFERENCE.indexOf(r1.header.index_id);
+			let i2 = PREFERENCE.indexOf(r2.header.index_id);
+			
+			if (i1 === -1) {
+				i1 = PREFERENCE.length;
+			}
+
+			if (i2 === -1) {
+				i2 = PREFERENCE.length;
+			}
+
+			if (i1 !== i2) {
+				return i1 - i2;
+			}
+		}
+
+		// Then sort by similarity
+		return parseFloat(r2.header.similarity) - parseFloat(r1.header.similarity);
+	});
+
 	try {
 		interactionResults[id] = results;
 
