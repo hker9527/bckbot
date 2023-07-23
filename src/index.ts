@@ -5,7 +5,7 @@ import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } fro
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
 import assert from "assert-ts";
-import { Client, GatewayIntentBits, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, PermissionFlagsBits, TextChannel } from "discord.js";
+import { Client, GatewayIntentBits, InteractionReplyOptions, Message, MessageEditOptions, PermissionFlagsBits, TextChannel, EmbedBuilder } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
@@ -52,8 +52,8 @@ try {
 		// Error reporting
 		const errorChannel = await client.channels.fetch(process.env.error_chid!) as TextChannel;
 		const error = async (tag: string, e: unknown) => {
-			const embed = e instanceof Error ?
-				new MessageEmbed({
+			const embed = (e instanceof Error ?
+				new EmbedBuilder({
 					title: e.name,
 					fields: [
 						{
@@ -66,7 +66,7 @@ try {
 						}
 					]
 				}) :
-				new MessageEmbed({
+				new EmbedBuilder({
 					title: "Error",
 					fields: [
 						{
@@ -78,7 +78,7 @@ try {
 							"value": "```\n" + (e + "").substring(0, 1000) + "\n```" ?? "(none)"
 						}
 					]
-				});
+				}));
 
 			const obj = {
 				content: new Date().toISOString(),
@@ -86,7 +86,7 @@ try {
 			};
 
 			if (process.env.DEBUG) {
-				console.error(obj.embeds[0].fields[1].value);
+				console.error(obj.embeds[0].toJSON().fields![1].value);
 			} else {
 				await errorChannel.send(obj);
 			}
