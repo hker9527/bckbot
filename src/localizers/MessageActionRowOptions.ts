@@ -1,22 +1,18 @@
 import { Localizer } from "@app/Localizations";
 import { Localizable } from "@type/Localizable";
 import { LocaleString } from "discord-api-types/v9";
-import { BaseMessageComponentOptions, InteractionButtonOptions, LinkButtonOptions, MessageActionRowOptions, MessageSelectMenuOptions, MessageSelectOptionData } from "discord.js";
-import { MessageButtonStyles } from "discord.js/typings/enums";
+import { BaseMessageComponentOptions, ButtonStyle, InteractionButtonOptions, LinkButtonOptions, MessageActionRowOptions, MessageSelectMenuOptions, MessageSelectOptionData } from "discord.js";
 
 interface LocalizableBaseButtonOptions {
 	type: "BUTTON";
 }
 
-interface LocalizableInteractionButtonOptions extends Omit<InteractionButtonOptions, "customId" | "type" | "style" | "label">, LocalizableBaseButtonOptions {
+interface LocalizableInteractionButtonOptions extends Omit<InteractionButtonOptions, "customId" | "type" | "label">, LocalizableBaseButtonOptions {
 	custom_id: string;
-	style: Exclude<keyof typeof MessageButtonStyles, "LINK">,
 	label?: Localizable
 };
 
-interface LocalizableLinkButtonOptions extends Omit<LinkButtonOptions, "type" | "style">, LocalizableBaseButtonOptions {
-	style: "LINK"
-};
+interface LocalizableLinkButtonOptions extends Omit<LinkButtonOptions, "type">, LocalizableBaseButtonOptions {};
 
 type LocalizableMessageButtonOptions = LocalizableInteractionButtonOptions | LocalizableLinkButtonOptions;
 
@@ -55,7 +51,7 @@ export class LocalizableMessageActionRowAdapter {
 			switch (component.type) {
 				case "BUTTON":
 					switch (component.style) {
-						case "LINK":
+						case "Link":
 							actionRow.components.push(component);
 							break;
 						default:
