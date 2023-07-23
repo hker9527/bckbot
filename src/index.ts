@@ -5,7 +5,7 @@ import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } fro
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
 import assert from "assert-ts";
-import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, TextChannel } from "discord.js";
+import { Client, GatewayIntentBits, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, TextChannel } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
@@ -16,11 +16,11 @@ import { random } from "./utils";
 
 const client = new Client({
 	intents: [
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MESSAGES,
-		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-		Intents.FLAGS.DIRECT_MESSAGES,
-		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.DirectMessageReactions
 	]
 });
 
