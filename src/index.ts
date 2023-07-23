@@ -5,7 +5,7 @@ import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } fro
 import { Dictionary } from "@type/Dictionary";
 import { StealthModule } from "@type/StealthModule";
 import assert from "assert-ts";
-import { Client, GatewayIntentBits, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, TextChannel } from "discord.js";
+import { Client, GatewayIntentBits, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, PermissionFlagsBits, TextChannel } from "discord.js";
 import { config } from "dotenv-safe";
 import { readdirSync } from "fs";
 import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
@@ -232,7 +232,7 @@ try {
 							sources[sourceMessage.id] === interaction.user.id
 							|| sourceMessage.mentions.repliedUser?.id === interaction.user.id
 							|| sourceMessage.interaction && sourceMessage.interaction.user.id === interaction.user.id
-							|| guildUser.permissions.has("ADMINISTRATOR")
+							|| guildUser.permissions.has(PermissionFlagsBits.Administrator)
 						) {
 							await sourceMessage.delete();
 						} else {
