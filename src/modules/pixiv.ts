@@ -137,6 +137,38 @@ class Ugoira extends Illust {
 			return null;
 		}
 
+		// Check for cache
+		const cache = await client.pixivCache.findFirst({
+			where: {
+				id: this.details.id.toString()
+			}
+		});
+
+		if (cache) {
+			// Validate cache
+			const imgurRes = await fetch(`https://api.imgur.com/3/image/${cache.hash}`, {
+				headers: {
+					"Authorization": `Client-ID ${process.env.imgur_id}`
+				}
+			});
+
+			const imgurResJson = await imgurRes.json();
+
+			if (imgurResJson.success) {
+				return {
+					content: `https://imgur.com/${cache.hash}`
+				};
+			} else {
+				// Delete cache
+				await client.pixivCache.delete({
+					where: {
+						id: this.details.id.toString()
+					}
+				});
+				// Fall back to normal
+			}
+		}
+
 		const tmpdir = `/tmp/${this.details.id}`;
 		await mkdir(tmpdir);
 
