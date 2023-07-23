@@ -219,8 +219,7 @@ const interactionResults: Dictionary<Results> = {};
 export const command: Command = {
 	defer: true,
 	name: "sauce",
-	type: "MESSAGE",
-	onContextMenu: async (interaction) => {
+	onMessageContextMenu: async (interaction) => {
 		const message = interaction.getMessage();
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 

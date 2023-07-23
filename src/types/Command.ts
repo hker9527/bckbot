@@ -23,9 +23,8 @@ export interface SlashApplicationCommand<D extends boolean> extends ApplicationC
 };
 
 export interface ContextMenuApplicationCommand<D extends boolean> extends ApplicationCommand<D> {
-	type: "MESSAGE" | "USER";
-
-	onContextMenu: onFn<ContextMenuInteraction>;
+	onMessageContextMenu?: onFn<ContextMenuInteraction>;
+	onUserContextMenu?: onFn<ContextMenuInteraction>;
 };
 
 export type SlashApplicationCommands = SlashApplicationCommand<true> | SlashApplicationCommand<false>;

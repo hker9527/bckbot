@@ -9,9 +9,8 @@ const bestOptions: ImageURLOptions = {
 
 export const command: Command = {
 	defer: false,
-	type: "USER",
 	name: "avatar",
-	onContextMenu: async (interaction) => {
+	onUserContextMenu: async (interaction) => {
 		const user = await interaction.getUser().fetch(true);
 		const member = interaction.guild?.members.cache.get(user.id);
 
