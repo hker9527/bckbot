@@ -147,7 +147,7 @@ try {
 					custom_id: "delete",
 					emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
 				}
-			]).build(interaction.getLocale());
+			]).build(interaction.locale);
 
 			const reply = async (response: InteractionReplyOptions, onTimeout?: Command["onTimeout"]) => {
 				if (response.ephemeral) {
@@ -181,14 +181,14 @@ try {
 							const { components, ...x } = response;
 							const msg = await interaction.editReply({ components: _components ?? [], ...x });
 							if (onTimeout) {
-								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.getLocale());
+								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.locale);
 								await interaction.editReply(reply);
 							}
 							delete timeouts[id];
 						} catch (e) { }
 					}, 1000 * 15);
 
-					if (interaction.isApplicationCommand()) {
+					if (interaction.isCommand()) {
 						timeouts[interaction.id] = timeout;
 					} else if (interaction.isMessageComponent()) {
 						const parent = interaction.message.interaction!.id;
@@ -203,7 +203,7 @@ try {
 				content: {
 					key: "index.error"
 				}
-			}).build(interaction.getLocale());
+			}).build(interaction.locale);
 
 			try {
 				// Delete function
@@ -224,7 +224,7 @@ try {
 										key: "delete.notMyMessage"
 									},
 									ephemeral: true
-								}).build(interaction.getLocale())
+								}).build(interaction.locale)
 							);
 						}
 
@@ -242,7 +242,7 @@ try {
 										key: "delete.deletingOthersMessage"
 									},
 									ephemeral: true
-								}).build(interaction.getLocale())
+								}).build(interaction.locale)
 							);
 						}
 					}
@@ -259,7 +259,7 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onCommand(interaction)
-						).build(interaction.getLocale());
+						).build(interaction.locale);
 					} catch (e) {
 						error(`commands/${command.name}.onCommand`, e);
 					}
@@ -279,7 +279,7 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onContextMenu(interaction)
-						).build(interaction.getLocale());
+						).build(interaction.locale);
 					} catch (e) {
 						error(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -305,11 +305,11 @@ try {
 						if (interaction.isButton()) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
 								await command.onButton!(interaction)
-							).build(interaction.getLocale());
+							).build(interaction.locale);
 						} else if (interaction.isSelectMenu()) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
 								await command.onSelectMenu!(interaction)
-							).build(interaction.getLocale());
+							).build(interaction.locale);
 						}
 					} catch (e) {
 						error(`commands/${command.name}.${interaction.isButton() ? "onButton" : "onSelectMenu"}`, e);
