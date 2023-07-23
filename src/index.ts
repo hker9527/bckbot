@@ -209,9 +209,9 @@ try {
 				// Delete function
 				if (
 					interaction.isButton() && interaction.customId === "delete"
-					|| interaction.isContextMenu() && interaction.command?.name === getName("delete").name
+					|| interaction.isMessageContextMenuCommand() && interaction.command!.name === getName("delete").name
 				) {
-					const sourceMessage = (interaction.isContextMenu() ? interaction.getMessage() : interaction.message) as Message;
+					const sourceMessage = (interaction.isMessageContextMenuCommand() ? interaction.targetMessage : interaction.message) as Message;
 
 					if (sourceMessage.deletable) {
 						// Check if the interaction issuer is the message author or is an admin
