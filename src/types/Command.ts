@@ -1,6 +1,6 @@
 import { LocalizableApplicationCommandOptionData } from "@app/adapters/ApplicationCommandOptionData";
 import { LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, InteractionResponseFields, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, ContextMenuInteraction, MessageComponentInteraction, SelectMenuInteraction } from "discord.js";
 import { Dictionary } from "./Dictionary";
 
 type onFn<T> = (interaction: T) => Promise<LocalizableInteractionReplyOptions>;
@@ -13,7 +13,7 @@ interface ApplicationCommand<D extends boolean> {
 	onMessageComponent?: onFn<MessageComponentInteraction>;
 	onSelectMenu?: onFn<SelectMenuInteraction>;
 
-	onTimeout?: onFn<Awaited<ReturnType<InteractionResponseFields["editReply"]>>>;
+	onTimeout?: onFn<Awaited<ReturnType<CommandInteraction["editReply"]>>>;
 };
 
 export interface SlashApplicationCommand<D extends boolean> extends ApplicationCommand<D> {
