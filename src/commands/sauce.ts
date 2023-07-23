@@ -26,7 +26,7 @@ const turn2thumbnail = (embed: LocalizableMessageEmbedOptions) => {
 const genPixivEmbed = async (pixiv_id: number | string, nsfw: boolean) => {
 	const illustMessageFactory = new IllustMessageFactory(pixiv_id);
 	await illustMessageFactory.getDetail();
-	if (illustMessageFactory.getType() !== null) {
+	if (illustMessageFactory.getType() === "illust") {
 		const message = await illustMessageFactory.toMessage(nsfw);
 		if (message !== null) {
 			if (Array.isArray(message.embeds) && "image" in message.embeds[0]) {
