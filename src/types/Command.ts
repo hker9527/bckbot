@@ -1,9 +1,9 @@
 import { LocalizableApplicationCommandOptionData } from "@app/adapters/ApplicationCommandOptionData";
-import { LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, MessageComponentInteraction, MessageContextMenuCommandInteraction, SelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 import { Dictionary } from "./Dictionary";
 
-type onFn<T> = (interaction: T) => Promise<LocalizableInteractionReplyOptions>;
+type onFn<T> = (interaction: T) => Promise<LInteractionReplyOptions>;
 
 interface ApplicationCommand<D extends boolean> {
 	defer: D;

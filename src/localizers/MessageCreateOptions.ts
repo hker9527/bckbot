@@ -1,23 +1,23 @@
 import { Localizer } from "@app/Localizations";
 import { LocaleString } from "discord-api-types/v9";
-import { InteractionReplyOptions } from "discord.js";
+import { MessageCreateOptions } from "discord.js";
 import { LActionRowDataLocalizer } from "./data/ActionRowData";
 import { LocalizableAPIEmbedAdapter } from "./data/APIEmbed";
 import { LocalizableMessageFields } from "./data/_Fields";
 
-export type LInteractionReplyOptions = LocalizableMessageFields & Omit<InteractionReplyOptions, keyof LocalizableMessageFields>;
+export type LMessageCreateOptions = LocalizableMessageFields & Omit<MessageCreateOptions, keyof LocalizableMessageFields>;
 
-export class LocalizableInteractionReplyOptionsAdapter {
-	private data: LInteractionReplyOptions;
+export class LocalizableMessageCreateOptionsAdapter {
+	private data: LMessageCreateOptions;
 
-	public constructor(data: LInteractionReplyOptions) {
+	public constructor(data: LMessageCreateOptions) {
 		this.data = data;
 	}
 
-	public build(locale: LocaleString): InteractionReplyOptions {
+	public build(locale: LocaleString): MessageCreateOptions {
 		const { components, content, embeds, ...x } = this.data;
 
-		const options: InteractionReplyOptions = { ...x };
+		const options: MessageCreateOptions = { ...x };
 		
 		if (components) {
 			options.components = components.map(component => new LActionRowDataLocalizer(component).localize(locale));
@@ -28,9 +28,9 @@ export class LocalizableInteractionReplyOptionsAdapter {
 		}
 
 		if (embeds) {
-			options.embeds = embeds.map(e => new LocalizableAPIEmbedAdapter(e).build(locale));
+			options.embeds = embeds?.map(embed => new LocalizableAPIEmbedAdapter(embed).build(locale));
 		}
 
 		return options;
 	}
-};
+}
