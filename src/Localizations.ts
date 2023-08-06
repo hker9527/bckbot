@@ -14,8 +14,7 @@ for (const file of readdirSync("./res/i18n/")) {
 }
 
 i18next.init({
-	resources,
-	fallbackLng: "en-US"
+	resources
 });
 
 export const getString = (key: string, locale: LocaleString, options?: Dictionary<string | number>) => {
