@@ -6,11 +6,9 @@ import { StealthModule } from "@type/StealthModule";
 import { exec } from "child_process";
 import { TextChannel } from "discord.js";
 import Ffmpeg from "fluent-ffmpeg";
-import FormData from "form-data";
-import { createReadStream, createWriteStream } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { mkdir, rm, writeFile } from "fs/promises";
 import { htmlToText } from "html-to-text";
-import fetch from "node-fetch";
 import Pixiv, { PixivIllust } from "pixiv.ts";
 import { promisify } from "util";
 
@@ -177,19 +175,13 @@ class Ugoira extends Illust {
 		await mkdir(tmpdir);
 
 		// Download zip to tmpdir
-		const zipResponse = await fetch(this.zipUrl, {
+		await fetch(this.zipUrl, {
 			headers: {
 				"Referer": "https://www.pixiv.net/"
 			}
-		});
-		const fileStream = createWriteStream(`${tmpdir}/ugoira.zip`);
-		zipResponse.body.pipe(fileStream);
-		
-		await new Promise((resolve, reject) => {
-			fileStream.on("finish", resolve);
-			fileStream.on("error", reject);
-			zipResponse.body.on("error", reject);
-		});
+		})
+			.then(x => x.arrayBuffer())
+			.then(x => writeFileSync(`${tmpdir}/ugoira.zip`, Buffer.from(x)));
 
 		// Extract zip by unzip command
 		await promisify(exec)(
@@ -220,7 +212,7 @@ class Ugoira extends Illust {
 
 		// Upload to imgur
 		const formData = new FormData();
-		formData.append("video", createReadStream(`${tmpdir}/output.mp4`));
+		formData.append("video", new Blob([readFileSync(`${tmpdir}/output.mp4`)]));
 		const imgurRes = await fetch("https://api.imgur.com/3/upload", {
 			method: "POST",
 			headers: {
