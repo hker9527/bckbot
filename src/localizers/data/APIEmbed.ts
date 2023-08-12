@@ -3,16 +3,18 @@ import { L, LocalizerItem } from "../../types/Localizer";
 import { APIEmbed, APIEmbedProvider, EmbedAuthorData, EmbedField, EmbedFooterData, LocaleString } from "discord.js";
 
 type LEmbedAuthorData = L<EmbedAuthorData, "name">;
-type LEmbedField = L<EmbedField, "name" | "value">;
+interface LEmbedField extends Omit<L<EmbedField, "name" | "value">, "inline"> {
+	inline?: boolean
+};
 type LEmbedFooterData = L<EmbedFooterData, "text">;
 type LAPIEmbedProvider = L<APIEmbedProvider, "name">;
 
-export interface LAPIEmbed extends Omit<L<APIEmbed, "description" | "title">, "author" | "fields" | "footer" | "provider" | "thumbnail"> {
-	author?: LEmbedAuthorData,
-	fields?: LEmbedField[],
-	footer?: LEmbedFooterData,
-	provider?: LAPIEmbedProvider,
-	title?: LocalizerItem,
+export interface LAPIEmbed extends Omit<L<APIEmbed, "description" | "title">, "author" | "fields" | "footer" | "provider"> {
+	author?: LEmbedAuthorData;
+	fields?: LEmbedField[];
+	footer?: LEmbedFooterData;
+	provider?: LAPIEmbedProvider;
+	title?: LocalizerItem;
 };
 
 export class LocalizableAPIEmbedAdapter {
@@ -43,7 +45,7 @@ export class LocalizableAPIEmbedAdapter {
 			embed.fields = fields.map(({ name, value, ...x }) => ({
 				name: Localizer(name, locale),
 				value: Localizer(value, locale),
-				inline: x.inline
+				inline: x.inline ?? false
 			}));
 		}
 

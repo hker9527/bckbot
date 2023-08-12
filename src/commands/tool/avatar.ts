@@ -1,17 +1,15 @@
-import { Command } from "@type/Command";
-import { ImageURLOptions } from "discord.js";
+import { UserContextMenuCommand } from "@class/ApplicationCommand";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { ImageURLOptions, UserContextMenuCommandInteraction } from "discord.js";
 
 const bestOptions: ImageURLOptions = {
-	format: "png",
-	dynamic: true,
+	extension: "png",
 	size: 4096
 };
 
-export const command: Command = {
-	defer: false,
-	name: "avatar",
-	onUserContextMenu: async (interaction) => {
-		const user = await interaction.getUser().fetch(true);
+class Command extends UserContextMenuCommand {
+	public async onContextMenu(interaction: UserContextMenuCommandInteraction): Promise<LInteractionReplyOptions> {
+		const user = await interaction.targetUser.fetch();
 		const member = interaction.guild?.members.cache.get(user.id);
 
 		const userAvatarURL = user.displayAvatarURL(bestOptions);
@@ -69,18 +67,28 @@ export const command: Command = {
 					name: `${user.username}`
 				},
 				color: 0x8dd272,
-				image: userAvatarURL,
+				image: {
+					url: userAvatarURL
+				},
 				url: "https://discord.com"
 			},
 			{
-				image: guildAvatarURL || "",
+				image: {
+					url: guildAvatarURL || ""
+				},
 				url: "https://discord.com"
 			},
 			{
-				image: bannerURL || "",
+				image: {
+					url: bannerURL || ""
+				},
 				url: "https://discord.com"
-			}].filter((embed) => embed.image !== ""),
+			}].filter((embed) => embed.image.url !== ""),
 			ephemeral: true
 		};
 	}
-};
+}
+
+export const avatar = new Command({
+	name: "avatar"
+});

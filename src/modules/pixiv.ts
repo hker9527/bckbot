@@ -1,22 +1,22 @@
 import { error } from "@app/Reporting";
-import { LocalizableMessageEmbedOptions } from "@localizer/MessageEmbedOptions";
+import { LBaseMessageOptions } from "@localizer/MessageOptions";
+import { LAPIEmbed } from "@localizer/data/APIEmbed";
+import { PrismaClient } from "@prisma/client";
 import { StealthModule } from "@type/StealthModule";
+import { exec } from "child_process";
 import { TextChannel } from "discord.js";
+import Ffmpeg from "fluent-ffmpeg";
+import FormData from "form-data";
+import { createReadStream, createWriteStream } from "fs";
+import { mkdir, rm, writeFile } from "fs/promises";
 import { htmlToText } from "html-to-text";
 import fetch from "node-fetch";
-import FormData from "form-data";
-import { PrismaClient } from "@prisma/client";
 import Pixiv, { PixivIllust } from "pixiv.ts";
-import { mkdir, rm, writeFile } from "fs/promises";
-import { createReadStream, createWriteStream } from "fs";
-import { exec } from "child_process";
 import { promisify } from "util";
-import Ffmpeg from "fluent-ffmpeg";
-import { LocalizableMessageOptions } from "@localizer/MessageOptions";
 
 const client = new PrismaClient();
 
-let pixiv: Pixiv;
+let pixivClient: Pixiv;
 
 interface IllustDetails {
 	id: string;
@@ -39,8 +39,8 @@ class Illust {
 		this.details = illustDetails;
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LocalizableMessageOptions | null> {
-		let embeds: LocalizableMessageEmbedOptions[];
+	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
+		let embeds: LAPIEmbed[];
 
 		// Try to hint the CDN to cache our files
 		for (const imageUrl of this.details.imageUrls) {
@@ -51,14 +51,18 @@ class Illust {
 		}
 
 		embeds = this.details.imageUrls.map((url: string) => ({
-			image: url,
+			image: {
+				url
+			},
 			url: `https://www.pixiv.net/artworks/${this.details.id}`
 		}));
 
 		if (!nsfw && this.details.restrict) {
 			embeds = [embeds[0]];
 			delete embeds[0].image;
-			embeds[0].thumbnail = "https://images.emojiterra.com/twitter/v14.0/128px/1f51e.png";
+			embeds[0].thumbnail = {
+				url: "https://images.emojiterra.com/twitter/v14.0/128px/1f51e.png"
+			};
 		}
 
 		// Add metadata to the first embed
@@ -73,7 +77,7 @@ class Illust {
 					url: `https://www.pixiv.net/artworks/${this.details.id}`
 				},
 				color: this.details.restrict ? 0xd37a52 : 0x3D92F5,
-				timestamp: new Date(this.details.date),
+				timestamp: new Date(this.details.date).toISOString(),
 				fields: [{
 					name: {
 						key: "pixiv.sauceHeader"
@@ -118,7 +122,7 @@ class Ugoira extends Illust {
 
 	public async getMeta(): Promise<boolean> {
 		try {
-			const res = await pixiv.ugoira.metadata({
+			const res = await pixivClient.ugoira.metadata({
 				illust_id: +this.details.id
 			});
 		
@@ -132,7 +136,7 @@ class Ugoira extends Illust {
 		}
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LocalizableMessageOptions | null> {
+	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
 		if (this.details.restrict && !nsfw) {
 			return null;
 		}
@@ -270,7 +274,7 @@ export class IllustMessageFactory {
 		try {
 			const illustMeta: PixivIllust & {
 				illust_ai_type: number
-			} = await pixiv.illust.detail({
+			} = await pixivClient.illust.detail({
 				illust_id: +this.id
 			}) as unknown as any;
 			
@@ -308,7 +312,7 @@ export class IllustMessageFactory {
 		return this.illustDetails?.type ?? null as any;
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LocalizableMessageOptions | null> {
+	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
 		if (!this.illustDetails) {
 			if (!await this.getDetail()) {
 				return null;
@@ -336,13 +340,13 @@ export class IllustMessageFactory {
 }
 
 const worker = async () => {
-	pixiv = await Pixiv.refreshLogin(process.env.pixiv_refresh_token!);
+	pixivClient = await Pixiv.refreshLogin(process.env.pixiv_refresh_token!);
 };
 
 setInterval(worker, 3000 * 1000);
 worker();
 
-export const module: StealthModule = {
+export const pixiv: StealthModule = {
 	name: "pixiv",
 	event: "messageCreate",
 	pattern: /(artworks\/|illust_id=)(\d{2,10})/,

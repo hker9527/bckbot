@@ -1,7 +1,10 @@
-import { arr2obj, enumStringKeys, req2json, round } from "@app/utils";
+import { arr2obj, req2json, round } from "@app/utils";
+import { SlashApplicationCommand } from "@class/ApplicationCommand";
+import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { PrismaClient } from "@prisma/client";
-import { Command } from "@type/Command";
-import assert from "assert";
+import assert from "assert-ts";
+import { ChatInputCommandInteraction } from "discord.js";
 import { z } from "zod";
 
 const currencies = [
@@ -21,6 +24,7 @@ const worker = async () => {
 			const response = await req2json(`https://api.exchangerate.host/latest?base=${currency}&symbols=${otherCurrencies.join(",")}`);
 			const Z = z.object({
 				success: z.literal(true),
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				rates: z.object(arr2obj(otherCurrencies, otherCurrencies.map(_ => z.number())))
 			});
 			const data = Z.safeParse(response);
@@ -51,25 +55,34 @@ const worker = async () => {
 worker();
 setInterval(worker, 3600 * 1000);
 
-export const command: Command = {
-	defer: true,
-	name: "currency",
-	options: {
-		source: {
-			type: "STRING",
+
+class Command extends SlashApplicationCommand {
+	public options: LApplicationCommandOptionData[] = [
+		{
+			name: "source",
+			type: "String",
 			required: true,
-			choices: arr2obj(currencies, currencies)
+			choices: currencies.map(currency => ({
+				name: currency,
+				value: currency
+			}))
 		},
-		amount: {
-			type: "NUMBER",
-			min: 1
+		{
+			name: "amount",
+			type: "Number",
+			minValue: 1
 		},
-		target: {
-			type: "STRING",
-			choices: arr2obj(currencies, currencies)
+		{
+			name: "target",
+			type: "String",
+			choices: currencies.map(currency => ({
+				name: currency,
+				value: currency
+			}))
 		}
-	},
-	onCommand: async (interaction) => {
+	];
+
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
 		const source = interaction.options.getString("source", true);
 		const amount = interaction.options.getNumber("amount") ?? 1;
 		const target = interaction.options.getString("target") ?? null;
@@ -121,8 +134,12 @@ export const command: Command = {
 				footer: {
 					text: "Updated at"
 				},
-				timestamp: records[0].updateInfo.time
+				timestamp: records[0].updateInfo.time.toISOString()
 			}]
 		};
 	}
 };
+
+export const currency = new Command({
+	name: "currency"
+});

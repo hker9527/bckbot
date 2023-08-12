@@ -4,7 +4,7 @@ import { find } from "linkifyjs";
 import fetch from "node-fetch";
 import { getString } from "@app/Localizations";
 
-export const module: StealthModule = {
+export const scam: StealthModule = {
 	name: "scam",
 	event: "messageCreate",
 	action: async (obj: StealthModuleActionArgument) => {

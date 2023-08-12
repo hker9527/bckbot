@@ -1,5 +1,4 @@
-import { Dictionary } from "@type/Dictionary";
-import { Localizable } from "@type/Localizable";
+import { LocalizerItem } from "@type/Localizer";
 import { LocaleString, LocalizationMap } from "discord-api-types/v9";
 import { readdirSync, readFileSync } from "fs";
 import i18next from "i18next";
@@ -17,8 +16,23 @@ i18next.init({
 	resources
 });
 
-export const getString = (key: string, locale: LocaleString, options?: Dictionary<string | number>) => {
+export const getString = (key: string, locale: LocaleString, options?: Record<string, string | number>) => {
 	while (!i18next.isInitialized);
+
+	// Locale fallback
+	switch (locale) {
+		case "en-GB":
+			locale = "en-US";
+			break;
+		case "zh-CN":
+			locale = "zh-TW";
+			break;
+		default:
+			if (!i18next.exists(key, { lng: locale })) {
+				locale = "en-US";
+			}
+			break;
+	}
 
 	if (!key.includes("$t") && !i18next.exists(key, { lng: locale })) {
 		error("getString", `${key} @ ${locale} does not exist!`);
@@ -27,7 +41,7 @@ export const getString = (key: string, locale: LocaleString, options?: Dictionar
 	return i18next.t(key, { interpolation: { escapeValue: false }, lng: locale, ...options });
 };
 
-export const Localizer = (localizable: Localizable, locale: LocaleString) => {
+export const Localizer = (localizable: LocalizerItem, locale: LocaleString) => {
 	if (typeof localizable === "string") {
 		return localizable;
 	}

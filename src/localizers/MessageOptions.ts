@@ -1,23 +1,23 @@
 import { Localizer } from "@app/Localizations";
 import { LocaleString } from "discord-api-types/v9";
-import { MessageCreateOptions } from "discord.js";
+import { BaseMessageOptions } from "discord.js";
 import { LActionRowDataLocalizer } from "./data/ActionRowData";
 import { LocalizableAPIEmbedAdapter } from "./data/APIEmbed";
 import { LocalizableMessageFields } from "./data/_Fields";
 
-export type LMessageCreateOptions = LocalizableMessageFields & Omit<MessageCreateOptions, keyof LocalizableMessageFields>;
+export type LBaseMessageOptions = LocalizableMessageFields & Omit<BaseMessageOptions, keyof LocalizableMessageFields>;
 
-export class LocalizableMessageCreateOptionsAdapter {
-	private data: LMessageCreateOptions;
+export class LocalizableBaseMessageOptionsAdapter {
+	private data: LBaseMessageOptions;
 
-	public constructor(data: LMessageCreateOptions) {
+	public constructor(data: LBaseMessageOptions) {
 		this.data = data;
 	}
 
-	public build(locale: LocaleString): MessageCreateOptions {
+	public build(locale: LocaleString): BaseMessageOptions {
 		const { components, content, embeds, ...x } = this.data;
 
-		const options: MessageCreateOptions = { ...x };
+		const options: BaseMessageOptions = { ...x };
 		
 		if (components) {
 			options.components = components.map(component => new LActionRowDataLocalizer(component).localize(locale));
