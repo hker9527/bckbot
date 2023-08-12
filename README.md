@@ -6,7 +6,6 @@
 
 * Context menu support
 * Reverse image search
-* Nudity detection
 * Better pixiv preview (Multi image support)
 * Currency conversion
 * Scam URL detection
@@ -39,5 +38,4 @@ yarn start
 |[pixiv](https://www.pixiv.net/en/)|Fetch images from pixiv|
 |[saucenao](https://saucenao.com/)|Reverse image search|
 |[exchangerate.host](https://exchangerate.host/)|Currency conversion|
-|[quotable.io](https://github.com/lukePeavey/quotable)|Get random quotes|
 |[Google Safebrowsing](https://safebrowsing.google.com/)|Detect malicious URLs|
