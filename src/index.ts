@@ -156,7 +156,7 @@ try {
 							}
 							delete timeouts[id];
 						} catch (e) { }
-					}, 1000);
+					}, 15 * 1000);
 
 					if (interaction.isCommand()) {
 						timeouts[interaction.id] = timeout;
