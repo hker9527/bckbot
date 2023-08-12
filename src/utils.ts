@@ -1,4 +1,3 @@
-import { Dictionary } from "@type/Dictionary";
 import assert from "assert";
 import { Decimal } from "decimal.js";
 import { Message } from "discord.js";
@@ -15,16 +14,16 @@ export const random = (low: number, high: number) => {
 	return (Math.random() * (high - low + 1) + low) | 0;
 };
 
-export const arr2obj = <T>(a1: (string | number)[], a2: T[]): Dictionary<T> => {
+export const arr2obj = <T>(a1: (string | number)[], a2: T[]): Record<string, T> => {
 	assert(a1.length === a2.length);
-	const out: Dictionary<T> = {};
+	const out: Record<string, T> = {};
 	for (let i = 0; i < a1.length; i++) {
 		out[a1[i]] = a2[i];
 	}
 	return out;
 };
 
-export const urandom = (object: Dictionary<Decimal | number>) => {
+export const urandom = (object: Record<string, Decimal | number>) => {
 	const opt = Object.keys(object);
 
 	if (opt.length === 1) {
@@ -50,6 +49,13 @@ export const urandom = (object: Dictionary<Decimal | number>) => {
 		return opt.shift()!;
 	}
 };
+
+export const shuffleArray = (array: any[]) => {
+	for (let i = array.length - 1; i > 0; i--) {
+		let j = random(0, i);
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+}
 
 export const randomString = (length: number) => {
 	let o = "";

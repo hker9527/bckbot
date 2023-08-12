@@ -1,5 +1,5 @@
 import { req2json } from "@app/utils";
-import { LocalizableMessageEmbedOptions } from "@localizer/MessageEmbedOptions";
+import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { APIDanbooru } from "@type/api/Danbooru";
 import { APIKonachan } from "@type/api/Konachan";
 import { APISankaku } from "@type/api/Sankaku";
@@ -27,6 +27,7 @@ export interface ImageObject {
 	height: number;
 }
 
+// TODO: Rewrite as class
 export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
 	let res = await req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join("+")}${nsfw ? "" : "+rating:s"}&limit=20`);
 
@@ -91,7 +92,7 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 };
 
 export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
-	const embed: LocalizableMessageEmbedOptions = {
+	const embed: LAPIEmbed = {
 		author: {
 			name: {
 				key: "moebooru.searchResult"
@@ -124,17 +125,19 @@ export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObj
 			},
 			value: (imageObject.source?.length ? imageObject.source : undefined) ?? "(未知)"
 		}],
-		timestamp: imageObject.created_at
+		timestamp: imageObject.created_at.toISOString()
 	};
 
 	if (showImage && (imageObject.rating !== "s" || nsfw) && imageObject.file_url) {
 		// embed.setImage(imageObject.file_url);
-		embed.image = imageObject.file_url;
+		embed.image = {
+			url: imageObject.file_url
+		};
 	}
 	return embed;
 };
 
-export const module: StealthModule = {
+export const moebooru: StealthModule = {
 	name: "moebooru",
 	event: "messageCreate",
 	action: async () => {

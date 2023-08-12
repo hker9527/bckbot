@@ -1,7 +1,8 @@
 import { error } from "@app/Reporting";
 import { req2json } from "@app/utils";
-import { LocalizableInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { LocalizableMessageEmbedOptions } from "@localizer/MessageEmbedOptions";
+import { MessageContextMenuCommand } from "@class/ApplicationCommand";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "@module/moebooru";
 import { APISaucenao } from "@type/api/Saucenao";
 import { ZAPISaucenaoBase } from "@type/api/saucenao/Base";
@@ -9,14 +10,14 @@ import { ZAPISaucenaoEHentai } from "@type/api/saucenao/EHentai";
 import { ZAPISaucenaoMoebooru } from "@type/api/saucenao/Moebooru";
 import { ZAPISaucenaoPixiv } from "@type/api/saucenao/Pixiv";
 import { ZAPISaucenaoTwitter } from "@type/api/saucenao/Twitter";
-import { Command } from "@type/Command";
-import { Dictionary } from "@type/Dictionary";
-import { IllustMessageFactory } from "../modules/pixiv";
-import { findImagesFromMessage } from "./_lib";
+import { Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from "discord.js";
+import { IllustMessageFactory } from "../../modules/pixiv";
+import { findImagesFromMessage } from "../_lib";
+import { LBaseMessageOptions } from "@localizer/MessageOptions";
 
 type Results = APISaucenao["results"];
 
-const turn2thumbnail = (embed: LocalizableMessageEmbedOptions) => {
+const turn2thumbnail = (embed: LAPIEmbed) => {
 	embed.thumbnail = embed.image;
 	delete embed.image;
 
@@ -32,13 +33,13 @@ const genPixivEmbed = async (pixiv_id: number | string, nsfw: boolean) => {
 			if (Array.isArray(message.embeds) && "image" in message.embeds[0]) {
 				return turn2thumbnail(message.embeds[0]);
 			}
-		}		
+		}
 	}
 
 	return null;
 };
 
-const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LocalizableMessageEmbedOptions> => {
+const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LAPIEmbed> => {
 	if (ZAPISaucenaoPixiv.check(result.data)) {
 		const pixiv_id = result.data.pixiv_id ?? null;
 		if (pixiv_id !== null) {
@@ -133,41 +134,41 @@ const PREFERENCE = [
 	41 // Twitter
 ];
 
-const query = async (id: string, url: string, nsfw: boolean): Promise<LocalizableInteractionReplyOptions> => {
-	const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
+const query = async (id: string, url: string, nsfw: boolean): Promise<LInteractionReplyOptions> => {
+	try {
+		const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
 
-	if (res.results === null) {
-		return {
-			content: {
-				key: "sauce.noSauce"
-			}
-		};
-	}
-
-	const results = res.results.sort((r1, r2) => {
-		// For high similarities, sort by preference
-		if (parseFloat(r1.header.similarity) > 90 && parseFloat(r2.header.similarity) > 90) {
-			let i1 = PREFERENCE.indexOf(r1.header.index_id);
-			let i2 = PREFERENCE.indexOf(r2.header.index_id);
-			
-			if (i1 === -1) {
-				i1 = PREFERENCE.length;
-			}
-
-			if (i2 === -1) {
-				i2 = PREFERENCE.length;
-			}
-
-			if (i1 !== i2) {
-				return i1 - i2;
-			}
+		if (res.results === null) {
+			return {
+				content: {
+					key: "sauce.noSauce"
+				}
+			};
 		}
 
-		// Then sort by similarity
-		return parseFloat(r2.header.similarity) - parseFloat(r1.header.similarity);
-	});
+		const results = res.results.sort((r1, r2) => {
+			// For high similarities, sort by preference
+			if (parseFloat(r1.header.similarity) > 90 && parseFloat(r2.header.similarity) > 90) {
+				let i1 = PREFERENCE.indexOf(r1.header.index_id);
+				let i2 = PREFERENCE.indexOf(r2.header.index_id);
 
-	try {
+				if (i1 === -1) {
+					i1 = PREFERENCE.length;
+				}
+
+				if (i2 === -1) {
+					i2 = PREFERENCE.length;
+				}
+
+				if (i1 !== i2) {
+					return i1 - i2;
+				}
+			}
+
+			// Then sort by similarity
+			return parseFloat(r2.header.similarity) - parseFloat(r1.header.similarity);
+		});
+
 		interactionResults[id] = results;
 
 		for (const result of results) {
@@ -182,23 +183,26 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<Localizabl
 					},
 					embeds: [embed],
 					components: [
-						[
-							{
-								type: "SELECT_MENU",
-								placeholder: {
-									key: "sauce.another"
-								},
-								options: results.map((result, i) => {
-									const _similarity = parseFloat(result.header.similarity);
-									return {
-										emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
-										label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
-										value: `${id}_${i}`
-									}
-								}),
-								custom_id: "checkOtherSauces"
-							}
-						]
+						{
+							type: "ActionRow",
+							components: [
+								{
+									customId: "checkOtherSauces",
+									type: "StringSelect",
+									placeholder: {
+										key: "sauce.another"
+									},
+									options: results.map((result, i) => {
+										const _similarity = parseFloat(result.header.similarity);
+										return {
+											emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
+											label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
+											value: `${id}_${i}`
+										}
+									})
+								}
+							]
+						}
 					]
 				};
 			}
@@ -214,14 +218,11 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<Localizabl
 	}
 };
 
-const interactionResults: Dictionary<Results> = {};
+const interactionResults: Record<string, Results> = {};
 
-export const command: Command = {
-	defer: true,
-	name: "sauce",
-	type: "MESSAGE",
-	onContextMenu: async (interaction) => {
-		const message = interaction.getMessage();
+class Command extends MessageContextMenuCommand {
+	public async onContextMenu(interaction: MessageContextMenuCommandInteraction): Promise<LInteractionReplyOptions> {
+		const message = interaction.targetMessage;
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 
 		// Attachment shows first, then embeds.
@@ -240,16 +241,19 @@ export const command: Command = {
 					key: "sauce.whichImage"
 				},
 				components: [
-					[
-						{
-							type: "SELECT_MENU",
-							options: urls.map((url, i) => ({
-								label: `${i + 1}. ${url}`,
-								value: url
-							})),
-							custom_id: "pickURL"
-						}
-					]
+					{
+						type: "ActionRow",
+						components: [
+							{
+								customId: "pickURL",
+								type: "StringSelect",
+								options: urls.map((url, i) => ({
+									label: `${i + 1}. ${url}`,
+									value: url
+								}))
+							}
+						]
+					}
 				]
 			}
 		} else {
@@ -257,8 +261,9 @@ export const command: Command = {
 		}
 
 		return await query(interaction.id, url, nsfw);
-	},
-	onSelectMenu: async (interaction) => {
+	}
+
+	public async onSelectMenu(interaction: StringSelectMenuInteraction): Promise<LInteractionReplyOptions> {
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 
 		switch (interaction.customId) {
@@ -275,28 +280,33 @@ export const command: Command = {
 					return {
 						content: {
 							key: "sauce.confidenceLevel",
-							data: { similarity: parseFloat(result.header.similarity) }
+							data: { 
+								similarity: parseFloat(result.header.similarity)
+							}
 						},
 						embeds: [embed],
 						components: [
-							[
-								{
-									type: "SELECT_MENU",
-									placeholder: {
-										key: "sauce.another"
-									},
-									options: results.map((result, _i) => {
-										const _similarity = parseFloat(result.header.similarity);
-										return {
-											emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
-											label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
-											value: `${id}_${_i}`,
-											default: i === `${_i}`
-										}
-									}),
-									custom_id: "checkOtherSauces"
-								}
-							]
+							{
+								type: "ActionRow",
+								components: [
+									{
+										customId: "checkOtherSauces",
+										type: "StringSelect",
+										placeholder: {
+											key: "sauce.another"
+										},
+										options: results.map((result, _i) => {
+											const _similarity = parseFloat(result.header.similarity);
+											return {
+												emoji: _similarity > 90 ? "🟢" : (_similarity > 60 ? "🟡" : "🔴"),
+												label: `(${result.header.similarity}%) - ${result.header.index_name}`.substring(0, 90),
+												value: `${id}_${_i}`,
+												default: i === `${_i}`
+											}
+										})
+									}
+								]
+							}
 						]
 					};
 				}
@@ -307,4 +317,20 @@ export const command: Command = {
 			content: "UwU"
 		};
 	}
-};
+
+	public async onTimeout(message: Message): Promise<LBaseMessageOptions> {
+		// Remove string select
+		const { content, embeds } = message;
+		return {
+			content,
+			// TODO: Fix this ugly thing
+			embeds: embeds.map(embed => embed.toJSON()),
+			components: []
+		};
+	}
+}
+
+export const sauce = new Command({
+	name: "sauce",
+	defer: true
+});

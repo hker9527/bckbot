@@ -1,5 +1,4 @@
-import { Message, Guild, Interaction, ContextMenuInteraction, User } from "discord.js";
-import { LocaleString } from "discord-api-types/v9";
+import { Message, Guild, Locale } from "discord.js";
 
 export const injectPrototype = () => { }; // Turn this file into a module
 
@@ -40,11 +39,7 @@ BigInt.prototype.toJSON = function () {
 
 declare module "discord.js" {
 	interface Message {
-		getLocale: () => LocaleString;
-	}
-
-	interface Interaction {
-		getLocale: () => LocaleString;
+		getLocale: () => Locale;
 	}
 
 	interface ContextMenuInteraction {
@@ -53,34 +48,14 @@ declare module "discord.js" {
 	}
 
 	interface Guild {
-		getLocale: () => LocaleString;
+		getLocale: () => Locale;
 	}
 }
 
 Message.prototype.getLocale = function () {
-	return this.guild?.getLocale() ?? "en-US";
-};
-
-Interaction.prototype.getLocale = function () {
-	// Fallbacks for similar languages
-	switch (this.locale) {
-		case "en-GB":
-			return "en-US";
-		case "zh-CN":
-			return "zh-TW";
-		default:
-			return this.locale as LocaleString ?? this.guild?.getLocale() ?? "en-US";
-	}
-};
-
-ContextMenuInteraction.prototype.getMessage = function () {
-	return this.options.getMessage("message") as Message; // Assuming all messages received are Message-compactible.
-};
-
-ContextMenuInteraction.prototype.getUser = function () {
-	return this.options.getUser("user") as User; // Assuming all messages received are Message-compactible.
+	return this.guild?.getLocale() ?? Locale.EnglishUS;
 };
 
 Guild.prototype.getLocale = function () {
-	return this.preferredLocale as LocaleString;
+	return this.preferredLocale;
 };

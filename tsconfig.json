@@ -29,6 +29,9 @@
 			"@type/*": [
 				"src/types/*"
 			],
+			"@class/*": [
+				"src/classes/*"
+			],
 			"@res/*": [
 				"res/*"
 			],

@@ -1,30 +1,35 @@
 import { random, randomArrayElement } from "@app/utils";
-import { Command } from "@type/Command";
+import { SlashApplicationCommand } from "@class/ApplicationCommand";
+import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { ChatInputCommandInteraction } from "discord.js";
 
 const numberSymbols = "　１２３４５６７８９".split("");
 const bombSymbol = "Ｘ";
 
-export const command: Command = {
-	defer: false,
-	name: "mine",
-	options: {
-		h: {
-			type: "INTEGER",
-			min: 3,
-			max: 14
+class Command extends SlashApplicationCommand {
+	public options: LApplicationCommandOptionData[] = [
+		{
+			name: "h",
+			type: "Integer",
+			minValue: 3,
+			maxValue: 14
 		},
-		w: {
-			type: "INTEGER",
-			min: 3,
-			max: 14
+		{
+			name: "w",
+			type: "Integer",
+			minValue: 3,
+			maxValue: 14
 		},
-		n: {
-			type: "INTEGER",
-			min: 1,
-			max: 191
+		{
+			name: "n",
+			type: "Integer",
+			minValue: 1,
+			maxValue: 191
 		}
-	},
-	onCommand: async (interaction) => {
+	];
+
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
 		const _h = random(3, 15);
 		const _w = random(3, 15);
 
@@ -77,12 +82,16 @@ export const command: Command = {
 					mineField: field.map((a, i) => a.map((b, j) =>
 						// Show the 4 corners
 						i === 0 && j === 0
-						|| i === 0 && j === w - 1
-						|| i === h - 1 && j === 0
-						|| i === h - 1 && j === w - 1 ? b : `||${b}||`
+							|| i === 0 && j === w - 1
+							|| i === h - 1 && j === 0
+							|| i === h - 1 && j === w - 1 ? b : `||${b}||`
 					).join("")).join("\n")
 				}
 			}
 		};
 	}
 };
+
+export const mine = new Command({
+	name: "mine"
+});

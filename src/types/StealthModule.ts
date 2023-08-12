@@ -1,4 +1,4 @@
-import { LocalizableMessageOptions } from "@localizer/MessageOptions"
+import { LMessageCreateOptions } from "@localizer/MessageOptions"
 import { Message } from "discord.js"
 
 export interface StealthModuleActionArgument {
@@ -12,7 +12,7 @@ export interface StealthModule {
 	pattern?: RegExp,
 	action: (obj: StealthModuleActionArgument) => Promise<boolean | {
 		type: "reply" | "send",
-		result: LocalizableMessageOptions
+		result: LMessageCreateOptions
 	}>,
-	onTimeout?: (message: Message) => Promise<LocalizableMessageOptions>
+	onTimeout?: (message: Message) => Promise<LMessageCreateOptions>
 };

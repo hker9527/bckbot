@@ -1,48 +1,26 @@
+import { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
-import { LocalizableMessageActionRowAdapter } from "@localizer/MessageActionRowOptions";
-import { LocalizableMessageOptionsAdapter } from "@localizer/MessageOptions";
-import { Command, ContextMenuApplicationCommands, SlashApplicationCommands } from "@type/Command";
-import { Dictionary } from "@type/Dictionary";
-import { StealthModule } from "@type/StealthModule";
 import assert from "assert-ts";
-import { Client, Intents, InteractionReplyOptions, Message, MessageEditOptions, MessageEmbed, TextChannel } from "discord.js";
+import { ApplicationCommandType, Client, EmbedBuilder, GatewayIntentBits, InteractionReplyOptions, Locale, Message, MessageEditOptions, PermissionFlagsBits, TextChannel } from "discord.js";
 import { config } from "dotenv-safe";
-import { readdirSync } from "fs";
-import { ApplicationCommandDataResolvableAdapter } from "./adapters/ApplicationCommandDataResolvable";
 import { getName } from "./Localizations";
-import { injectPrototype } from "./prototype";
 import { debug, report } from "./Reporting";
+import { commands } from "./commands";
+import { modules } from "./modules";
+import { injectPrototype } from "./prototype";
 import { random } from "./utils";
+import { LActionRowDataLocalizer } from "@localizer/data/ActionRowData";
+import { LocalizableBaseMessageOptionsAdapter } from "@localizer/MessageOptions";
 
 const client = new Client({
 	intents: [
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MESSAGES,
-		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-		Intents.FLAGS.DIRECT_MESSAGES,
-		Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.DirectMessageReactions
 	]
 });
-
-const loadCommand = async (path: string) => {
-	const module = await import(path);
-
-	if (!("command" in module)) {
-		throw path + ": Invalid module format";
-	}
-
-	return { path, command: module.command };
-};
-
-const loadModule = async (path: string): Promise<{ path: string, module: StealthModule }> => {
-	const module = await import(path);
-
-	if (!("module" in module)) {
-		throw path + ": Invalid module format";
-	}
-
-	return { path, module: module.module };
-};
 
 try {
 	config();
@@ -52,8 +30,8 @@ try {
 		// Error reporting
 		const errorChannel = await client.channels.fetch(process.env.error_chid!) as TextChannel;
 		const error = async (tag: string, e: unknown) => {
-			const embed = e instanceof Error ?
-				new MessageEmbed({
+			const embed = (e instanceof Error ?
+				new EmbedBuilder({
 					title: e.name,
 					fields: [
 						{
@@ -66,7 +44,7 @@ try {
 						}
 					]
 				}) :
-				new MessageEmbed({
+				new EmbedBuilder({
 					title: "Error",
 					fields: [
 						{
@@ -78,7 +56,7 @@ try {
 							"value": "```\n" + (e + "").substring(0, 1000) + "\n```" ?? "(none)"
 						}
 					]
-				});
+				}));
 
 			const obj = {
 				content: new Date().toISOString(),
@@ -86,7 +64,7 @@ try {
 			};
 
 			if (process.env.DEBUG) {
-				console.error(obj.embeds[0].fields[1].value);
+				console.error(obj.embeds[0].toJSON().fields![1].value);
 			} else {
 				await errorChannel.send(obj);
 			}
@@ -96,30 +74,16 @@ try {
 			await error("client->error", e);
 		});
 
-		// Command
-		const commands: Command[] = (await Promise.allSettled(readdirSync("./src/commands/")
-			.filter(file => !file.startsWith("_") && file.endsWith(".ts"))
-			.map(async file => await loadCommand("./commands/" + file)))
-		).map((result) => {
-			if (result.status === "fulfilled") {
-				report("Loaded file: " + result.value.path);
-				return result.value.command;
-			}
-			error("bot.loadCommand", "Failed to load file " + result.reason);
-			return null;
-		})
-			.filter((command): command is Command => command !== null);
-
-		const APICommands = commands.map(command => new ApplicationCommandDataResolvableAdapter(command).build());
+		const APICommands = commands.map(command => command.toAPI());
 
 		if (process.env.DEBUG) {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			for (const [_, guild] of client.guilds.cache) {
 				try {
 					await guild.commands.set(APICommands);
-					debug("bot.setCommand", "Setting commands for guild " + guild.name);
+					debug("bot.setCommand", `Set command for guild ${guild.name} (${guild.id})`);
 				} catch (e) {
-					error("bot.setCommand", "Failed to set command for guild " + guild.name);
+					error("bot.setCommand", `Failed to set command for guild ${guild.name} (${guild.id}): ${e}`);
 				}
 			}
 		} else {
@@ -129,27 +93,33 @@ try {
 			} catch (e) {
 				error("bot.setCommand", e);
 			}
+			report("Setting global commands done");
 		}
 
+		const createDeleteButton = (locale: Locale) => new LActionRowDataLocalizer({
+			type: "ActionRow",
+			components: [{
+				customId: "delete",
+				type: "Button",
+				style: "Danger",
+				emoji: {
+					name: random(0, 10) === 0 ? "🚮" : "🗑️"
+				}
+			}]
+		}).localize(locale);
+
 		// A mapping from the source message's author id that triggered stealth modules to the replied message
-		const sources: Dictionary<string> = {};
+		const sources: Record<string, string> = {};
 
 		// Linked list storing all interaction ids and it's parent, null if it's the root
-		const timeouts: Dictionary<NodeJS.Timeout> = {};
+		const timeouts: Record<string, NodeJS.Timeout> = {};
 
 		client.on("interactionCreate", async (interaction) => {
 			if (!interaction.isRepliable()) return;
 
-			const deleteButton = new LocalizableMessageActionRowAdapter([
-				{
-					type: "BUTTON",
-					style: "DANGER",
-					custom_id: "delete",
-					emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
-				}
-			]).build(interaction.getLocale());
+			const deleteButton = createDeleteButton(interaction.locale);
 
-			const reply = async (response: InteractionReplyOptions, onTimeout?: Command["onTimeout"]) => {
+			const reply = async (response: InteractionReplyOptions, onTimeout?: BaseApplicationCommand<ApplicationCommandType>["onTimeout"]) => {
 				if (response.ephemeral) {
 					if (interaction.replied || interaction.deferred) {
 						await interaction.editReply(response)
@@ -181,14 +151,14 @@ try {
 							const { components, ...x } = response;
 							const msg = await interaction.editReply({ components: _components ?? [], ...x });
 							if (onTimeout) {
-								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.getLocale());
+								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.locale);
 								await interaction.editReply(reply);
 							}
 							delete timeouts[id];
 						} catch (e) { }
-					}, 1000 * 15);
+					}, 1000);
 
-					if (interaction.isApplicationCommand()) {
+					if (interaction.isCommand()) {
 						timeouts[interaction.id] = timeout;
 					} else if (interaction.isMessageComponent()) {
 						const parent = interaction.message.interaction!.id;
@@ -203,28 +173,32 @@ try {
 				content: {
 					key: "index.error"
 				}
-			}).build(interaction.getLocale());
+			}).build(interaction.locale);
 
 			try {
 				// Delete function
 				if (
 					interaction.isButton() && interaction.customId === "delete"
-					|| interaction.isContextMenu() && interaction.command?.name === getName("delete").name
+					|| interaction.isMessageContextMenuCommand() && interaction.command!.name === getName("delete").name
 				) {
-					const sourceMessage = (interaction.isContextMenu() ? interaction.getMessage() : interaction.message) as Message;
+					await interaction.deferReply({
+						ephemeral: true
+					});
+
+					const sourceMessage = (interaction.isMessageContextMenuCommand() ? interaction.targetMessage : interaction.message) as Message;
 
 					if (sourceMessage.deletable) {
 						// Check if the interaction issuer is the message author or is an admin
 						const guildUser = (await interaction.guild?.members.fetch(interaction.user))!;
 
 						if (sourceMessage.author.id !== interaction.client.user!.id) {
-							await reply(
+							return await reply(
 								new LocalizableInteractionReplyOptionsAdapter({
 									content: {
 										key: "delete.notMyMessage"
 									},
 									ephemeral: true
-								}).build(interaction.getLocale())
+								}).build(interaction.locale)
 							);
 						}
 
@@ -232,23 +206,41 @@ try {
 							sources[sourceMessage.id] === interaction.user.id
 							|| sourceMessage.mentions.repliedUser?.id === interaction.user.id
 							|| sourceMessage.interaction && sourceMessage.interaction.user.id === interaction.user.id
-							|| guildUser.permissions.has("ADMINISTRATOR")
+							|| guildUser.permissions.has(PermissionFlagsBits.Administrator)
 						) {
 							await sourceMessage.delete();
+							return await reply(
+								new LocalizableInteractionReplyOptionsAdapter({
+									content: {
+										key: "delete.deleted"
+									},
+									ephemeral: true
+								}).build(interaction.locale)
+							);
 						} else {
-							await reply(
+							return await reply(
 								new LocalizableInteractionReplyOptionsAdapter({
 									content: {
 										key: "delete.deletingOthersMessage"
 									},
 									ephemeral: true
-								}).build(interaction.getLocale())
+								}).build(interaction.locale)
 							);
 						}
+					} else {
+						return await reply(
+							new LocalizableInteractionReplyOptionsAdapter({
+								content: {
+									key: "delete.noPermission"
+								},
+								ephemeral: true
+							}).build(interaction.locale)
+						);
 					}
-				} else if (interaction.isCommand()) {
-					const command = commands.find(command => command.name === interaction.command?.name) as SlashApplicationCommands | undefined;
+				} else if (interaction.isChatInputCommand()) {
+					const command = commands.find(command => command.name === interaction.command?.name);
 					assert(command !== undefined);
+					assert(command.isSlashApplicationCommand());
 
 					if (command.defer) {
 						await interaction.deferReply();
@@ -259,27 +251,48 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onCommand(interaction)
-						).build(interaction.getLocale());
+						).build(interaction.locale);
 					} catch (e) {
 						error(`commands/${command.name}.onCommand`, e);
 					}
 
 					await reply(response, command.onTimeout);
-				} else if (interaction.isContextMenu()) {
-					const command = commands.find(command => getName(command.name).name === interaction.command?.name) as ContextMenuApplicationCommands | undefined;
+				} else if (interaction.isUserContextMenuCommand()) {
+					const command = commands.find(command => getName(command.name).name === interaction.command?.name);
 					assert(command !== undefined);
+					assert(command.isUserContextMenuCommand());
 
 					if (command.defer) {
 						await interaction.deferReply();
 					}
-					let response: InteractionReplyOptions = {
-						content: "Error..."
-					};
+
+					// TODO: wtf is this
+					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onContextMenu(interaction)
-						).build(interaction.getLocale());
+						).build(interaction.locale);
+					} catch (e) {
+						error(`commands/${command.name}.onContextMenu`, e);
+					}
+
+					await reply(response, command.onTimeout);
+				} else if (interaction.isMessageContextMenuCommand()) {
+					const command = commands.find(command => getName(command.name).name === interaction.command?.name)
+					assert(command !== undefined);
+					assert(command.isMessageContextMenuCommand());
+
+					if (command.defer) {
+						await interaction.deferReply();
+					}
+
+					// TODO: wtf is this
+					let response: InteractionReplyOptions = generalErrorReply;
+					try {
+						response = new LocalizableInteractionReplyOptionsAdapter(
+							await command.onContextMenu(interaction)
+						).build(interaction.locale);
 					} catch (e) {
 						error(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -287,13 +300,10 @@ try {
 					await reply(response, command.onTimeout);
 				} else if (interaction.isMessageComponent()) {
 					assert(interaction.message.interaction !== null && interaction.message.interaction !== undefined);
-					const commandName = "commandName" in interaction.message.interaction ? interaction.message.interaction.commandName : interaction.message.interaction.name;
+					const commandName = interaction.message.interaction.commandName;
 
-					const command = commands.find(command => getName(command.name).name === commandName) as Command | undefined;
+					const command = commands.find(command => getName(command.name).name === commandName);
 					assert(command !== undefined);
-
-					if (interaction.isButton() && !command.onButton) return;
-					if (interaction.isSelectMenu() && !command.onSelectMenu) return;
 
 					if (command.defer) {
 						await interaction.deferUpdate();
@@ -302,14 +312,16 @@ try {
 					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
-						if (interaction.isButton()) {
+						if (interaction.isButton() && command.onButton) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onButton!(interaction)
-							).build(interaction.getLocale());
-						} else if (interaction.isSelectMenu()) {
+								await command.onButton(interaction)
+							).build(interaction.locale);
+						} else if (interaction.isStringSelectMenu() && command.onSelectMenu) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onSelectMenu!(interaction)
-							).build(interaction.getLocale());
+								await command.onSelectMenu(interaction)
+							).build(interaction.locale);
+						} else {
+							// TODO: Handle unknown interaction
 						}
 					} catch (e) {
 						error(`commands/${command.name}.${interaction.isButton() ? "onButton" : "onSelectMenu"}`, e);
@@ -326,24 +338,11 @@ try {
 		});
 
 		// StealthModule
-		const stealthModules: StealthModule[] = (await Promise.allSettled(readdirSync("./src/modules/")
-			.filter(file => !file.startsWith("_") && file.endsWith(".ts"))
-			.map(async file => await loadModule("./modules/" + file)))
-		).map((result) => {
-			if (result.status === "fulfilled") {
-				report("Loaded file: " + result.value.path);
-				return result.value.module;
-			}
-			error("bot.loadModule", "Failed to load file " + result.reason);
-			return null;
-		})
-			.filter((module): module is StealthModule => module !== null);
-
 		for (const event of ["messageCreate", "messageUpdate", "messageDelete"]) {
 			client.on(event, async (message: Message) => {
 				if (message.author.bot) return;
 
-				for (const module of stealthModules.filter(module => module.event === event)) {
+				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
 
 					if (module.pattern) {
@@ -358,16 +357,9 @@ try {
 						});
 
 						if (typeof _result === "object") {
-							const deleteButton = new LocalizableMessageActionRowAdapter([
-								{
-									type: "BUTTON",
-									style: "DANGER",
-									custom_id: "delete",
-									emoji: random(0, 10) === 0 ? "🚮" : "🗑️"
-								}
-							]).build(message.getLocale());
+							const deleteButton = createDeleteButton(message.getLocale());
 
-							const result = new LocalizableMessageOptionsAdapter(
+							const result = new LocalizableBaseMessageOptionsAdapter(
 								_result.result
 							).build(message.getLocale());
 
@@ -389,10 +381,10 @@ try {
 									} as MessageEditOptions);
 
 									if (module.onTimeout) {
-										const reply = new LocalizableMessageOptionsAdapter(
+										const reply = new LocalizableBaseMessageOptionsAdapter(
 											await module.onTimeout(edited)
 										).build(message.getLocale());
-										await edited.edit(reply as MessageEditOptions);
+										await edited.edit(reply);
 									}
 								} catch (e) { }
 							}, 1000 * 15);

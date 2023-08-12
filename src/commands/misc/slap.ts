@@ -1,20 +1,24 @@
 import { arr2obj, random, urandom } from "@app/utils";
-import { Command } from "@type/Command";
+import { SlashApplicationCommand } from "@class/ApplicationCommand";
+import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { ChatInputCommandInteraction } from "discord.js";
 import emoji from "node-emoji";
 
-export const command: Command = {
-	defer: false,
-	name: "slap",
-	options: {
-		victim: {
-			type: "STRING",
+class Command extends SlashApplicationCommand {
+	public options: LApplicationCommandOptionData[] = [
+		{
+			name: "victim",
+			type: "String",
 			required: true
 		},
-		tool: {
-			type: "STRING"
+		{
+			name: "tool",
+			type: "String"
 		}
-	},
-	onCommand: async (interaction) => {
+	];
+
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
 		return {
 			content: {
 				key: "slap.slap",
@@ -39,3 +43,7 @@ export const command: Command = {
 		}
 	}
 };
+
+export const slap = new Command({
+	name: "slap"
+});
