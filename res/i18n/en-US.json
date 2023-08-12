@@ -61,7 +61,8 @@
     "_name": "Delete bot message",
     "deleted": "Message deleted.",
     "deletingOthersMessage": "You can only delete messages authored by you.",
-    "notMyMessage": "Cannot delete messages from other users!"
+    "notMyMessage": "Cannot delete messages from other users!",
+    "noPermission": "I don't have permission to delete this message!"
   },
   "dice": {
     "_description": "Roll a dice.",
