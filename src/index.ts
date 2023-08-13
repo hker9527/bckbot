@@ -1,7 +1,7 @@
 import { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
-import { ApplicationCommandType, Client, EmbedBuilder, GatewayIntentBits, InteractionReplyOptions, Locale, Message, MessageEditOptions, PermissionFlagsBits, TextChannel } from "discord.js";
+import { ApplicationCommandType, Client, EmbedBuilder, GatewayIntentBits, InteractionReplyOptions, Locale, Message, MessageEditOptions, PermissionFlagsBits, PermissionsBitField, TextChannel } from "discord.js";
 import { config } from "dotenv-safe";
 import { getName } from "./Localizations";
 import { debug, report } from "./Reporting";
@@ -342,6 +342,10 @@ try {
 		for (const event of ["messageCreate", "messageUpdate", "messageDelete"]) {
 			client.on(event, async (message: Message) => {
 				if (message.author.bot) return;
+
+				// Check if message's channel lets us to send message
+				const botAsMember = await message.guild?.members.fetch(client.user!.id);
+				if (!(botAsMember && botAsMember.permissions.has(PermissionsBitField.Flags.SendMessages))) return;
 
 				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
