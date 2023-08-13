@@ -39,3 +39,4 @@ yarn start
 |[saucenao](https://saucenao.com/)|Reverse image search|
 |[exchangerate.host](https://exchangerate.host/)|Currency conversion|
 |[Google Safebrowsing](https://safebrowsing.google.com/)|Detect malicious URLs|
+|[VXTwitter](https://github.com/dylanpdx/BetterTwitFix)|Generate embeds from Twitter links|
