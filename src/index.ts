@@ -345,7 +345,7 @@ try {
 
 				// Check if message's channel lets us to send message
 				const botAsMember = await message.guild?.members.fetch(client.user!.id);
-				if (!(botAsMember && botAsMember.permissions.has(PermissionsBitField.Flags.SendMessages))) return;
+				if ("permissionsFor" in message.channel && !message.channel.permissionsFor(botAsMember!)?.has(PermissionsBitField.Flags.SendMessages)) return;
 
 				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
