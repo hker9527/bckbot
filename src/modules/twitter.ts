@@ -13,13 +13,19 @@ export const twitter: StealthModule = {
 		try {
 			const json = JSON.parse(response);
 			if (ZAPIVXTwitter.check(json)) {
+				const images = json.media_extended.filter((media) => media.type === "image");
+
+				if (images.length === 0) {
+					return false;
+				}
+
 				// Check if message channel can send message permission
 				const member = obj.message.guild!.members.cache.get(obj.message.client.user!.id)!;
 				if (member.permissions.has(PermissionsBitField.Flags.SendMessages)) {
 					try {
 						await obj.message.suppressEmbeds();
 					} catch (e) {}
-					
+
 					return {
 						type: "send",
 						result: {
@@ -35,13 +41,13 @@ export const twitter: StealthModule = {
 									description: json.text.replace(/https:\/\/t\.co\/\w+/g, ""),
 									timestamp: new Date(json.date_epoch * 1000).toISOString(),
 									image: {
-										url: json.mediaURLs[0]
+										url: images[0].url
 									},
 									url: json.tweetURL
 								}
-							] as APIEmbed[]).concat(json.mediaURLs.splice(1).map((url: string) => ({
+							] as APIEmbed[]).concat(images.splice(1).map((image) => ({
 								image: {
-									url
+									url: image.url
 								},
 								url: json.tweetURL
 							}))) 
