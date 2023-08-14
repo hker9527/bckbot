@@ -12,6 +12,8 @@ import { random } from "./utils";
 import { LActionRowDataLocalizer } from "@localizer/data/ActionRowData";
 import { LocalizableBaseMessageOptionsAdapter } from "@localizer/MessageOptions";
 
+const TIMEOUT = 30 * 1000;
+
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -157,7 +159,7 @@ try {
 							}
 							delete timeouts[id];
 						} catch (e) { }
-					}, 15 * 1000);
+					}, TIMEOUT);
 
 					if (interaction.isCommand()) {
 						timeouts[interaction.id] = timeout;
@@ -392,7 +394,7 @@ try {
 										await edited.edit(reply);
 									}
 								} catch (e) { }
-							}, 1000 * 15);
+							}, TIMEOUT);
 						} else {
 							if (_result) break;
 						}
