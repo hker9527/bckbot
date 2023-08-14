@@ -30,12 +30,16 @@ export const twitter: StealthModule = {
 							{
 								author: {
 									name: `${json.user_name} (@${json.user_screen_name})`,
-									icon_url: "https://cdn-icons-png.flaticon.com/512/179/179342.png",
+									icon_url: `https://unavatar.io/twitter/${json.user_screen_name}`,
 									url: `https://twitter.com/${json.user_screen_name}`
 								},
 								color: 0x1DA1F2,
 								// Remove https://t.co/... links
 								description: json.text.replace(/https:\/\/t\.co\/\w+/g, ""),
+								footer: {
+									text: `❤️ ${json.likes} 🔁 ${json.retweets} 🗨️ ${json.replies}`,
+									icon_url: "https://cdn-icons-png.flaticon.com/512/179/179342.png"
+								},
 								timestamp: new Date(json.date_epoch * 1000).toISOString(),
 								image: {
 									url: images[0].url
