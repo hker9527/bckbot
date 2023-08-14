@@ -24,6 +24,7 @@ interface IllustDetails {
 	pages: number;
 	authorID: string;
 	authorName: string;
+	authorIcon: string;
 	description: string;
 	date: string;
 	restrict: boolean;
@@ -41,7 +42,7 @@ class Illust {
 		let embeds: LAPIEmbed[];
 
 		// Try to hint the CDN to cache our files
-		for (const imageUrl of this.details.imageUrls) {
+		for (const imageUrl of [this.details.authorIcon, ...this.details.imageUrls]) {
 			// No need to wait for it
 			fetch(imageUrl, {
 				method: "HEAD"
@@ -71,10 +72,14 @@ class Illust {
 					name: this.details.title ? this.details.title + (this.details.pages > 1 ? ` (${this.details.pages})` : "") : {
 						key: "$t(pixiv.titlePlaceholder)" + (this.details.pages > 1 ? ` (${this.details.pages})` : "")
 					},
-					iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif",
+					iconURL: this.details.authorIcon,
 					url: `https://www.pixiv.net/artworks/${this.details.id}`
 				},
 				color: this.details.restrict ? 0xd37a52 : 0x3D92F5,
+				footer: {
+					text: "Pixiv",
+					iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
+				},
 				timestamp: new Date(this.details.date).toISOString(),
 				fields: [{
 					name: {
@@ -278,6 +283,7 @@ export class IllustMessageFactory {
 				pages: illustMeta.page_count,
 				authorID: illustMeta.user.id.toString(),
 				authorName: illustMeta.user.name,
+				authorIcon: illustMeta.user.profile_image_urls.medium.replace("i.pximg.net", "i.nasu-ser.link"),
 				description: htmlToText(illustMeta.caption, {
 					limits: {
 						maxInputLength: 1500
