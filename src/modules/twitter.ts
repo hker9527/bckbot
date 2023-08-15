@@ -8,9 +8,10 @@ export const twitter: StealthModule = {
 	pattern: /https?:\/\/(?:www\.)?(twitter|x)\.com\/(?:#!\/)?(\w+)\/status\/(\d+)/,
 	action: async (obj) => {
 		const statusId = obj.matches!.pop();
-		const response = await (await fetch(`https://api.vxtwitter.com/i/status/${statusId}`)).text();
+		const author = obj.matches!.pop();
 
 		try {
+			const response = await (await fetch(`https://api.vxtwitter.com/${author}/status/${statusId}`)).text();
 			const json = JSON.parse(response);
 			if (ZAPIVXTwitter.check(json)) {
 				const images = json.media_extended.filter((media) => media.type === "image");
@@ -54,7 +55,7 @@ export const twitter: StealthModule = {
 						}))) 
 					}
 				};
-			}
+			};
 			return false;
 		} catch (e) {
 			return false;
