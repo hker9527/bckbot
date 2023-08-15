@@ -52,7 +52,7 @@ class Illust {
 			url: `https://www.pixiv.net/artworks/${this.details.id}`
 		}));
 
-		if (!nsfw && this.details.restrict) {
+		if (!nsfw && this.details.x_restrict > 0) {
 			embeds = [embeds[0]];
 			delete embeds[0].image;
 			embeds[0].thumbnail = {
