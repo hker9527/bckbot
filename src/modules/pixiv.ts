@@ -16,20 +16,11 @@ const client = new PrismaClient();
 
 let pixivClient: Pixiv;
 
-interface IllustDetails {
-	id: string;
-	type: string;
-	ai: boolean;
-	title: string;
-	pages: number;
-	authorID: string;
-	authorName: string;
-	authorIcon: string;
-	description: string;
-	date: string;
-	restrict: boolean;
-	imageUrls: string[];
+type IllustDetails = PixivIllust & {
+	illust_ai_type: number
 };
+
+const proxy = (url: string) => url.replace("i.pximg.net", "i.nasu-ser.link"); // DO NOT ABUSE THIS
 
 class Illust {
 	protected details: IllustDetails;
@@ -39,17 +30,22 @@ class Illust {
 	}
 
 	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
+		const imageUrls = (this.details.page_count === 1 ?
+			[this.details.meta_single_page.original_image_url!] :
+			this.details.meta_pages.map((page) => page.image_urls.original))
+			.slice(0, 10) // Discord API Limit
+			.map(proxy);
+
 		let embeds: LAPIEmbed[];
 
 		// Try to hint the CDN to cache our files
-		for (const imageUrl of [this.details.authorIcon, ...this.details.imageUrls]) {
-			// No need to wait for it
-			fetch(imageUrl, {
+		for (const imageUrl of [proxy(this.details.user.profile_image_urls.medium), ...imageUrls]) {
+			await fetch(imageUrl, {
 				method: "HEAD"
 			});
 		}
 
-		embeds = this.details.imageUrls.map((url: string) => ({
+		embeds = imageUrls.map((url) => ({
 			image: {
 				url
 			},
@@ -64,23 +60,26 @@ class Illust {
 			};
 		}
 
-		// Add metadata to the first embed
+		// Add metadata to the first 
+		const prefix = this.details.illust_ai_type > 0 ? "🤖 |" : "";
+		const suffix = this.details.page_count > 1 ? `(${this.details.page_count})` : "";
+
 		embeds[0] = {
 			...embeds[0],
 			...{
 				author: {
-					name: this.details.title ? this.details.title + (this.details.pages > 1 ? ` (${this.details.pages})` : "") : {
-						key: "$t(pixiv.titlePlaceholder)" + (this.details.pages > 1 ? ` (${this.details.pages})` : "")
+					name: this.details.title ? `${prefix} ${this.details.title} ${suffix}` : {
+						key: `${prefix} $t(pixiv.titlePlaceholder) ${suffix}`
 					},
-					iconURL: this.details.authorIcon,
+					iconURL: proxy(this.details.user.profile_image_urls.medium),
 					url: `https://www.pixiv.net/artworks/${this.details.id}`
 				},
 				color: this.details.restrict ? 0xd37a52 : 0x3D92F5,
 				footer: {
-					text: "Pixiv",
+					text: `❤️ ${this.details.total_bookmarks} | 👁️ ${this.details.total_view} | 🗨️ ${this.details.total_comments}`,
 					iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
 				},
-				timestamp: new Date(this.details.date).toISOString(),
+				timestamp: new Date(this.details.create_date).toISOString(),
 				fields: [{
 					name: {
 						key: "pixiv.sauceHeader"
@@ -89,15 +88,20 @@ class Illust {
 						key: "pixiv.sauceContent",
 						data: { 
 							illust_id: this.details.id, 
-							author: this.details.authorName, 
-							author_id: this.details.authorID
+							author: this.details.user.name, 
+							author_id: this.details.user.id
 						}
 					}
 				}, {
 					name: {
 						key: "pixiv.descriptionHeader"
 					},
-					value: this.details.description.substring(0, 1020) || {
+					value: htmlToText(this.details.caption, {
+						limits: {
+							maxInputLength: 1500
+						},
+						tags: { "a": { format: "anchor", options: { ignoreHref: true } } }
+					}).substring(0, 1020) || {
 						key: "pixiv.descriptionPlaceholder"
 					}
 				}],
@@ -269,35 +273,9 @@ export class IllustMessageFactory {
 
 	public async getDetail(): Promise<boolean> {
 		try {
-			const illustMeta: PixivIllust & {
-				illust_ai_type: number
-			} = await pixivClient.illust.detail({
+			this.illustDetails = await pixivClient.illust.detail({
 				illust_id: +this.id
 			}) as unknown as any;
-			
-			this.illustDetails = {
-				id: illustMeta.id.toString(),
-				type: illustMeta.type,
-				ai: illustMeta.illust_ai_type > 0,
-				title: illustMeta.title,
-				pages: illustMeta.page_count,
-				authorID: illustMeta.user.id.toString(),
-				authorName: illustMeta.user.name,
-				authorIcon: illustMeta.user.profile_image_urls.medium.replace("i.pximg.net", "i.nasu-ser.link"),
-				description: htmlToText(illustMeta.caption, {
-					limits: {
-						maxInputLength: 1500
-					},
-					tags: { "a": { format: "anchor", options: { ignoreHref: true } } }
-				}),
-				date: illustMeta.create_date,
-				restrict: illustMeta.x_restrict > 0,
-				imageUrls: (illustMeta.page_count === 1 ?
-					[illustMeta.meta_single_page.original_image_url!] :
-					illustMeta.meta_pages.map((page) => page.image_urls.original))
-					.slice(0, 10) // Discord API Limit
-					.map((url: string) => url.replace("i.pximg.net", "i.nasu-ser.link")) // DON'T ABUSE THIS PLEASE, BUILD YOUR OWN!
-			};
 
 			return true;
 		} catch (e) {
