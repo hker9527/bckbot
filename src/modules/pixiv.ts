@@ -61,7 +61,7 @@ class Illust {
 		}
 
 		// Add metadata to the first 
-		const prefix = this.details.illust_ai_type > 0 ? "🤖 |" : "";
+		const prefix = this.details.illust_ai_type > 1 ? "🤖 |" : "";
 		const suffix = this.details.page_count > 1 ? `(${this.details.page_count})` : "";
 
 		embeds[0] = {
