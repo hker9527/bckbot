@@ -5,7 +5,7 @@ import { APIEmbed } from "discord.js";
 export const twitter: StealthModule = {
 	name: "twitter",
 	event: "messageCreate",
-	pattern: /https?:\/\/(?:www\.)?twitter\.com\/(?:#!\/)?(\w+)\/status\/(\d+)/,
+	pattern: /https?:\/\/(?:www\.)?(twitter|x)\.com\/(?:#!\/)?(\w+)\/status\/(\d+)/,
 	action: async (obj) => {
 		const statusId = obj.matches!.pop();
 		const response = await (await fetch(`https://api.vxtwitter.com/i/status/${statusId}`)).text();
