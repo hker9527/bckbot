@@ -3,7 +3,7 @@ import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
 import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { ChatInputCommandInteraction } from "discord.js";
-import emoji from "node-emoji";
+import { random as emoji } from "node-emoji";
 
 class Command extends SlashApplicationCommand {
 	public options: LApplicationCommandOptionData[] = [
@@ -26,7 +26,7 @@ class Command extends SlashApplicationCommand {
 					slapper: interaction.member!.toString(),
 					victim: interaction.options.getString("victim", true),
 					// TODO: Fix emoji that cannot display (message.react?)
-					tool: (interaction.options.getString("tool") ?? emoji.random().emoji),
+					tool: (interaction.options.getString("tool") ?? emoji().emoji),
 					damage: urandom(
 						arr2obj(
 							[
