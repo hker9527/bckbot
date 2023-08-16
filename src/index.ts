@@ -374,7 +374,7 @@ try {
 
 							result.components = result.components ? [...result.components, deleteButton] : [deleteButton];
 
-							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply(result);
+							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply({...result, allowedMentions: { repliedUser: false }});
 
 							sources[msg.id] = message.author.id;
 
