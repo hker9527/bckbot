@@ -1,3 +1,4 @@
+import { sleep } from "@app/utils";
 import { StealthModule } from "@type/StealthModule";
 import { ZAPIVXTwitter } from "@type/api/VXTwitter";
 import { APIEmbed } from "discord.js";
@@ -7,6 +8,17 @@ export const twitter: StealthModule = {
 	event: "messageCreate",
 	pattern: /https?:\/\/(?:www\.)?(twitter|x)\.com\/(?:#!\/)?(\w+)\/status\/(\d+)/,
 	action: async (obj) => {
+		// Wait for embed to populate
+		await sleep(5000);
+		
+		// Fetch newest version message (Reload embeds)
+		obj.message = await obj.message.channel.messages.fetch(obj.message.id);
+
+		// Check if original message has images in embed (Normal behavior)
+		if (obj.message.embeds.length > 0 && obj.message.embeds[0].image) {
+			return false;
+		}
+
 		const statusId = obj.matches!.pop();
 		const author = obj.matches!.pop();
 
