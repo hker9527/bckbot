@@ -22,6 +22,7 @@
 		"i18next": "^23.4.4",
 		"linkifyjs": "^4.0.2",
 		"node-emoji": "^2.1.0",
+		"node-fetch": "2",
 		"pixiv.ts": "^0.5.9",
 		"prisma": "^5.1.1",
 		"source-map-support": "^0.5.21",
