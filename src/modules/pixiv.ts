@@ -337,7 +337,7 @@ export const pixiv: StealthModule = {
 				try {
 					await obj.message.suppressEmbeds(true);
 					return {
-						type: "send",
+						type: "reply",
 						result
 					}
 				} catch (e) { // No permission?

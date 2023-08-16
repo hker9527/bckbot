@@ -37,7 +37,7 @@ export const twitter: StealthModule = {
 				} catch (e) {}
 
 				return {
-					type: "send",
+					type: "reply",
 					result: {
 						embeds: ([
 							{
