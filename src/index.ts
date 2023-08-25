@@ -353,7 +353,9 @@ try {
 					let matches;
 
 					if (module.pattern) {
-						matches = message.content.match(module.pattern) ?? undefined;
+						// Remove spoilers from message
+						const regex = /(\|\|)(.*?)(\|\|)/g;
+						matches = message.content.replace(regex, "").match(module.pattern) ?? undefined;
 						if (!matches) continue;
 					}
 
