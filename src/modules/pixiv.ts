@@ -74,7 +74,7 @@ class Illust {
 					iconURL: proxy(this.details.user.profile_image_urls.medium),
 					url: `https://www.pixiv.net/artworks/${this.details.id}`
 				},
-				color: this.details.restrict ? 0xd37a52 : 0x3D92F5,
+				color: this.details.x_restrict > 0 ? 0xd37a52 : 0x3D92F5,
 				footer: {
 					text: `❤️ ${this.details.total_bookmarks} | 👁️ ${this.details.total_view} | 🗨️ ${this.details.total_comments}`,
 					iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
