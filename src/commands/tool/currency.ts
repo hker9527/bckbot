@@ -21,11 +21,11 @@ const worker = async () => {
 			const currency = currencies[i];
 			const otherCurrencies = currencies.filter((_, ii) => ii > i);
 
-			const response = await req2json(`https://api.exchangerate.host/latest?base=${currency}&symbols=${otherCurrencies.join(",")}`);
+			const response = await req2json(`http://api.exchangerate.host/live?access_key=${process.env.exchangerate_key}&source=${currency}&currencies=${otherCurrencies.join(",")}`);
 			const Z = z.object({
 				success: z.literal(true),
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				rates: z.object(arr2obj(otherCurrencies, otherCurrencies.map(_ => z.number())))
+				quotes: z.object(arr2obj(otherCurrencies.map(oc => currency + oc), otherCurrencies.map(_ => z.number())))
 			});
 			const data = Z.safeParse(response);
 			assert(data.success);
@@ -35,7 +35,7 @@ const worker = async () => {
 					data: {
 						src: currency,
 						dst: _currency,
-						value: data.data.rates[_currency],
+						value: data.data.quotes[currency + _currency],
 						updateInfo: {
 							connect: {
 								id: updateInfo.id
