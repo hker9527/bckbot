@@ -99,18 +99,6 @@
     "searchResult": "搜尋結果",
     "sourceHeader": "來源"
   },
-  "nudity": {
-    "_name": "這有多色？",
-    "invalidMessage": "該訊息沒有可用圖片！",
-    "items": "檢出項目",
-    "multipleImages": "請選擇其中一張圖片。"
-  },
-  "osu": {
-    "link.exists": "您已經有連結過您的Osu!賬號了。",
-    "link.linked": "已將 {{discord_id}} 與 {{osu_id}}連結。",
-    "stat.notLinked": "該用戶沒有連結Osu!賬號！",
-    "stat.retrieving": "獲取資訊..."
-  },
   "ping": {
     "_description": "敲敲門",
     "_name": "測試"
@@ -174,13 +162,10 @@
     "_victim_name": "受害者",
     "slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。"
   },
-  "vpn": {
-    "_description": "獲得經測試可用的的日遊VPN代理",
-    "_game_description": "遊戲名",
-    "_game_name": "遊戲",
-    "_kc_name": "艦隊收藏",
-    "_knsb_name": "為美好的世界獻上祝福！Fantastic Days",
-    "_uma_name": "賽馬娘",
-    "_wf_name": "彈射世界"
+  "twitter": {
+    "description": "{{description}}\n\n[原始推文]({{url}})",
+    "unsupportedMediaContent": "Discord機器人不支持影片和GIF嵌入。\n請點擊下面的按鈕查看原始推文",
+    "unsupportedMediaHeader": "偵測到不支持的媒體類型",
+    "originalTweetButton": "原始推文"
   }
 }

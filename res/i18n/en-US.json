@@ -100,12 +100,6 @@
     "searchResult": "Search Result",
     "sourceHeader": "Source"
   },
-  "nudity": {
-    "_name": "Get NSFW level",
-    "invalidMessage": "The message has no usable image!",
-    "items": "Items",
-    "multipleImages": "Which image do you want to check?"
-  },
   "ping": {
     "_description": "Ping the bot.",
     "_name": "ping"
@@ -169,23 +163,10 @@
     "_victim_name": "victim",
     "slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
   },
-  "test": {
-    "_name": "test",
-    "_description": "Test"
-  },
-  "vpn": {
-    "_description": "Game VPN",
-    "_game_description": "The game",
-    "_game_name": "game",
-    "_hk_name": "Hong Kong",
-    "_kc_name": "Kantai Collection",
-    "_knsb_name": "KonoSuba: Fantastic Days!",
-    "_krr_name": "Kirara Fantasia",
-    "_name": "vpn",
-    "_server_description": "The testing server",
-    "_server_name": "server",
-    "_uma_name": "Umamusume",
-    "_us_name": "US Oregon",
-    "_wf_name": "World Flipper"
+  "twitter": {
+    "description": "{{description}}\n\n[Original tweet]({{url}})",
+    "unsupportedMediaContent": "Video  embeds are not supported by Discord bots.\nPlease click the button below to view the original tweet.",
+    "unsupportedMediaHeader": "Unsupported media type detected",
+    "originalTweetButton": "Original tweet"
   }
 }
