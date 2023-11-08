@@ -94,3 +94,10 @@ export const enumStringKeys = <T extends object>(e: T) => {
 export const isZod = <T>(o: unknown, z: ZodType<T>): o is T => {
 	return z.safeParse(o).success;
 };
+
+// Use k, m, ... suffixes for numbers
+export const num2str = (num: number) => {
+	if (num < 1000) return num.toString();
+	const exp = Math.floor(Math.log(num) / Math.log(1000));
+	return `${(num / Math.pow(1000, exp)).toFixed(1)}${"kMGTPE"[exp - 1]}`;
+}
