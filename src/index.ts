@@ -349,6 +349,7 @@ try {
 				const botAsMember = await message.guild?.members.fetch(client.user!.id);
 				if ("permissionsFor" in message.channel && !message.channel.permissionsFor(botAsMember!)?.has(PermissionsBitField.Flags.SendMessages)) return;
 
+				const locale = message.guild?.preferredLocale ?? Locale.EnglishUS;
 				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
 
@@ -366,11 +367,11 @@ try {
 						});
 
 						if (typeof _result === "object") {
-							const deleteButton = createDeleteButton(message.getLocale());
+							const deleteButton = createDeleteButton(locale);
 
 							const result = new LocalizableBaseMessageOptionsAdapter(
 								_result.result
-							).build(message.getLocale());
+							).build(locale);
 
 							const _components = result.components?.slice() ?? [];
 
@@ -392,7 +393,7 @@ try {
 									if (module.onTimeout) {
 										const reply = new LocalizableBaseMessageOptionsAdapter(
 											await module.onTimeout(edited)
-										).build(message.getLocale());
+										).build(locale);
 										await edited.edit(reply);
 									}
 								} catch (e) { }

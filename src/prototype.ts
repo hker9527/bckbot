@@ -36,26 +36,3 @@ Array.prototype.unique = function () {
 BigInt.prototype.toJSON = function () {
 	return this.toString();
 }
-
-declare module "discord.js" {
-	interface Message {
-		getLocale: () => Locale;
-	}
-
-	interface ContextMenuInteraction {
-		getMessage: () => Message;
-		getUser: () => User;
-	}
-
-	interface Guild {
-		getLocale: () => Locale;
-	}
-}
-
-Message.prototype.getLocale = function () {
-	return this.guild?.getLocale() ?? Locale.EnglishUS;
-};
-
-Guild.prototype.getLocale = function () {
-	return this.preferredLocale;
-};
