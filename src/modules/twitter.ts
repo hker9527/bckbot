@@ -144,7 +144,7 @@ export const twitter: StealthModule = {
 							{
 								type: "Button",
 								label: {
-									key: "originalTweetButton"
+									key: "twitter.originalTweetButton"
 								},
 								style: "Link",
 								url: json.url
