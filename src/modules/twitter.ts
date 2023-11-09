@@ -85,13 +85,7 @@ export const twitter: StealthModule = {
 					url: json.author.url
 				},
 				color: 0x1DA1F2,
-				description: {
-					key: "twitter.description",
-					data: {
-						description: json.text + (json.quote ? `\n>>> **${json.quote.author.name} (@${json.quote.author.screen_name})**\n${json.quote.text}` : ""),
-						url: json.url
-					}
-				},
+				description: json.text + (json.quote ? `\n>>> **${json.quote.author.name} (@${json.quote.author.screen_name})**\n${json.quote.text}` : ""),
 				footer: {
 					text: `❤️ ${num2str(json.likes)} 🔁 ${num2str(json.retweets)} 🗨️ ${num2str(json.replies)}${json.views ? " 👀 " + num2str(json.views) : ""}`,
 					iconURL: "https://cdn-icons-png.flaticon.com/512/179/179342.png"

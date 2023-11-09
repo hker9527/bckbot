@@ -164,7 +164,6 @@
     "slap": "{{slapper}} used {{tool}} to attack {{victim}}, dealing {{damage}} points."
   },
   "twitter": {
-    "description": "{{description}}\n\n[Original tweet]({{url}})",
     "unsupportedMediaContent": "Video  embeds are not supported by Discord bots.\nPlease click the button below to view the original tweet.",
     "unsupportedMediaHeader": "Unsupported media type detected",
     "originalTweetButton": "Original tweet"
