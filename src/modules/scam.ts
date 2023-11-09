@@ -1,8 +1,9 @@
+import { getString } from "@app/Localizations";
 import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
 import { APIScam } from "@type/api/Scam";
+import { Locale } from "discord.js";
 import { find } from "linkifyjs";
 import fetch from "node-fetch";
-import { getString } from "@app/Localizations";
 
 export const scam: StealthModule = {
 	name: "scam",
@@ -37,7 +38,7 @@ export const scam: StealthModule = {
 				if (json.matches) {
 					const txts = [];
 					for (const match of json.matches) {
-						txts.push(getString("scam.scam", obj.message.getLocale(), {
+						txts.push(getString("scam.scam", obj.message.guild?.preferredLocale ?? Locale.EnglishUS, {
 							link: match.threat.url,
 							threatType: match.threatType,
 							platformType: match.platformType,
