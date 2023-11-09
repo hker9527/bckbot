@@ -7,7 +7,7 @@ import { exec } from "child_process";
 import { TextChannel } from "discord.js";
 import Ffmpeg from "fluent-ffmpeg";
 import { readFileSync, writeFileSync } from "fs";
-import { mkdir, rm, writeFile } from "fs/promises";
+import { mkdir, rm, rmdir, writeFile } from "fs/promises";
 import { htmlToText } from "html-to-text";
 import Pixiv, { PixivIllust } from "pixiv.ts";
 import { promisify } from "util";
@@ -181,6 +181,9 @@ class Ugoira extends Illust {
 		}
 
 		const tmpdir = `/tmp/${this.details.id}`;
+		try {
+			await rmdir(tmpdir);
+		} catch (e) {}
 		await mkdir(tmpdir);
 
 		// Download zip to tmpdir
