@@ -284,8 +284,8 @@ export class IllustMessageFactory {
 		}
 	}
 
-	public getType(): "illust" | "ugoira" | null {
-		return this.illustDetails?.type ?? null as any;
+	public getType(): string | null {
+		return this.illustDetails?.type ?? null;
 	}
 
 	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
@@ -299,6 +299,7 @@ export class IllustMessageFactory {
 
 		switch (this.getType()) {
 			case "illust":
+			case "manga":
 				illust = new Illust(this.illustDetails!);
 				break;
 			case "ugoira":
