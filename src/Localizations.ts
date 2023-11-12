@@ -1,13 +1,13 @@
 import { LocalizerItem } from "@type/Localizer";
-import { LocaleString, LocalizationMap } from "discord-api-types/v9";
-import { readdirSync, readFileSync } from "fs";
+import { LocaleString, LocalizationMap } from "discord-api-types/v10";
+import { readdirSync } from "fs";
 import i18next from "i18next";
 import { error } from "./Reporting";
 
 const resources: Partial<Record<LocaleString, { translation: Record<string, Record<string, string>> }>> = {};
 
 for (const file of readdirSync("./res/i18n/")) {
-	const res = JSON.parse(readFileSync(`./res/i18n/${file}`).toString()) as Record<string, Record<string, string>>;
+	const res = await Bun.file(`./res/i18n/${file}`).json() as Record<string, Record<string, string>>;
 	const locale = file.split(".")[0] as LocaleString;
 	resources[locale] = { translation: res };
 }

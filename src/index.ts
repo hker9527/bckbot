@@ -2,7 +2,6 @@ import { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
 import { ApplicationCommandType, Client, EmbedBuilder, GatewayIntentBits, InteractionReplyOptions, Locale, Message, MessageEditOptions, PermissionFlagsBits, PermissionsBitField, TextChannel } from "discord.js";
-import { config } from "dotenv-safe";
 import { getName } from "./Localizations";
 import { debug, report } from "./Reporting";
 import { commands } from "./commands";
@@ -26,7 +25,6 @@ const client = new Client({
 });
 
 try {
-	config();
 	injectPrototype();
 
 	client.once("ready", async () => {
@@ -79,7 +77,8 @@ try {
 
 		const APICommands = commands.map(command => command.toAPI());
 
-		if (process.env.DEBUG) {
+		if (process.env.DEV) {
+			await client.application!.commands.set([]);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			for (const [_, guild] of client.guilds.cache) {
 				try {
