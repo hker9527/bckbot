@@ -1,5 +1,4 @@
 import { error } from "@app/Reporting";
-import { req2json } from "@app/utils";
 import { MessageContextMenuCommand } from "@class/ApplicationCommand";
 import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
@@ -136,7 +135,8 @@ const PREFERENCE = [
 
 const query = async (id: string, url: string, nsfw: boolean): Promise<LInteractionReplyOptions> => {
 	try {
-		const res = await req2json(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`) as APISaucenao;
+		const res: APISaucenao = await fetch(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`)
+			.then(res => res.json());
 
 		if (res.results === null) {
 			return {

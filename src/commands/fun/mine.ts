@@ -1,8 +1,9 @@
-import { random, randomArrayElement } from "@app/utils";
+import { random } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
 import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { ChatInputCommandInteraction } from "discord.js";
+import { sample } from "underscore";
 
 const numberSymbols = "　１２３４５６７８９".split("");
 const bombSymbol = "Ｘ";
@@ -48,7 +49,7 @@ class Command extends SlashApplicationCommand {
 
 		// Put mines into the field
 		for (let i = 0; i < mineCount; i++) {
-			let ran = randomArrayElement(avail);
+			const ran = sample(avail)!;
 
 			mineLocations.push(ran);
 			delete avail[avail.indexOf(ran)];

@@ -1,4 +1,3 @@
-import { req2json } from "@app/utils";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { APIDanbooru } from "@type/api/Danbooru";
 import { APIKonachan } from "@type/api/Konachan";
@@ -29,7 +28,8 @@ export interface ImageObject {
 
 // TODO: Rewrite as class
 export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
-	let res = await req2json(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join("+")}${nsfw ? "" : "+rating:s"}&limit=20`);
+	const res = await fetch(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join("+")}${nsfw ? "" : "+rating:s"}&limit=20`)
+	.then(res => res.json());
 
 	switch (provider) {
 		case "kon": {

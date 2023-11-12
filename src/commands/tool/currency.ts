@@ -1,8 +1,9 @@
-import { arr2obj, req2json, round } from "@app/utils";
+import { arr2obj, round } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
 import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { PrismaClient } from "@prisma/client";
+import { Zod } from "@type/Zod";
 import assert from "assert-ts";
 import { ChatInputCommandInteraction } from "discord.js";
 import { z } from "zod";
@@ -15,27 +16,40 @@ const prisma = new PrismaClient();
 
 const worker = async () => {
 	try {
+		// Check last updated
+		const lastUpdateInfo = await prisma.currencyUpdateInfo.findFirst({
+			orderBy: {
+				time: "desc"
+			}
+		});
+		if (lastUpdateInfo !== null) {
+			const diff = Date.now() - lastUpdateInfo.time.getTime();
+			if (diff < 3600 * 1000) {
+				return true;
+			}
+		}
+
 		const updateInfo = await prisma.currencyUpdateInfo.create({ data: {} });
 
 		for (let i = 0; i < currencies.length - 1; i++) {
 			const currency = currencies[i];
 			const otherCurrencies = currencies.filter((_, ii) => ii > i);
 
-			const response = await req2json(`http://api.exchangerate.host/live?access_key=${process.env.exchangerate_key}&source=${currency}&currencies=${otherCurrencies.join(",")}`);
-			const Z = z.object({
+			const response = await fetch(`http://api.exchangerate.host/live?access_key=${process.env.exchangerate_key}&source=${currency}&currencies=${otherCurrencies.join(",")}`)
+				.then(res => res.json());
+			const Z = new Zod(z.object({
 				success: z.literal(true),
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				quotes: z.object(arr2obj(otherCurrencies.map(oc => currency + oc), otherCurrencies.map(_ => z.number())))
-			});
-			const data = Z.safeParse(response);
-			assert(data.success);
+			}));
+			assert(Z.check(response));
 
 			for (const _currency of otherCurrencies) {
 				await prisma.currencyRecord.create({
 					data: {
 						src: currency,
 						dst: _currency,
-						value: data.data.quotes[currency + _currency],
+						value: response.quotes[currency + _currency],
 						updateInfo: {
 							connect: {
 								id: updateInfo.id

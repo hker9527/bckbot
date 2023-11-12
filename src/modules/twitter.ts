@@ -1,7 +1,7 @@
 import { debug } from "@app/Reporting";
-import { num2str, sleep } from "@app/utils";
+import { num2str } from "@app/utils";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
-import { LActionRowComponentData, LActionRowData } from "@localizer/data/ActionRowData";
+import { LActionRowData } from "@localizer/data/ActionRowData";
 import { StealthModule } from "@type/StealthModule";
 import { APIFXTwitter, ZAPIFXTwitter } from "@type/api/FXTwitter";
 import { find } from "linkifyjs";
@@ -34,7 +34,7 @@ export const twitter: StealthModule = {
 		const [hasEmbed, json] = await Promise.all([
 			new Promise<boolean>(async (resolve) => {
 				// Wait for embed to populate
-				// await sleep(2000);
+				await Bun.sleep(2000);
 
 				// Fetch newest version message (Reload embeds)
 				obj.message = await obj.message.channel.messages.fetch(obj.message.id);
