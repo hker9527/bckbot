@@ -3,7 +3,6 @@ import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule"
 import { APIScam } from "@type/api/Scam";
 import { Locale } from "discord.js";
 import { find } from "linkifyjs";
-import fetch from "node-fetch";
 
 export const scam: StealthModule = {
 	name: "scam",
