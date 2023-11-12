@@ -1,6 +1,6 @@
 {
   "name": "bckbot",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "author": "hker9527",
   "main": "src/index.ts",
   "dependencies": {
