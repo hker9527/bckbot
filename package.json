@@ -4,6 +4,7 @@
   "author": "hker9527",
   "main": "src/index.ts",
   "dependencies": {
+    "@book000/pixivts": "^0.19.7",
     "@prisma/client": "^5.1.1",
     "assert-ts": "^0.3.4",
     "decimal.js": "^10.4.2",
