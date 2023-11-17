@@ -1,4 +1,5 @@
 import { error } from "@app/Reporting";
+import { Frames, Pixiv, PixivIllustItem } from "@book000/pixivts";
 import { LBaseMessageOptions } from "@localizer/MessageOptions";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { PrismaClient } from "@prisma/client";
@@ -8,36 +9,31 @@ import assert from "assert-ts";
 import { TextChannel } from "discord.js";
 import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
-import Pixiv, { PixivIllust } from "pixiv.ts";
 
 const client = new PrismaClient();
 
 let pixivClient: Pixiv;
 
-type IllustDetails = PixivIllust & {
-	illust_ai_type: number
-};
-
 const proxy = (url: string) => url.replace("i.pximg.net", "i.nasu-ser.link"); // DO NOT ABUSE THIS
 
 class Illust {
-	protected details: IllustDetails;
+	protected item: PixivIllustItem;
 
-	public constructor(illustDetails: IllustDetails) {
-		this.details = illustDetails;
+	public constructor(item: PixivIllustItem) {
+		this.item = item;
 	}
 
 	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
-		const imageUrls = (this.details.page_count === 1 ?
-			[this.details.meta_single_page.original_image_url!] :
-			this.details.meta_pages.map((page) => page.image_urls.original))
+		const imageUrls = (this.item.page_count === 1 ?
+			[this.item.meta_single_page.original_image_url!] :
+			this.item.meta_pages.map((page) => page.image_urls.original))
 			.slice(0, 10) // Discord API Limit
 			.map(proxy);
 
 		let embeds: LAPIEmbed[];
 
 		// Try to hint the CDN to cache our files
-		for (const imageUrl of [proxy(this.details.user.profile_image_urls.medium), ...imageUrls]) {
+		for (const imageUrl of [proxy(this.item.user.profile_image_urls.medium), ...imageUrls]) {
 			await fetch(imageUrl, {
 				method: "HEAD"
 			});
@@ -47,10 +43,10 @@ class Illust {
 			image: {
 				url
 			},
-			url: `https://www.pixiv.net/artworks/${this.details.id}`
+			url: `https://www.pixiv.net/artworks/${this.item.id}`
 		}));
 
-		if (!nsfw && this.details.x_restrict > 0) {
+		if (!nsfw && this.item.x_restrict > 0) {
 			embeds = [embeds[0]];
 			delete embeds[0].image;
 			embeds[0].thumbnail = {
@@ -59,42 +55,42 @@ class Illust {
 		}
 
 		// Add metadata to the first 
-		const prefix = this.details.illust_ai_type > 1 ? "🤖 |" : "";
-		const suffix = this.details.page_count > 1 ? `(${this.details.page_count})` : "";
+		const prefix = this.item.illust_ai_type > 1 ? "🤖 |" : "";
+		const suffix = this.item.page_count > 1 ? `(${this.item.page_count})` : "";
 
 		embeds[0] = {
 			...embeds[0],
 			...{
 				author: {
-					name: this.details.title ? `${prefix} ${this.details.title} ${suffix}` : {
+					name: this.item.title ? `${prefix} ${this.item.title} ${suffix}` : {
 						key: `${prefix} $t(pixiv.titlePlaceholder) ${suffix}`
 					},
-					iconURL: proxy(this.details.user.profile_image_urls.medium),
-					url: `https://www.pixiv.net/artworks/${this.details.id}`
+					iconURL: proxy(this.item.user.profile_image_urls.medium),
+					url: `https://www.pixiv.net/artworks/${this.item.id}`
 				},
-				color: this.details.x_restrict > 0 ? 0xd37a52 : 0x3D92F5,
+				color: this.item.x_restrict > 0 ? 0xd37a52 : 0x3D92F5,
 				footer: {
-					text: `❤️ ${this.details.total_bookmarks} | 👁️ ${this.details.total_view} | 🗨️ ${this.details.total_comments}`,
+					text: `❤️ ${this.item.total_bookmarks} | 👁️ ${this.item.total_view} | 🗨️ ${this.item.total_comments}`,
 					iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
 				},
-				timestamp: new Date(this.details.create_date).toISOString(),
+				timestamp: new Date(this.item.create_date).toISOString(),
 				fields: [{
 					name: {
 						key: "pixiv.sauceHeader"
 					},
 					value: {
 						key: "pixiv.sauceContent",
-						data: {
-							illust_id: this.details.id,
-							author: this.details.user.name,
-							author_id: this.details.user.id
+						data: { 
+							illust_id: this.item.id, 
+							author: this.item.user.name, 
+							author_id: this.item.user.id
 						}
 					}
 				}, {
 					name: {
 						key: "pixiv.descriptionHeader"
 					},
-					value: htmlToText(this.details.caption, {
+					value: htmlToText(this.item.caption, {
 						limits: {
 							maxInputLength: 1500
 						},
@@ -103,7 +99,7 @@ class Illust {
 						key: "pixiv.descriptionPlaceholder"
 					}
 				}],
-				url: `https://www.pixiv.net/artworks/${this.details.id}`
+				url: `https://www.pixiv.net/artworks/${this.item.id}`
 			}
 		};
 
@@ -113,13 +109,10 @@ class Illust {
 
 class Ugoira extends Illust {
 	private zipUrl: string;
-	private frames: {
-		file: string,
-		delay: number
-	}[];
+	private frames: Frames[];
 
-	public constructor(illustDetails: IllustDetails) {
-		super(illustDetails);
+	public constructor(item: PixivIllustItem) {
+		super(item);
 
 		this.zipUrl = "";
 		this.frames = [];
@@ -127,13 +120,13 @@ class Ugoira extends Illust {
 
 	public async getMeta(): Promise<boolean> {
 		try {
-			const res = await pixivClient.ugoira.metadata({
-				illust_id: +this.details.id
+			const res = await pixivClient.ugoiraMetadata({
+				illustId: this.item.id
 			});
-
-			this.zipUrl = res.ugoira_metadata.zip_urls.medium.replace("_ugoira600x600", "_ugoira1920x1080");
-			this.frames = res.ugoira_metadata.frames;
-
+			
+			this.zipUrl = res.data.ugoira_metadata.zip_urls.medium.replace("_ugoira600x600", "_ugoira1920x1080");
+			this.frames = res.data.ugoira_metadata.frames;
+			
 			return true;
 		} catch (e) {
 			error("Ugoira->getMeta", e);
@@ -142,14 +135,14 @@ class Ugoira extends Illust {
 	}
 
 	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
-		if (this.details.restrict && !nsfw) {
+		if (this.item.restrict && !nsfw) {
 			return null;
 		}
 
 		// Check for cache
 		const cache = await client.pixivCache.findFirst({
 			where: {
-				id: this.details.id.toString()
+				id: this.item.id.toString()
 			}
 		});
 
@@ -170,15 +163,14 @@ class Ugoira extends Illust {
 				// Delete cache
 				await client.pixivCache.delete({
 					where: {
-						id: this.details.id.toString()
+						id: this.item.id.toString()
 					}
 				});
 				// Fall back to normal
 			}
 		}
 
-		// Create tmpdir
-		const tmpdir = `/tmp/${this.details.id}`;
+		const tmpdir = `/tmp/${this.item.id}`;
 		try {
 			await rm(tmpdir, {
 				recursive: true
@@ -243,7 +235,7 @@ class Ugoira extends Illust {
 		// Update database cache
 		await client.pixivCache.upsert({
 			create: {
-				id: this.details.id.toString(),
+				id: this.item.id.toString(),
 				type: "u",
 				hash: imgurResJson.data.id
 			},
@@ -252,7 +244,7 @@ class Ugoira extends Illust {
 				hash: imgurResJson.data.id
 			},
 			where: {
-				id: this.details.id.toString()
+				id: this.item.id.toString()
 			}
 		});
 
@@ -263,19 +255,19 @@ class Ugoira extends Illust {
 };
 
 export class IllustMessageFactory {
-	public id: string;
-	private illustDetails: IllustDetails | null;
+	public id: number;
+	private item: PixivIllustItem | null;
 
-	public constructor(id: string | number) {
-		this.id = id.toString();
-		this.illustDetails = null;
+	public constructor(id: number) {
+		this.id = id;
+		this.item = null;
 	}
 
 	public async getDetail(): Promise<boolean> {
 		try {
-			this.illustDetails = await pixivClient.illust.detail({
-				illust_id: +this.id
-			}) as unknown as any;
+			this.item = (await pixivClient.illustDetail({
+				illustId: this.id
+			})).data.illust;
 
 			return true;
 		} catch (e) {
@@ -285,11 +277,11 @@ export class IllustMessageFactory {
 	}
 
 	public getType(): string | null {
-		return this.illustDetails?.type ?? null;
+		return this.item?.type ?? null;
 	}
 
 	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
-		if (!this.illustDetails) {
+		if (!this.item) {
 			if (!await this.getDetail()) {
 				return null;
 			}
@@ -300,10 +292,10 @@ export class IllustMessageFactory {
 		switch (this.getType()) {
 			case "illust":
 			case "manga":
-				illust = new Illust(this.illustDetails!);
+				illust = new Illust(this.item!);
 				break;
 			case "ugoira":
-				illust = new Ugoira(this.illustDetails!);
+				illust = new Ugoira(this.item!);
 				if (!await (illust as Ugoira).getMeta()) {
 					return null;
 				}
@@ -317,7 +309,7 @@ export class IllustMessageFactory {
 }
 
 const worker = async () => {
-	pixivClient = await Pixiv.refreshLogin(process.env.pixiv_refresh_token!);
+	pixivClient = await Pixiv.of(process.env.pixiv_refresh_token!);
 };
 
 setInterval(worker, 3000 * 1000);
@@ -332,8 +324,8 @@ export const pixiv: StealthModule = {
 
 		if (!isNaN(parseInt(illustID))) {
 			const nsfw = (obj.message.channel as TextChannel).nsfw;
-			const result = await new IllustMessageFactory(illustID).toMessage(nsfw);
-
+			const result = await new IllustMessageFactory(+illustID).toMessage(nsfw);
+			
 			if (result) {
 				try {
 					await obj.message.suppressEmbeds(true);
