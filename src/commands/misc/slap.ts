@@ -1,9 +1,39 @@
-import { arr2obj, random, urandom } from "@app/utils";
+import { arr2obj, random } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
 import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import assert from "assert-ts";
+import Decimal from "decimal.js";
 import { ChatInputCommandInteraction } from "discord.js";
 import { random as emoji } from "node-emoji";
+
+const urandom = (object: Record<string, Decimal | number>) => {
+	const opt = Object.keys(object);
+
+	if (opt.length === 1) {
+		return opt[0];
+	} else {
+		const rand = Math.random();
+		let sumProb = new Decimal(0);
+		for (const prob of Object.values(object)) {
+			sumProb = sumProb.add(new Decimal(prob));
+		}
+		assert(sumProb.toString() === "1", `sumProb != 1, got ${sumProb}`);
+
+		sumProb.minus(object[opt[opt.length - 1]]);
+
+		for (let i = opt.length - 1; i > 0; i--) {
+			if (sumProb.lessThan(rand)) {
+				return opt[i];
+			} else {
+				sumProb = sumProb.minus(object[opt[i - 1]]);
+			}
+		}
+
+		return opt.shift()!;
+	}
+};
+
 
 class Command extends SlashApplicationCommand {
 	public options: LApplicationCommandOptionData[] = [

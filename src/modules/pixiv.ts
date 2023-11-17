@@ -4,11 +4,10 @@ import { LBaseMessageOptions } from "@localizer/MessageOptions";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { PrismaClient } from "@prisma/client";
 import { StealthModule } from "@type/StealthModule";
-import { exec } from "child_process";
+import { ZAPIImgur } from "@type/api/Imgur";
+import assert from "assert-ts";
 import { TextChannel } from "discord.js";
-import Ffmpeg from "fluent-ffmpeg";
-import { readFileSync, writeFileSync } from "fs";
-import { mkdir, rm, rmdir, writeFile } from "fs/promises";
+import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
 import { promisify } from "util";
 
@@ -164,8 +163,7 @@ class Ugoira extends Illust {
 			});
 
 			const imgurResJson = await imgurRes.json();
-
-			if (imgurResJson.success) {
+			if (ZAPIImgur.check(imgurResJson)) {
 				return {
 					content: `https://imgur.com/${cache.hash}`
 				};
@@ -182,8 +180,10 @@ class Ugoira extends Illust {
 
 		const tmpdir = `/tmp/${this.item.id}`;
 		try {
-			await rmdir(tmpdir);
-		} catch (e) {}
+			await rm(tmpdir, {
+				recursive: true
+			});
+		} catch (e) { }
 		await mkdir(tmpdir);
 
 		// Download zip to tmpdir
@@ -192,49 +192,46 @@ class Ugoira extends Illust {
 				"Referer": "https://www.pixiv.net/"
 			}
 		})
-			.then(x => x.arrayBuffer())
-			.then(x => writeFileSync(`${tmpdir}/ugoira.zip`, Buffer.from(x)));
+			.then(x => Bun.write(`${tmpdir}/ugoira.zip`, x));
 
 		// Extract zip by unzip command
-		await promisify(exec)(
-			`unzip -qq -o ${tmpdir}/ugoira.zip -d ${tmpdir}`
-		);
+		const unzipProc = Bun.spawn(["unzip", "-qq", "-o", `${tmpdir}/ugoira.zip`, "-d", tmpdir]);
+		await unzipProc.exited;
 
 		// Create frame list for concat
 		const frameList = this.frames.map(frame => `file '${frame.file}'\nduration ${frame.delay / 1000}`).join("\n");
-		await writeFile(`${tmpdir}/input.txt`, frameList);
-		
-		// Convert frames to mp4
-		const command = Ffmpeg(`${tmpdir}/input.txt`, {
-			cwd: tmpdir
-		})
-			.inputFormat("concat")
-			.outputOptions([
-				"-vsync vfr",
-				"-pix_fmt yuv420p"
-			])
-			.save(`${tmpdir}/output.mp4`)
-		
-		await new Promise((resolve, reject) => {
-			command.on("end", resolve);
-			command.on("error", reject);
-		});
+		await Bun.write(`${tmpdir}/input.txt`, frameList);
 
-		command.run();
+		// Convert frames to mp4
+		const ffmpegProc = Bun.spawn([
+			"ffmpeg",
+			"-f", "concat",
+			"-safe", "0",
+			"-i", `${tmpdir}/input.txt`,
+			"-vsync", "vfr",
+			"-pix_fmt", "yuv420p",
+			`${tmpdir}/output.mp4`
+		], {
+			cwd: tmpdir,
+			stdout: null,
+			stderr: "pipe"
+		});
+		await ffmpegProc.exited;
+		assert(ffmpegProc.exitCode === 0, `ffmpeg exited with non-zero code ${ffmpegProc.exitCode}\n${await Bun.readableStreamToText(ffmpegProc.stderr)}`);
 
 		// Upload to imgur
 		const formData = new FormData();
-		formData.append("video", new Blob([readFileSync(`${tmpdir}/output.mp4`)]));
+		formData.append("video", Bun.file(`${tmpdir}/output.mp4`));
 		const imgurRes = await fetch("https://api.imgur.com/3/upload", {
 			method: "POST",
 			headers: {
-				"Authorization": `Client-ID ${process.env.imgur_id}`
+				"Authorization": `Client-ID ${process.env.IMGUR_ID}`
 			},
 			body: formData
 		});
 
 		const imgurResJson = await imgurRes.json();
-		if (!imgurResJson.success) {
+		if (!(ZAPIImgur.check(imgurResJson) && imgurResJson.success)) {
 			throw new Error("Failed to upload to imgur: " + JSON.stringify(imgurResJson));
 		}
 
@@ -261,7 +258,7 @@ class Ugoira extends Illust {
 
 		return {
 			content: `https://imgur.com/${imgurResJson.data.id}`
-		};	
+		};
 	}
 };
 
@@ -297,7 +294,7 @@ export class IllustMessageFactory {
 				return null;
 			}
 		}
-		
+
 		let illust: Illust | Ugoira | null = null;
 
 		switch (this.getType()) {
@@ -315,7 +312,7 @@ export class IllustMessageFactory {
 		}
 
 		return illust.toMessage(nsfw);
-	} 
+	}
 }
 
 const worker = async () => {
@@ -339,8 +336,8 @@ export const pixiv: StealthModule = {
 			if (result) {
 				try {
 					await obj.message.suppressEmbeds(true);
-				} catch (e) {  }
-				
+				} catch (e) { }
+
 				return {
 					type: "reply",
 					result

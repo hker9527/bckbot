@@ -1,48 +1,35 @@
 {
   "name": "bckbot",
-  "version": "3.2.2",
+  "version": "3.3.0",
+  "author": "hker9527",
   "main": "src/index.ts",
-  "author": "Nasu#7336",
-  "license": "MIT",
   "dependencies": {
-    "@book000/pixivts": "^0.18.20",
     "@prisma/client": "^5.1.1",
-    "@types/fluent-ffmpeg": "^2.1.21",
-    "@typescript-eslint/eslint-plugin": "^6.3.0",
-    "@typescript-eslint/parser": "^6.3.0",
     "assert-ts": "^0.3.4",
     "decimal.js": "^10.4.2",
     "discord.js": "^14.12.1",
-    "dotenv-safe": "^8.2.0",
     "eslint": "^8.28.0",
     "eslint-config-alloy": "^5.1.1",
     "eslint-plugin-typescript": "^0.14.0",
-    "fluent-ffmpeg": "^2.1.2",
-    "form-data": "^4.0.0",
     "html-to-text": "^9.0.5",
     "i18next": "^23.4.4",
     "linkifyjs": "^4.0.2",
     "node-emoji": "^2.1.0",
-    "node-fetch": "2",
+    "pixiv.ts": "^0.5.9",
     "prisma": "^5.1.1",
-    "source-map-support": "^0.5.21",
-    "ts-transformer-keys": "^0.4.3",
-    "typescript": "^5.1.6",
-    "typescript-eslint-parser": "^22.0.0",
+    "underscore": "^1.13.6",
     "zod": "^3.19.1"
   },
   "devDependencies": {
-    "@types/dotenv-safe": "^8.1.2",
     "@types/html-to-text": "^9.0.1",
     "@types/linkifyjs": "^2.1.4",
-    "@types/node": "^20.4.10",
     "@types/node-emoji": "^2.1.0",
-    "@types/node-fetch": "^2.6.2",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.1.0"
+    "@types/underscore": "^1.11.14",
+    "bun-types": "latest"
   },
+  "license": "MIT",
   "scripts": {
-    "start": "npx ts-node -r tsconfig-paths/register src/index.ts",
-    "dev": "npx nodemon"
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts"
   }
 }
