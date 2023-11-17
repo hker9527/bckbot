@@ -1,5 +1,5 @@
 import { error } from "@app/Reporting";
-import { Pixiv, PixivIllustItem } from "@book000/pixivts";
+import { Frames, Pixiv, PixivIllustItem } from "@book000/pixivts";
 import { LBaseMessageOptions } from "@localizer/MessageOptions";
 import { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { PrismaClient } from "@prisma/client";
@@ -9,7 +9,6 @@ import assert from "assert-ts";
 import { TextChannel } from "discord.js";
 import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
-import { promisify } from "util";
 
 const client = new PrismaClient();
 
@@ -110,10 +109,7 @@ class Illust {
 
 class Ugoira extends Illust {
 	private zipUrl: string;
-	private frames: {
-		file: string,
-		delay: number
-	}[];
+	private frames: Frames[];
 
 	public constructor(item: PixivIllustItem) {
 		super(item);
@@ -124,10 +120,6 @@ class Ugoira extends Illust {
 
 	public async getMeta(): Promise<boolean> {
 		try {
-			// const res = await pixivClient.ugoira.metadata({
-			// 	illust_id: +this.item.id
-			// });
-		
 			const res = await pixivClient.ugoiraMetadata({
 				illustId: this.item.id
 			});
