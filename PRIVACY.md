@@ -6,10 +6,12 @@ This privacy policy ("Policy") describes how [bckbot](https://github.com/hker952
 
 ## Information Collection
 
-The Bot collects information from users of the Application in order to provide functionality to its users. The Bot may collect the following information:
+The Bot collects and stores information from users of the Application in order to provide functionality to its users:
 
-- Their Discord personal information (id, avatar, etc.)
-- Their Discord messages (id, content, timestamp, history, etc.)
+- Their Discord ID: For identifying a specific user
+- Their Discord locale (language): For providing localized responses
+
+If they choose to opt-out of data collection, they can do so by using the chat command `/ignoreme`.
 
 ## Use of Information
 
@@ -20,25 +22,25 @@ The Bot uses the information collected in the preceding section for the followin
 
 ## Data Retention
 
-The Bot retains the information collected in the preceding section for as long as necessary to provide The Bot to Them.
+The Bot retains the collected information, including user information, for as long as necessary to provide The Bot to Them. Users can request deletion of their information through the existing methods or by using the chat command `/forgetme`.
 
 ## Information Transfer
 
-The Bot does NOT transfer information to third parties.
+The Bot does NOT transfer information, including user information, to third parties. Their data will not be sold or shared without the user's consent.
 
 ## Disclosure of Information
 
-The Bot may disclose information that it collects about you, including personal information, if required to do so by law or in the good faith belief that such action is necessary to:
+The Bot may disclose information that it collects about users, including personal information, if required to do so by law or in the good faith belief that such action is necessary to:
 
-- To comply with a legal obligation
-- To protect and defend the rights or property of The Bot
-- To prevent or investigate possible wrongdoing in connection with the Application
-- To protect the personal safety of users of the Application or the public
-- To protect against legal liability
+- Comply with a legal obligation
+- Protect and defend the rights or property of The Bot
+- Prevent or investigate possible wrongdoing in connection with the Application
+- Protect the personal safety of users of the Application or the public
+- Protect against legal liability
 
 ## Security of Information
 
-The Bot takes commercially reasonable steps to ensure that the information it holds is secure. The data is stored locally on a secure server and the access to the server is encrypted using industry standard security protocols.
+The Bot takes commercially reasonable steps to ensure the security of the information it holds. The data is stored locally on a secure server, and access to the server is only possible by the author of The Bot, using the SSH public key authentication method.
 
 ## Changes to this Policy
 
@@ -48,6 +50,5 @@ The Bot reserves the right to change this Policy at any time. The Bot will notif
 
 If you have any questions about this Policy, please contact the author at either:
 
-- On Discord: Nasu#7336
-- On GitHub: hker9527
+- On Discord/GitHub: hker9527
 - By email: bckps7336@gmail.com

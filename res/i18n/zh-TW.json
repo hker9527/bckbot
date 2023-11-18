@@ -75,6 +75,20 @@
     "offset": "加上$t(dice.offsetDescription)`{{offset}}`",
     "roll": "{{n}}d{{faces}}{{offset}} = {{result}}"
   },
+  "forgetme": {
+    "_description": "忘記你的資料",
+    "_name": "forgetme",
+    "success": "你的資料已被刪除。",
+    "failure": "你沒有任何資料。"
+  },
+  "ignoreme": {
+    "_description": "控制機器人看不見你的訊息。",
+    "_name": "ignoreme",
+    "ignoreWarning": "你將無法使用任何自動功能，包括：\n```\n - Pixiv/Twitter圖片嵌入\n - 偵測有害鏈接\n```\n你可以再次使用這個指令來取消。\n你確定嗎？（點擊取消來取消）",
+    "noticeWarning": "你將可以再次使用自動功能。\n你確定嗎？（點擊下方刪除來取消）",
+    "success": "操作成功。",
+    "failure": "操作失敗。"
+  },
   "index": {
     "delete": "刪除",
     "error": "出包了……請等待修復！"
@@ -98,6 +112,22 @@
     "dimensions": "大小",
     "searchResult": "搜尋結果",
     "sourceHeader": "來源"
+  },
+  "language": {
+    "_name": "更改語言",
+    "_description": "設定機器人發送訊息的語言。",
+    "_language_name": "語言",
+    "_language_description": "你想要設置的語言。",
+    "_default_name": "預設",
+    "_default_description": "重置為預設",
+    "_english_name": "$t(language.en-US)",
+    "_tchinese_name": "$t(language.zh-TW)",
+    "en-US": "美式英文",
+    "zh-TW": "正體中文",
+    "setSuccess": "成功設置語言為{{language}}。",
+    "resetSuccess": "成功重設語言。",
+    "current": "目前的語言：{{language}} {{override}}",
+    "notFound": "找不到你的資料。也許你在忽略名單上？"
   },
   "ping": {
     "_description": "敲敲門",

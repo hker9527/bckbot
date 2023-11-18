@@ -10,6 +10,7 @@ import { injectPrototype } from "./prototype";
 import { random } from "./utils";
 import { LActionRowDataLocalizer } from "@localizer/data/ActionRowData";
 import { LocalizableBaseMessageOptionsAdapter } from "@localizer/MessageOptions";
+import { PrismaClient } from "@prisma/client";
 
 const TIMEOUT = 30 * 1000;
 
@@ -23,6 +24,33 @@ const client = new Client({
 		GatewayIntentBits.MessageContent
 	]
 });
+
+const prismaClient = new PrismaClient();
+
+const fetchUserLocale = async (id: string, override?: boolean) => {
+	const languageItem = await prismaClient.language.findFirst({
+		where: {
+			id,
+			type: "u",
+			override
+		}
+	});
+
+	if (languageItem) {
+		return languageItem.language as Locale;
+	}
+};
+
+const shouldIgnoreUser = async (id: string) => {
+	const ignoreItem = await prismaClient.ignore.findFirst({
+		where: {
+			id,
+			type: "u"
+		}
+	});
+
+	return ignoreItem !== null;
+};
 
 try {
 	injectPrototype();
@@ -117,9 +145,35 @@ try {
 		const timeouts: Record<string, NodeJS.Timeout> = {};
 
 		client.on("interactionCreate", async (interaction) => {
-			if (!interaction.isRepliable()) return;
+			if (!interaction.isRepliable()) {
+				return;
+			}
 
-			const deleteButton = createDeleteButton(interaction.locale);
+			const locale = (await fetchUserLocale(interaction.user.id, true)) ?? interaction.locale;
+
+			try {
+				if (!await shouldIgnoreUser(interaction.user.id)) {
+					// Store user's language if not exists or can be overridden
+					await prismaClient.language.upsert({
+						where: {
+							id: interaction.user.id,
+							type: "u",
+							override: false
+						},
+						create: {
+							id: interaction.user.id,
+							type: "u",
+							language: interaction.locale,
+							override: false
+						},
+						update: {
+							language: interaction.locale
+						}
+					});
+				}
+			} catch (e) { }
+
+			const deleteButton = createDeleteButton(locale);
 
 			const reply = async (response: InteractionReplyOptions, onTimeout?: BaseApplicationCommand<ApplicationCommandType>["onTimeout"]) => {
 				if (response.ephemeral) {
@@ -153,7 +207,7 @@ try {
 							const { components, ...x } = response;
 							const msg = await interaction.editReply({ components: _components ?? [], ...x });
 							if (onTimeout) {
-								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(interaction.locale);
+								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(locale);
 								await interaction.editReply(reply);
 							}
 							delete timeouts[id];
@@ -175,7 +229,7 @@ try {
 				content: {
 					key: "index.error"
 				}
-			}).build(interaction.locale);
+			}).build(locale);
 
 			try {
 				// Delete function
@@ -200,7 +254,7 @@ try {
 										key: "delete.notMyMessage"
 									},
 									ephemeral: true
-								}).build(interaction.locale)
+								}).build(locale)
 							);
 						}
 
@@ -217,7 +271,7 @@ try {
 										key: "delete.deleted"
 									},
 									ephemeral: true
-								}).build(interaction.locale)
+								}).build(locale)
 							);
 						} else {
 							return await reply(
@@ -226,7 +280,7 @@ try {
 										key: "delete.deletingOthersMessage"
 									},
 									ephemeral: true
-								}).build(interaction.locale)
+								}).build(locale)
 							);
 						}
 					} else {
@@ -236,7 +290,7 @@ try {
 									key: "delete.noPermission"
 								},
 								ephemeral: true
-							}).build(interaction.locale)
+							}).build(locale)
 						);
 					}
 				} else if (interaction.isChatInputCommand()) {
@@ -253,7 +307,7 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onCommand(interaction)
-						).build(interaction.locale);
+						).build(locale);
 					} catch (e) {
 						error(`commands/${command.name}.onCommand`, e);
 					}
@@ -274,7 +328,7 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onContextMenu(interaction)
-						).build(interaction.locale);
+						).build(locale);
 					} catch (e) {
 						error(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -294,7 +348,7 @@ try {
 					try {
 						response = new LocalizableInteractionReplyOptionsAdapter(
 							await command.onContextMenu(interaction)
-						).build(interaction.locale);
+						).build(locale);
 					} catch (e) {
 						error(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -317,11 +371,11 @@ try {
 						if (interaction.isButton() && command.onButton) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
 								await command.onButton(interaction)
-							).build(interaction.locale);
+							).build(locale);
 						} else if (interaction.isStringSelectMenu() && command.onSelectMenu) {
 							response = new LocalizableInteractionReplyOptionsAdapter(
 								await command.onSelectMenu(interaction)
-							).build(interaction.locale);
+							).build(locale);
 						} else {
 							// TODO: Handle unknown interaction
 						}
@@ -342,13 +396,18 @@ try {
 		// StealthModule
 		for (const event of ["messageCreate", "messageUpdate", "messageDelete"]) {
 			client.on(event, async (message: Message) => {
-				if (message.author.bot) return;
+				if (message.author.bot || await shouldIgnoreUser(message.author.id)) {
+					return;
+				}
 
 				// Check if message's channel lets us to send message
 				const botAsMember = await message.guild?.members.fetch(client.user!.id);
-				if ("permissionsFor" in message.channel && !message.channel.permissionsFor(botAsMember!)?.has(PermissionsBitField.Flags.SendMessages)) return;
+				if ("permissionsFor" in message.channel && !message.channel.permissionsFor(botAsMember!)?.has(PermissionsBitField.Flags.SendMessages)) {
+					return;
+				}
 
-				const locale = message.guild?.preferredLocale ?? Locale.EnglishUS;
+				const locale = (await fetchUserLocale(message.author.id) ?? message.guild?.preferredLocale ?? Locale.EnglishUS) as Locale;
+
 				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
 
@@ -376,7 +435,7 @@ try {
 
 							result.components = result.components ? [...result.components, deleteButton] : [deleteButton];
 
-							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply({...result, allowedMentions: { repliedUser: false }});
+							const msg = _result.type === "send" ? await message.channel.send(result) : await message.reply({ ...result, allowedMentions: { repliedUser: false } });
 
 							sources[msg.id] = message.author.id;
 
