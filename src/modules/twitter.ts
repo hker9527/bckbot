@@ -1,9 +1,10 @@
 import { debug } from "@app/Reporting";
 import { num2str } from "@app/utils";
-import { LAPIEmbed } from "@localizer/data/APIEmbed";
-import { LActionRowData } from "@localizer/data/ActionRowData";
-import { StealthModule } from "@type/StealthModule";
-import { APIFXTwitter, ZAPIFXTwitter } from "@type/api/FXTwitter";
+import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import type { LActionRowData } from "@localizer/data/ActionRowData";
+import type { StealthModule } from "@type/StealthModule";
+import type { APIFXTwitter } from "@type/api/FXTwitter";
+import { ZAPIFXTwitter } from "@type/api/FXTwitter";
 import { find } from "linkifyjs";
 
 export const twitter: StealthModule = {
@@ -13,7 +14,8 @@ export const twitter: StealthModule = {
 		const url = find(obj.message.content)
 			.filter(result => result.type === "url")
 			.map(result => new URL(result.href))
-			.filter(url => [
+			.filter(url => 
+				[
 					"vxtwitter.com",
 					"fixvx.com",
 					"fxtwitter.com",

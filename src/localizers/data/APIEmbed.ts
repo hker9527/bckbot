@@ -1,6 +1,6 @@
 import { Localizer } from "@app/Localizations";
-import { L, LocalizerItem } from "../../types/Localizer";
-import { APIEmbed, APIEmbedProvider, EmbedAuthorData, EmbedField, EmbedFooterData, LocaleString } from "discord.js";
+import type { L, LocalizerItem } from "../../types/Localizer";
+import type { APIEmbed, APIEmbedProvider, EmbedAuthorData, EmbedField, EmbedFooterData, LocaleString } from "discord.js";
 
 type LEmbedAuthorData = L<EmbedAuthorData, "name">;
 interface LEmbedField extends Omit<L<EmbedField, "name" | "value">, "inline"> {

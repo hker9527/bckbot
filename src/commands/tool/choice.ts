@@ -1,8 +1,8 @@
 import { random, round } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
-import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ChatInputCommandInteraction } from "discord.js";
+import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { ChatInputCommandInteraction } from "discord.js";
 
 export const shuffleArray = (array: any[]) => {
 	for (let i = array.length - 1; i > 0; i--) {

@@ -1,4 +1,4 @@
-import { ZodType } from "zod";
+import type { ZodType } from "zod";
 
 export class Zod<T> {
 	public z: ZodType<T>;

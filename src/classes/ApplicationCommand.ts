@@ -1,9 +1,11 @@
 import { getDescription, getName } from "@app/Localizations";
 
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { LBaseMessageOptions } from "@localizer/MessageOptions";
-import { ApplicationCommandDataResolvable, ApplicationCommandType, ButtonInteraction, ChatInputCommandInteraction, Message, MessageComponentInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
-import { ApplicationCommandOption, LApplicationCommandOptionData } from "./ApplicationCommandOptionData";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { LBaseMessageOptions } from "@localizer/MessageOptions";
+import type { ApplicationCommandDataResolvable, ButtonInteraction, ChatInputCommandInteraction, Message, MessageComponentInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import { ApplicationCommandType } from "discord.js";
+import type { LApplicationCommandOptionData } from "./ApplicationCommandOptionData";
+import { ApplicationCommandOption } from "./ApplicationCommandOptionData";
 import { Custom } from "./custom";
 
 export abstract class BaseApplicationCommand<T extends ApplicationCommandType> extends Custom<ApplicationCommandDataResolvable> {

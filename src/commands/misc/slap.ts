@@ -1,10 +1,10 @@
 import { arr2obj, random } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
-import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
 import Decimal from "decimal.js";
-import { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { random as emoji } from "node-emoji";
 
 const urandom = (object: Record<string, Decimal | number>) => {

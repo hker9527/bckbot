@@ -1,6 +1,6 @@
-import { LocalizerItem } from "@type/Localizer";
-import { LActionRowData } from "./ActionRowData";
-import { LAPIEmbed } from "./APIEmbed";
+import type { LocalizerItem } from "@type/Localizer";
+import type { LActionRowData } from "./ActionRowData";
+import type { LAPIEmbed } from "./APIEmbed";
 
 export interface LocalizableMessageFields {
 	components?: LActionRowData[],

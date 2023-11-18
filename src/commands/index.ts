@@ -1,5 +1,5 @@
-import { BaseApplicationCommand } from "@class/ApplicationCommand";
-import { ApplicationCommandType } from "discord.js";
+import type { BaseApplicationCommand } from "@class/ApplicationCommand";
+import type { ApplicationCommandType } from "discord.js";
 
 import { mine } from "./fun/mine";
 import { ask } from "./misc/ask";

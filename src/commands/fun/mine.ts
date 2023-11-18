@@ -1,8 +1,8 @@
 import { random } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
-import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ChatInputCommandInteraction } from "discord.js";
+import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { sample } from "underscore";
 
 const numberSymbols = "　１２３４５６７８９".split("");

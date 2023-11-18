@@ -1,7 +1,8 @@
 import { Localizer } from "@app/Localizations";
-import { L } from "@type/Localizer";
-import { LocaleString } from "discord-api-types/v9";
-import { ActionRowData, ButtonStyle, ComponentType, InteractionButtonComponentData, LinkButtonComponentData, MessageActionRowComponentData, SelectMenuComponentOptionData, StringSelectMenuComponentData } from "discord.js";
+import type { L } from "@type/Localizer";
+import type { LocaleString } from "discord-api-types/v9";
+import type { ActionRowData, InteractionButtonComponentData, LinkButtonComponentData, MessageActionRowComponentData, SelectMenuComponentOptionData, StringSelectMenuComponentData } from "discord.js";
+import { ButtonStyle, ComponentType } from "discord.js";
 
 interface LBaseComponentData {
 	type: keyof typeof ComponentType;

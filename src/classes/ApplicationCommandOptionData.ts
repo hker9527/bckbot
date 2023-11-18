@@ -1,5 +1,6 @@
 import { getName, getDescription } from "@app/Localizations";
-import { BaseApplicationCommandOptionsData, ApplicationCommandOptionChoiceData, ApplicationCommandOptionData, ApplicationCommandNumericOptionData, ApplicationCommandOptionType, ApplicationCommandStringOptionData } from "discord.js";
+import type { BaseApplicationCommandOptionsData, ApplicationCommandOptionChoiceData, ApplicationCommandOptionData, ApplicationCommandNumericOptionData, ApplicationCommandStringOptionData } from "discord.js";
+import { ApplicationCommandOptionType } from "discord.js";
 import { Custom } from "./custom";
 
 type LocalizableOption = Omit<BaseApplicationCommandOptionsData, "nameLocalizations" | "description" | "descriptionLocalizations" | "autocomplete"> & {
