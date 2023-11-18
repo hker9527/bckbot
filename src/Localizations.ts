@@ -28,7 +28,7 @@ export const getString = (key: string, locale: LocaleString, options?: Record<st
 			locale = "zh-TW";
 			break;
 		default:
-			if (!i18next.exists(key, { lng: locale })) {
+			if (!key.includes("$t") && !i18next.exists(key, { lng: locale })) {
 				locale = "en-US";
 			}
 			break;
@@ -38,7 +38,14 @@ export const getString = (key: string, locale: LocaleString, options?: Record<st
 		error("getString", `${key} @ ${locale} does not exist!`);
 	}
 
-	return i18next.t(key, { interpolation: { escapeValue: false }, lng: locale, ...options });
+	return i18next.t(key, {
+		interpolation: {
+			escapeValue: false,
+			skipOnVariables: false
+		},
+		lng: locale,
+		...options
+	});
 };
 
 export const Localizer = (localizable: LocalizerItem, locale: LocaleString) => {
