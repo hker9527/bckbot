@@ -152,23 +152,25 @@ try {
 			const locale = (await fetchUserLocale(interaction.user.id, true)) ?? interaction.locale;
 
 			try {
-				// Store user's language if not exists or can be overridden
-				await prismaClient.language.upsert({
-					where: {
-						id: interaction.user.id,
-						type: "u",
-						override: false
-					},
-					create: {
-						id: interaction.user.id,
-						type: "u",
-						language: interaction.locale,
-						override: false
-					},
-					update: {
-						language: interaction.locale
-					}
-				});
+				if (!await shouldIgnoreUser(interaction.user.id)) {
+					// Store user's language if not exists or can be overridden
+					await prismaClient.language.upsert({
+						where: {
+							id: interaction.user.id,
+							type: "u",
+							override: false
+						},
+						create: {
+							id: interaction.user.id,
+							type: "u",
+							language: interaction.locale,
+							override: false
+						},
+						update: {
+							language: interaction.locale
+						}
+					});
+				}
 			} catch (e) { }
 
 			const deleteButton = createDeleteButton(locale);
