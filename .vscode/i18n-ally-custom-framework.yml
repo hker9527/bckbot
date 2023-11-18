@@ -2,7 +2,7 @@ languageIds:
   - typescript
 
 usageMatchRegex:
-  - "getString\\([.\\W]*?[\"]({key}.+?)[\"],"
+  - "!\\.getString\\([.\\W]*?[\"]({key}.+?)[\"],"
   - "key: ['\"`]({key}.+?)['\"`]"
 
 monopoly: false
