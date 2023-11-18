@@ -29,3 +29,15 @@ model PixivCache {
     hash String
     time DateTime @default(now())
 }
+
+model Language {
+    id       String   @id
+    type     String
+    language String
+    override Boolean
+}
+
+model Ignore {
+    id   String @id
+    type String
+}
