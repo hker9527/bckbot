@@ -13,6 +13,9 @@ import { currency } from "./tool/currency";
 import { dice } from "./tool/dice";
 import { roll } from "./tool/roll";
 import { sauce } from "./tool/sauce";
+import { forgetme } from "./setting/forgetme";
+import { ignoreme } from "./setting/ignoreme";
+import { language } from "./setting/language";
 
 export const commands: BaseApplicationCommand<ApplicationCommandType>[] = [
 	mine,
@@ -26,5 +29,8 @@ export const commands: BaseApplicationCommand<ApplicationCommandType>[] = [
 	currency,
 	dice,
 	roll,
-	sauce
+	sauce,
+	forgetme,
+	ignoreme,
+	language
 ];
