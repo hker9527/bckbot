@@ -76,6 +76,20 @@
     "offset": "with `{{offset}}` $t(dice.offsetDescription)",
     "roll": "{{n}}d{{faces}}{{offset}} = {{result}}"
   },
+  "forgetme": {
+    "_description": "Forget your data",
+    "_name": "forgetme",
+    "success": "Your data has been deleted.",
+    "failure": "You don't have any data stored."
+  },
+  "ignoreme": {
+    "_description": "Control the visibility of your messages to the bot.",
+    "_name": "ignoreme",
+    "ignoreWarning": "You will not be able to use any auto functions, including: \n```\n - Pixiv/Twitter embed generation\n - Scam link detection\n```\nYou can undo this change by using this command again.\nAre you sure about this? (Dismiss this message to cancel.)",
+    "noticeWarning": "You will be able to use auto functions again.\nAre you sure about this? (Dismiss this message to cancel.)",
+    "success": "Operation successful.",
+    "failure": "Operation failed."
+  },
   "index": {
     "delete": "Delete",
     "error": "Error has been reported to bot author. Please wait for a fix!"
@@ -99,6 +113,22 @@
     "dimensions": "Dimensions",
     "searchResult": "Search Result",
     "sourceHeader": "Source"
+  },
+  "language": {
+    "_name": "language",
+    "_description": "Set the language of the message sent from the bot for your messages.",
+    "_language_name": "language",
+    "_language_description": "The language you want to set.",
+    "_default_name": "Default",
+    "_default_description": "Reset to default",
+    "_english_name": "$t(language.en-US)",
+    "_tchinese_name": "$t(language.zh-TW)",
+    "en-US": "English (US)",
+    "zh-TW": "Traditional Chinese",
+    "setSuccess": "Successfully set language to {{language}}.",
+    "resetSuccess": "Successfully reset language to default.",
+    "current": "Current language: {{language}} {{override}}",
+    "notFound": "I can't find you in my database. Perhaps you are on the ignore list?"
   },
   "ping": {
     "_description": "Ping the bot.",
