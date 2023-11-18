@@ -1,18 +1,19 @@
 import { error } from "@app/Reporting";
 import { MessageContextMenuCommand } from "@class/ApplicationCommand";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { LAPIEmbed } from "@localizer/data/APIEmbed";
-import { ApiPortal, fetchList, genEmbed as genMoebooruEmbed } from "@module/moebooru";
-import { APISaucenao } from "@type/api/Saucenao";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import type { ApiPortal} from "@module/moebooru";
+import { fetchList, genEmbed as genMoebooruEmbed } from "@module/moebooru";
+import type { APISaucenao } from "@type/api/Saucenao";
 import { ZAPISaucenaoBase } from "@type/api/saucenao/Base";
 import { ZAPISaucenaoEHentai } from "@type/api/saucenao/EHentai";
 import { ZAPISaucenaoMoebooru } from "@type/api/saucenao/Moebooru";
 import { ZAPISaucenaoPixiv } from "@type/api/saucenao/Pixiv";
 import { ZAPISaucenaoTwitter } from "@type/api/saucenao/Twitter";
-import { Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from "discord.js";
+import type { Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from "discord.js";
 import { IllustMessageFactory } from "../../modules/pixiv";
 import { findImagesFromMessage } from "../_lib";
-import { LBaseMessageOptions } from "@localizer/MessageOptions";
+import type { LBaseMessageOptions } from "@localizer/MessageOptions";
 
 type Results = APISaucenao["results"];
 

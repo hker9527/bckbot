@@ -1,5 +1,3 @@
-import { Message, Guild, Locale } from "discord.js";
-
 export const injectPrototype = () => { }; // Turn this file into a module
 
 declare global {

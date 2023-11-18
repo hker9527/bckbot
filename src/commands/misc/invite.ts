@@ -1,6 +1,6 @@
 import { SlashApplicationCommand } from "@app/classes/ApplicationCommand";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ChatInputCommandInteraction } from "discord.js";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { ChatInputCommandInteraction } from "discord.js";
 
 class Command extends SlashApplicationCommand {
 	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {

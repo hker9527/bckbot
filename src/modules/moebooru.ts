@@ -1,9 +1,9 @@
-import { LAPIEmbed } from "@localizer/data/APIEmbed";
-import { APIDanbooru } from "@type/api/Danbooru";
-import { APIKonachan } from "@type/api/Konachan";
-import { APISankaku } from "@type/api/Sankaku";
-import { APIYandere } from "@type/api/Yandere";
-import { StealthModule } from "@type/StealthModule";
+import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import type { APIDanbooru } from "@type/api/Danbooru";
+import type { APIKonachan } from "@type/api/Konachan";
+import type { APISankaku } from "@type/api/Sankaku";
+import type { APIYandere } from "@type/api/Yandere";
+import type { StealthModule } from "@type/StealthModule";
 
 export enum ApiPortal {
 	// eslint-disable-next-line no-unused-vars
@@ -29,7 +29,7 @@ export interface ImageObject {
 // TODO: Rewrite as class
 export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[] = [], nsfw = false): Promise<ImageObject[]> => {
 	const res = await fetch(`${ApiPortal[provider]}?tags=${tags.filter(tag => { return !tag.includes("rating") || nsfw; }).join("+")}${nsfw ? "" : "+rating:s"}&limit=20`)
-	.then(res => res.json());
+		.then(res => res.json());
 
 	switch (provider) {
 		case "kon": {

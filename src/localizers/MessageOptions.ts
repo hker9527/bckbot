@@ -1,9 +1,9 @@
 import { Localizer } from "@app/Localizations";
-import { LocaleString } from "discord-api-types/v9";
-import { BaseMessageOptions } from "discord.js";
+import type { LocaleString } from "discord-api-types/v9";
+import type { BaseMessageOptions } from "discord.js";
 import { LActionRowDataLocalizer } from "./data/ActionRowData";
 import { LocalizableAPIEmbedAdapter } from "./data/APIEmbed";
-import { LocalizableMessageFields } from "./data/_Fields";
+import type { LocalizableMessageFields } from "./data/_Fields";
 
 export type LBaseMessageOptions = LocalizableMessageFields & Omit<BaseMessageOptions, keyof LocalizableMessageFields>;
 

@@ -1,5 +1,5 @@
-import { LocalizerItem } from "@type/Localizer";
-import { LocaleString, LocalizationMap } from "discord-api-types/v10";
+import type { LocalizerItem } from "@type/Localizer";
+import type { LocaleString, LocalizationMap } from "discord-api-types/v10";
 import { readdirSync } from "fs";
 import i18next from "i18next";
 import { error } from "./Reporting";

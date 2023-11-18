@@ -1,5 +1,5 @@
 import { MessageContextMenuCommand } from "@class/ApplicationCommand";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 
 class Command extends MessageContextMenuCommand {
 	public async onContextMenu(): Promise<LInteractionReplyOptions> {

@@ -1,12 +1,13 @@
 import { error } from "@app/Reporting";
-import { Frames, Pixiv, PixivIllustItem } from "@book000/pixivts";
-import { LBaseMessageOptions } from "@localizer/MessageOptions";
-import { LAPIEmbed } from "@localizer/data/APIEmbed";
+import type { Frames, PixivIllustItem } from "@book000/pixivts";
+import { Pixiv } from "@book000/pixivts";
+import type { LBaseMessageOptions } from "@localizer/MessageOptions";
+import type { LAPIEmbed } from "@localizer/data/APIEmbed";
 import { PrismaClient } from "@prisma/client";
-import { StealthModule } from "@type/StealthModule";
+import type { StealthModule } from "@type/StealthModule";
 import { ZAPIImgur } from "@type/api/Imgur";
 import assert from "assert-ts";
-import { TextChannel } from "discord.js";
+import type { TextChannel } from "discord.js";
 import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
 

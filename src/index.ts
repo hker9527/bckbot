@@ -1,7 +1,8 @@
-import { BaseApplicationCommand } from "@class/ApplicationCommand";
+import type { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
-import { ApplicationCommandType, Client, EmbedBuilder, GatewayIntentBits, InteractionReplyOptions, Locale, Message, MessageEditOptions, PermissionFlagsBits, PermissionsBitField, TextChannel } from "discord.js";
+import type { ApplicationCommandType, InteractionReplyOptions, Message, MessageEditOptions, TextChannel } from "discord.js";
+import { Client, EmbedBuilder, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
 import { debug, report } from "./Reporting";
 import { commands } from "./commands";

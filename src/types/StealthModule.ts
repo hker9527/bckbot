@@ -1,5 +1,5 @@
-import { LBaseMessageOptions } from "@localizer/MessageOptions"
-import { Message } from "discord.js"
+import type { LBaseMessageOptions } from "@localizer/MessageOptions"
+import type { Message } from "discord.js"
 
 export interface StealthModuleActionArgument {
 	message: Message,

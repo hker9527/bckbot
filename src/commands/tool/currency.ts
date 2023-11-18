@@ -1,11 +1,11 @@
 import { arr2obj, round } from "@app/utils";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
-import { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
 import { PrismaClient } from "@prisma/client";
 import { Zod } from "@type/Zod";
 import assert from "assert-ts";
-import { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { z } from "zod";
 
 const currencies = [

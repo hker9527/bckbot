@@ -1,6 +1,6 @@
 import { getString } from "@app/Localizations";
-import { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
-import { APIScam } from "@type/api/Scam";
+import type { StealthModule, StealthModuleActionArgument } from "@type/StealthModule";
+import type { APIScam } from "@type/api/Scam";
 import { Locale } from "discord.js";
 import { find } from "linkifyjs";
 

@@ -1,6 +1,6 @@
 import { UserContextMenuCommand } from "@class/ApplicationCommand";
-import { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import { ImageURLOptions, UserContextMenuCommandInteraction } from "discord.js";
+import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { ImageURLOptions, UserContextMenuCommandInteraction } from "discord.js";
 
 const bestOptions: ImageURLOptions = {
 	extension: "png",

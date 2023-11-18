@@ -1,4 +1,4 @@
-import { Collection, Message } from "discord.js";
+import type { Collection, Message } from "discord.js";
 
 export const findImagesFromMessage = (message: Message) => {
 	// Attachment shows first, then embeds.
