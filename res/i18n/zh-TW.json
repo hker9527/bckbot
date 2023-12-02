@@ -193,8 +193,6 @@
     "slap": "{{slapper}} 使用 {{tool}} 攻擊 {{victim}}，造成了 {{damage}} 點傷害。"
   },
   "twitter": {
-    "unsupportedMediaContent": "Discord機器人不支持影片和GIF嵌入。\n請點擊下面的按鈕查看原始推文",
-    "unsupportedMediaHeader": "偵測到不支持的媒體類型",
     "originalTweetButton": "原始推文"
   }
 }

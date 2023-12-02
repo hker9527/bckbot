@@ -72,11 +72,25 @@ export const twitter: StealthModule = {
 			...videos.map((video) => video.thumbnail_url)
 		];
 
-		if (!vanilla && (
-			images.length < 2 // The fix-up sites jam all the images together
-			|| videos.length > 0 // No video support
-		)) {
+		// Fixup sites looks fine for less than 2 images
+		if (images.length < 2 && !vanilla) {
 			return false;
+		}
+
+		// Workaround for showing videos
+		if (videos.length > 0) {
+			if (vanilla) {
+				// Vanilla twitter can't display videos
+				return {
+					type: "reply",
+					result: {
+						content: json.url.replace("twitter.com", "fxtwitter.com")
+					}
+				};
+			} else {
+				// Fixup sites can display videos by itself
+				return false;
+			}
 		}
 
 		let embeds: LAPIEmbed[] = [
@@ -110,21 +124,6 @@ export const twitter: StealthModule = {
 			})));
 		}
 
-		if (videos.length > 0) {
-			embeds[0].fields = [
-				{
-					name: {
-						key: "twitter.unsupportedMediaHeader"
-					},
-					value: {
-						key: "twitter.unsupportedMediaContent",
-						data: {
-							url: json.url
-						}
-					}
-				}
-			];
-		}
 		try {
 			await obj.message.suppressEmbeds();
 		} catch (e) { }
