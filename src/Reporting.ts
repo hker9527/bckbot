@@ -18,5 +18,5 @@ export const debug = (tag: string, e: unknown) => {
 };
 
 export const error = (tag: string, e: unknown) => {
-	if (flag) console.error(`${getPrefix()} [${tag}] ${e}`);
+	console.error(`${getPrefix()} [${tag}] ${e}`);
 };
