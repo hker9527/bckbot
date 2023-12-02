@@ -314,7 +314,7 @@ const worker = async () => {
 };
 
 setInterval(worker, 3000 * 1000);
-worker();
+await worker();
 
 export const pixiv: StealthModule = {
 	name: "pixiv",
