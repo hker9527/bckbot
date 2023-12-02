@@ -77,6 +77,22 @@ export const twitter: StealthModule = {
 			return false;
 		}
 
+		const components = [
+			{
+				type: "ActionRow",
+				components: [
+					{
+						type: "Button",
+						label: {
+							key: "twitter.originalTweetButton"
+						},
+						style: "Link",
+						url: json.url
+					}
+				]
+			}
+		] as LActionRowData[];
+
 		// Workaround for showing videos
 		if (videos.length > 0) {
 			if (vanilla) {
@@ -84,7 +100,8 @@ export const twitter: StealthModule = {
 				return {
 					type: "reply",
 					result: {
-						content: json.url.replace("twitter.com", "fxtwitter.com")
+						content: json.url.replace("twitter.com", "fxtwitter.com"),
+						components
 					}
 				};
 			} else {
@@ -132,21 +149,7 @@ export const twitter: StealthModule = {
 			type: "reply",
 			result: {
 				embeds,
-				components: [
-					{
-						type: "ActionRow",
-						components: [
-							{
-								type: "Button",
-								label: {
-									key: "twitter.originalTweetButton"
-								},
-								style: "Link",
-								url: json.url
-							}
-						]
-					}
-				] as LActionRowData[]
+				components
 			}
 		};
 	}
