@@ -27,6 +27,9 @@
     "eslint-config-alloy": "^5.1.1",
     "eslint-plugin-typescript": "^0.14.0"
   },
+  "overrides": {
+    "@types/node": "npm:bun-types@latest"
+  },
   "license": "MIT",
   "scripts": {
     "start": "bun run src/index.ts",
