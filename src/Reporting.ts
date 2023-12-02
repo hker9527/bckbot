@@ -1,4 +1,4 @@
-const flag = process.env.DEV;
+const flag = process.env.NODE_ENV !== "production";
 
 export const report = (string: string) => {
 	console.log(`${string}`);
