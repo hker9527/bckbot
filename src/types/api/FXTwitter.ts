@@ -36,7 +36,7 @@ const TweetSchema = BaseTweetSchema.extend({
 const FxTwitterSchema = z.object({
 	code: z.number(),
 	message: z.string(),
-	tweet: TweetSchema
+	tweet: TweetSchema.nullable()
 });
 
 export const ZAPIFXTwitter = new Zod(FxTwitterSchema);
