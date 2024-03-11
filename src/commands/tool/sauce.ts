@@ -136,7 +136,7 @@ const PREFERENCE = [
 
 const query = async (id: string, url: string, nsfw: boolean): Promise<LInteractionReplyOptions> => {
 	try {
-		const res: APISaucenao = await fetch(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${url}`)
+		const res: APISaucenao = await fetch(`https://saucenao.com/search.php?api_key=${process.env.saucenao_key}&db=999&output_type=2&numres=10&url=${encodeURIComponent(url)}`)
 			.then(res => res.json());
 
 		if (res.results === null) {
