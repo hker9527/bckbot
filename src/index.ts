@@ -144,7 +144,7 @@ try {
 		const sources: Record<string, string> = {};
 
 		// Linked list storing all interaction ids and it's parent, null if it's the root
-		const timeouts: Record<string, NodeJS.Timeout> = {};
+		const timeouts: Record<string, Timer> = {};
 
 		client.on("interactionCreate", async (interaction) => {
 			if (!interaction.isRepliable()) {
