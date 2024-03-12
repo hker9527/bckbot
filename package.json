@@ -14,6 +14,7 @@
     "linkifyjs": "^4.0.2",
     "node-emoji": "^2.1.0",
     "prisma": "^5.1.1",
+    "tslog": "^4.9.2",
     "underscore": "^1.13.6",
     "zod": "^3.19.1"
   },
