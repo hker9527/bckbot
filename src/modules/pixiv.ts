@@ -16,8 +16,7 @@ const logger = new Logger({
 });
 
 const client = new PrismaClient();
-
-let pixivClient: Pixiv;
+let pixivClient = await Pixiv.of(process.env.pixiv_refresh_token!);
 
 const proxy = (url: string) => url.replace("i.pximg.net", "i.nasu-ser.link"); // DO NOT ABUSE THIS
 
