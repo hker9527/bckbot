@@ -14,7 +14,8 @@ import { PrismaClient } from "@prisma/client";
 import { Logger } from "tslog";
 
 const logger = new Logger({
-	name: "index"
+	name: "index",
+	minLevel: Bun.env.DEV === "true" ? 0 : 3
 });
 
 const TIMEOUT = 30 * 1000;

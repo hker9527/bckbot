@@ -12,7 +12,8 @@ import { htmlToText } from "html-to-text";
 import { Logger } from "tslog";
 
 const logger = new Logger({
-	name: "pixiv"
+	name: "pixiv",
+	minLevel: Bun.env.DEV === "true" ? 0 : 3
 });
 
 const client = new PrismaClient();

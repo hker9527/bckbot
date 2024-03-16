@@ -7,7 +7,8 @@ import { find } from "linkifyjs";
 import { Logger } from "tslog";
 
 const logger = new Logger({
-	name: "twitter"
+	name: "twitter",
+	minLevel: Bun.env.DEV === "true" ? 0 : 3
 });
 
 export const fetchTweet = async (url: URL) => {
