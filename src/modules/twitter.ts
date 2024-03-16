@@ -1,11 +1,40 @@
-import { debug } from "@app/Reporting";
 import { num2str } from "@app/utils";
 import type { LAPIEmbed } from "@localizer/data/APIEmbed";
 import type { LActionRowData } from "@localizer/data/ActionRowData";
 import type { StealthModule } from "@type/StealthModule";
-import type { APIFXTwitter } from "@type/api/FXTwitter";
 import { ZAPIFXTwitter } from "@type/api/FXTwitter";
 import { find } from "linkifyjs";
+import { Logger } from "tslog";
+
+const logger = new Logger({
+	name: "twitter"
+});
+
+export const fetchTweet = async (url: URL) => {
+	const sublogger = logger.getSubLogger({
+		name: "fetchTweet"
+	});
+	
+	let response: string | null = null;
+
+	try {
+		const [, author, , statusId] = url.pathname.split("/");
+		
+		response = await (await fetch(`https://api.fxtwitter.com/${author}/status/${statusId}`)).text();
+
+		const json = JSON.parse(response);
+		sublogger.trace(json);
+
+		if (ZAPIFXTwitter.check(json, false)) {
+			return json.tweet;
+		}
+	} catch (e) {
+		logger.error(e);
+		sublogger.trace(response);
+
+		return null;
+	}
+};
 
 export const twitter: StealthModule = {
 	name: "twitter",
@@ -30,10 +59,12 @@ export const twitter: StealthModule = {
 			return false;
 		}
 
+		logger.debug("Found twitter link", url.href);
+
 		const vanilla = /^(www\.)?(twitter|x)\.com$/.test(url.hostname);
 
 		// Fetch response in background
-		const [hasEmbed, json] = await Promise.all([
+		const [hasImageEmbed, json] = await Promise.all([
 			new Promise<boolean>(async (resolve) => {
 				// Wait for embed to populate
 				await Bun.sleep(2000);
@@ -41,39 +72,47 @@ export const twitter: StealthModule = {
 				// Fetch newest version message (Reload embeds)
 				obj.message = await obj.message.channel.messages.fetch(obj.message.id);
 
-				resolve(obj.message.embeds.length > 0);
+				resolve(obj.message.embeds.some((embed) => embed.image));
 			}),
-			new Promise<APIFXTwitter["tweet"] | null>(async (resolve) => {
-				const [, author, , statusId] = url.pathname.split("/");
-
-				let response: string | null = null;
-				try {
-					response = await (await fetch(`https://api.fxtwitter.com/${author}/status/${statusId}`)).text();
-					const json = JSON.parse(response);
-					if (ZAPIFXTwitter.check(json, false)) {
-						resolve(json.tweet);
-					}
-				} catch (e) {
-					debug("twitter", `Failed to parse response ${response}: ${e}`);
-					resolve(null);
-				}
-			})
+			fetchTweet(url)
 		]);
 
-		if (vanilla && hasEmbed || !json) {
+		logger.debug("hasImageEmbed", hasImageEmbed);
+
+		if (!json) {
+			logger.debug("Failed to get tweet data");
 			return false;
 		}
 
 		const images = json.media?.photos ?? [];
 		const videos = json.media?.videos ?? [];
 
+		logger.debug("images", images.length);
+		logger.debug("videos", videos.length);
+
 		const imageUrls = [
 			...images.map((image) => image.url),
 			...videos.map((video) => video.thumbnail_url)
 		];
 
-		// Fixup sites looks fine for less than 2 images
+		if (vanilla) {
+			if (hasImageEmbed && images.length === 1) {
+				logger.debug("Rejected: Vanilla twitter with only 1 image");
+				return false;
+			}
+			if (images.length === 0) {
+				logger.debug("Rejected: Vanilla twitter with no images");
+				return false;
+			}
+		}
+
 		if (images.length < 2 && !vanilla) {
+			logger.debug("Rejected: Fixup sites with less than 2 images");
+			return false;
+		}
+
+		if (json.possibly_sensitive && "nsfw" in obj.message.channel && !obj.message.channel.nsfw) {
+			logger.debug("Rejected: NSFW tweet in SFW channel");
 			return false;
 		}
 
@@ -97,15 +136,20 @@ export const twitter: StealthModule = {
 		if (videos.length > 0) {
 			if (vanilla) {
 				// Vanilla twitter can't display videos
+				const result = {
+					content: json.url.replace("twitter.com", "fxtwitter.com"),
+					components
+				};
+
+				logger.debug("Accepted");
+				logger.trace(result);
+
 				return {
 					type: "reply",
-					result: {
-						content: json.url.replace("twitter.com", "fxtwitter.com"),
-						components
-					}
+					result: result
 				};
 			} else {
-				// Fixup sites can display videos by itself
+				logger.debug("Rejected: Fixup sites with videos");
 				return false;
 			}
 		}
@@ -143,7 +187,16 @@ export const twitter: StealthModule = {
 
 		try {
 			await obj.message.suppressEmbeds();
-		} catch (e) { }
+		} catch (e) {
+			logger.error("Failed to suppress embeds", e);
+			// TODO: Remind user to enable Manage Messages permission
+		}
+
+		logger.debug("Accepted");
+		logger.trace({
+			embeds,
+			components
+		});
 
 		return {
 			type: "reply",

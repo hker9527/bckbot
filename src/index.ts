@@ -2,9 +2,8 @@ import type { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
 import type { ApplicationCommandType, InteractionReplyOptions, Message, MessageEditOptions, TextChannel } from "discord.js";
-import { Client, EmbedBuilder, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { Client, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
-import { debug, report } from "./Reporting";
 import { commands } from "./commands";
 import { modules } from "./modules";
 import { injectPrototype } from "./prototype";
@@ -12,6 +11,11 @@ import { random } from "./utils";
 import { LActionRowDataLocalizer } from "@localizer/data/ActionRowData";
 import { LocalizableBaseMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { PrismaClient } from "@prisma/client";
+import { Logger } from "tslog";
+
+const logger = new Logger({
+	name: "index"
+});
 
 const TIMEOUT = 30 * 1000;
 
@@ -28,29 +32,49 @@ const client = new Client({
 
 const prismaClient = new PrismaClient();
 
-const fetchUserLocale = async (id: string, override?: boolean) => {
-	const languageItem = await prismaClient.language.findFirst({
-		where: {
-			id,
-			type: "u",
-			override
-		}
+const fetchUserLocale = async (id: string, override?: boolean): Promise<Locale> => {
+	const sublogger = logger.getSubLogger({
+		name: "fetchUserLocale"
 	});
 
-	if (languageItem) {
-		return languageItem.language as Locale;
+	try {
+		const languageItem = await prismaClient.language.findFirst({
+			where: {
+				id,
+				type: "u",
+				override
+			}
+		});
+
+		if (languageItem) {
+			return languageItem.language as Locale;
+		}
+
+		return Locale.EnglishUS;
+	} catch (e) {
+		sublogger.error("fetchUserLocale", e);
+		return Locale.EnglishUS;
 	}
 };
 
 const shouldIgnoreUser = async (id: string) => {
-	const ignoreItem = await prismaClient.ignore.findFirst({
-		where: {
-			id,
-			type: "u"
-		}
+	const sublogger = logger.getSubLogger({
+		name: "shouldIgnoreUser"
 	});
 
-	return ignoreItem !== null;
+	try {
+		const ignoreItem = await prismaClient.ignore.findFirst({
+			where: {
+				id,
+				type: "u"
+			}
+		});
+
+		return ignoreItem !== null;
+	} catch (e) {
+		sublogger.error("shouldIgnoreUser", e);
+		return false;
+	}
 };
 
 try {
@@ -59,49 +83,25 @@ try {
 	client.once("ready", async () => {
 		// Error reporting
 		const errorChannel = await client.channels.fetch(process.env.error_chid!) as TextChannel;
-		const error = async (tag: string, e: unknown) => {
-			const embed = (e instanceof Error ?
-				new EmbedBuilder({
-					title: e.name,
-					fields: [
-						{
-							"name": "Tag",
-							"value": tag
-						},
-						{
-							"name": "Stack",
-							"value": "```\n" + e.stack?.substring(0, 1000) + "\n```" ?? "(none)"
-						}
-					]
-				}) :
-				new EmbedBuilder({
-					title: "Error",
-					fields: [
-						{
-							"name": "Tag",
-							"value": tag
-						},
-						{
-							"name": "Error",
-							"value": "```\n" + (e + "").substring(0, 1000) + "\n```" ?? "(none)"
-						}
-					]
-				}));
+		const handleError = async (tag: string, e: unknown) => {
+			const errorObj = logger.error(tag, e);
+			// Encode the content into an attachment
+			const attachment = Buffer.from(JSON.stringify({
+				time: new Date().toISOString(),
+				errorObj
+			}, null, 4));
 
-			const obj = {
-				content: new Date().toISOString(),
-				embeds: [embed]
-			};
-
-			if (process.env.DEBUG) {
-				console.error(obj.embeds[0].toJSON().fields![1].value);
-			} else {
-				await errorChannel.send(obj);
-			}
+			await errorChannel.send({
+				content: `Error occurred in \`${tag}\``,
+				files: [{
+					name: `${tag}.json`,
+					attachment
+				}]
+			});
 		};
 
 		client.on("error", async (e) => {
-			await error("client->error", e);
+			await handleError("client->error", e);
 		});
 
 		const APICommands = commands.map(command => command.toAPI());
@@ -112,19 +112,19 @@ try {
 			for (const [_, guild] of client.guilds.cache) {
 				try {
 					await guild.commands.set(APICommands);
-					debug("bot.setCommand", `Set command for guild ${guild.name} (${guild.id})`);
+					logger.debug("bot.setCommand", `Set command for guild ${guild.name} (${guild.id})`);
 				} catch (e) {
-					error("bot.setCommand", `Failed to set command for guild ${guild.name} (${guild.id}): ${e}`);
+					logger.error("bot.setCommand", `Failed to set command for guild ${guild.name} (${guild.id}): ${e}`);
 				}
 			}
 		} else {
-			report("Setting global commands");
+			logger.info("Setting global commands");
 			try {
 				await client.application!.commands.set(APICommands);
 			} catch (e) {
-				error("bot.setCommand", e);
+				handleError("bot.setCommand", e);
 			}
-			report("Setting global commands done");
+			logger.info("Setting global commands done");
 		}
 
 		const createDeleteButton = (locale: Locale) => new LActionRowDataLocalizer({
@@ -143,7 +143,7 @@ try {
 		const sources: Record<string, string> = {};
 
 		// Linked list storing all interaction ids and it's parent, null if it's the root
-		const timeouts: Record<string, NodeJS.Timeout> = {};
+		const timeouts: Record<string, Timer> = {};
 
 		client.on("interactionCreate", async (interaction) => {
 			if (!interaction.isRepliable()) {
@@ -310,7 +310,7 @@ try {
 							await command.onCommand(interaction)
 						).build(locale);
 					} catch (e) {
-						error(`commands/${command.name}.onCommand`, e);
+						handleError(`commands/${command.name}.onCommand`, e);
 					}
 
 					await reply(response, command.onTimeout);
@@ -331,7 +331,7 @@ try {
 							await command.onContextMenu(interaction)
 						).build(locale);
 					} catch (e) {
-						error(`commands/${command.name}.onContextMenu`, e);
+						handleError(`commands/${command.name}.onContextMenu`, e);
 					}
 
 					await reply(response, command.onTimeout);
@@ -351,7 +351,7 @@ try {
 							await command.onContextMenu(interaction)
 						).build(locale);
 					} catch (e) {
-						error(`commands/${command.name}.onContextMenu`, e);
+						handleError(`commands/${command.name}.onContextMenu`, e);
 					}
 
 					await reply(response, command.onTimeout);
@@ -381,7 +381,7 @@ try {
 							// TODO: Handle unknown interaction
 						}
 					} catch (e) {
-						error(`commands/${command.name}.${interaction.isButton() ? "onButton" : "onSelectMenu"}`, e);
+						handleError(`commands/${command.name}.${interaction.isButton() ? "onButton" : "onSelectMenu"}`, e);
 					}
 
 					await reply(response, command.onTimeout);
@@ -389,7 +389,7 @@ try {
 					// TODO: Modal submit
 				}
 			} catch (e) {
-				error("client->interactionCreate", e);
+				handleError("client->interactionCreate", e);
 				await reply(generalErrorReply);
 			}
 		});
@@ -461,16 +461,16 @@ try {
 							if (_result) break;
 						}
 					} catch (e) {
-						error(`modules/${module.name}.${event}`, e);
+						handleError(`modules/${module.name}.${event}`, e);
 					}
 				}
 			});
 		}
 
-		report(`Logged in as ${client.user!.tag}!`);
+		logger.info(`Logged in as ${client.user!.tag}!`);
 	});
 
 	client.login(process.env.TOKEN);
 } catch (e) {
-	console.error("client", e);
+	logger.error("client", e);
 }
