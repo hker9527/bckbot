@@ -32,7 +32,7 @@ class Illust {
 		this.item = item;
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});
@@ -62,7 +62,7 @@ class Illust {
 				url: `https://www.pixiv.net/artworks/${this.item.id}`
 			}));
 
-			if (!nsfw && this.item.x_restrict > 0) {
+			if (!allowNSFW && this.item.x_restrict > 0) {
 				embeds = [embeds[0]];
 				delete embeds[0].image;
 				embeds[0].thumbnail = {
@@ -163,13 +163,13 @@ class Ugoira extends Illust {
 		}
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});
 		
 		try {
-			if (this.item.restrict && !nsfw) {
+			if (this.item.restrict && !allowNSFW) {
 				return null;
 			}
 
@@ -327,7 +327,7 @@ export class IllustMessageFactory {
 		return this.item?.type ?? null;
 	}
 
-	public async toMessage(nsfw: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});
@@ -356,7 +356,7 @@ export class IllustMessageFactory {
 					return null;
 			}
 
-			return illust.toMessage(nsfw);
+			return illust.toMessage(allowNSFW);
 		} catch (e) {
 			sublogger.error(e);
 			return null;
@@ -388,8 +388,8 @@ export const pixiv: StealthModule = {
 		const illustID = obj.matches![2];
 
 		if (!isNaN(parseInt(illustID))) {
-			const nsfw = (obj.message.channel as TextChannel).nsfw;
-			const result = await new IllustMessageFactory(+illustID).toMessage(nsfw);
+			const allowNSFW = (obj.message.channel as TextChannel).nsfw;
+			const result = await new IllustMessageFactory(+illustID).toMessage(allowNSFW);
 			
 			if (result) {
 				try {
