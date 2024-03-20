@@ -7,22 +7,6 @@ datasource db {
     url      = "file:./db.sqlite"
 }
 
-model CurrencyUpdateInfo {
-    id      String           @id @default(uuid())
-    time    DateTime         @default(now())
-    records CurrencyRecord[]
-}
-
-model CurrencyRecord {
-    src        String
-    dst        String
-    value      Float
-    updateID   String
-    updateInfo CurrencyUpdateInfo @relation(fields: [updateID], references: [id])
-
-    @@unique([src, dst, updateID])
-}
-
 model PixivCache {
     id   String   @id
     type String
