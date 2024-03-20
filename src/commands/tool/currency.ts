@@ -66,6 +66,7 @@ const worker = async () => {
 
 		for (let i = 0; i < currencies.length - 1; i++) {
 			const currency = currencies[i];
+			const otherCurrencies = currencies.filter(c => c !== currency);
 
 			const response = await fetch(`http://api.exchangerate.host/live?access_key=${process.env.exchangerate_key}&source=${currency}&currencies=${currencies.join(",")}`)
 				.then(res => res.json());
@@ -75,7 +76,7 @@ const worker = async () => {
 			const Z = new Zod(z.object({
 				success: z.literal(true),
 				source: z.literal(currency),
-				quotes: z.object(arr2obj(currencies.map(c => currency + c), currencies.map(_ => z.number())))
+				quotes: z.object(arr2obj(otherCurrencies.map(oc => currency + oc), otherCurrencies.map(_ => z.number())))
 			}));
 			assert(Z.check(response));
 
