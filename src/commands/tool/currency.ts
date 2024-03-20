@@ -17,7 +17,7 @@ const currencies = [
 	"TWD", "HKD", "JPY", "USD", "EUR"
 ];
 
-const lastUpdated = new Date(0);
+let lastUpdated = new Date(0);
 let quotes: Record<string, number> = {};
 
 const getQuote = (source: string, target: string, amount: number) => {
@@ -85,6 +85,8 @@ const worker = async () => {
 				...response.quotes
 			};
 		}
+
+		lastUpdated = new Date();
 
 		return true;
 	} catch (e) {
