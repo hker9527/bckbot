@@ -97,13 +97,15 @@ export const twitter: StealthModule = {
 		];
 
 		if (vanilla) {
-			if (hasImageEmbed && images.length === 1) {
-				logger.debug("Rejected: Vanilla twitter with only 1 image");
-				return false;
-			}
-			if (images.length === 0) {
-				logger.debug("Rejected: Vanilla twitter with no images");
-				return false;
+			if (!json.quote) {
+				if (hasImageEmbed && images.length === 1) {
+					logger.debug("Rejected: Vanilla twitter with only 1 image");
+					return false;
+				}
+				if (images.length === 0) {
+					logger.debug("Rejected: Vanilla twitter with no images and quotes");
+					return false;
+				}
 			}
 		}
 
@@ -184,6 +186,18 @@ export const twitter: StealthModule = {
 				},
 				url: json.url
 			})));
+		}
+
+		if (json.quote) {
+			if (json.quote.media?.photos) {
+				embeds[0].thumbnail = {
+					url: json.quote.media.photos[0].url
+				};
+			} else if (json.quote.media?.videos) {
+				embeds[0].thumbnail = {
+					url: json.quote.media.videos[0].thumbnail_url
+				};
+			}
 		}
 
 		try {
