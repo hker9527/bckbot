@@ -8,7 +8,7 @@ import { Logger } from "tslog";
 
 const logger = new Logger({
 	name: "twitter",
-	minLevel: Bun.env.DEV === "true" ? 0 : 3
+	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });
 
 export const fetchTweet = async (url: URL) => {
@@ -73,7 +73,7 @@ export const twitter: StealthModule = {
 				// Fetch newest version message (Reload embeds)
 				obj.message = await obj.message.channel.messages.fetch(obj.message.id);
 
-				resolve(obj.message.embeds.some((embed) => embed.image));
+				resolve(obj.message.embeds.some((embed) => (embed.image?.width ?? 0) > 0 && (embed.image?.height ?? 0) > 0));
 			}),
 			fetchTweet(url)
 		]);

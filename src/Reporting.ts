@@ -1,4 +1,4 @@
-const flag = process.env.NODE_ENV !== "production";
+const flag = Bun.env.NODE_ENV !== "production";
 
 const getPrefix = () => {
 	const error = new Error();

@@ -15,7 +15,7 @@ import { Logger } from "tslog";
 
 const logger = new Logger({
 	name: "index",
-	minLevel: Bun.env.DEV === "true" ? 0 : 3
+	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });
 
 const TIMEOUT = 30 * 1000;
@@ -107,7 +107,15 @@ try {
 
 		const APICommands = commands.map(command => command.toAPI());
 
-		if (process.env.DEV) {
+		if (Bun.env.NODE_ENV === "production") {
+			logger.info("Setting global commands");
+			try {
+				await client.application!.commands.set(APICommands);
+			} catch (e) {
+				handleError("bot.setCommand", e);
+			}
+			logger.info("Setting global commands done");
+		} else {
 			await client.application!.commands.set([]);
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			for (const [_, guild] of client.guilds.cache) {
@@ -118,14 +126,6 @@ try {
 					logger.error("bot.setCommand", `Failed to set command for guild ${guild.name} (${guild.id}): ${e}`);
 				}
 			}
-		} else {
-			logger.info("Setting global commands");
-			try {
-				await client.application!.commands.set(APICommands);
-			} catch (e) {
-				handleError("bot.setCommand", e);
-			}
-			logger.info("Setting global commands done");
 		}
 
 		const createDeleteButton = (locale: Locale) => new LActionRowDataLocalizer({

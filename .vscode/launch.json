@@ -9,9 +9,6 @@
             "internalConsoleOptions": "neverOpen",
             "request": "launch",
             "name": "Debug File",
-            "env": {
-                "DEBUG": "true"
-            },
             "program": "src/index.ts",
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false,

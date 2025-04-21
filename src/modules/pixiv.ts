@@ -13,7 +13,7 @@ import { Logger } from "tslog";
 
 const logger = new Logger({
 	name: "pixiv",
-	minLevel: Bun.env.DEV === "true" ? 0 : 3
+	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });
 
 const client = new PrismaClient();
