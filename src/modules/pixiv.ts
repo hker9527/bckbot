@@ -17,7 +17,7 @@ const logger = new Logger({
 });
 
 const client = new PrismaClient();
-let pixivClient = await Pixiv.of(process.env.pixiv_refresh_token!);
+let pixivClient = await Pixiv.of(Bun.env.pixiv_refresh_token!);
 
 const proxy = (url: string) => url.replace("i.pximg.net", "i.yuki.sh");
 
@@ -184,7 +184,7 @@ class Ugoira extends Illust {
 				// Validate cache
 				const imgurRes = await fetch(`https://api.imgur.com/3/image/${cache.hash}`, {
 					headers: {
-						"Authorization": `Client-ID ${process.env.imgur_id}`
+						"Authorization": `Client-ID ${Bun.env.imgur_id}`
 					}
 				});
 
@@ -251,7 +251,7 @@ class Ugoira extends Illust {
 			const imgurRes = await fetch("https://api.imgur.com/3/upload", {
 				method: "POST",
 				headers: {
-					"Authorization": `Client-ID ${process.env.IMGUR_ID}`
+					"Authorization": `Client-ID ${Bun.env.IMGUR_ID}`
 				},
 				body: formData
 			});
@@ -371,7 +371,7 @@ const worker = async () => {
 
 	try {
 		sublogger.info("Refreshing Pixiv client");
-		pixivClient = await Pixiv.of(process.env.pixiv_refresh_token!);
+		pixivClient = await Pixiv.of(Bun.env.pixiv_refresh_token!);
 		sublogger.info("Refreshed Pixiv client");
 	} catch (e) {
 		sublogger.error(e);

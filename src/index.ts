@@ -83,7 +83,7 @@ try {
 
 	client.once("ready", async () => {
 		// Error reporting
-		const errorChannel = await client.channels.fetch(process.env.error_chid!) as TextChannel;
+		const errorChannel = await client.channels.fetch(Bun.env.error_chid!) as TextChannel;
 		const handleError = async (tag: string, e: unknown) => {
 			const errorObj = logger.error(tag, e);
 			// Encode the content into an attachment
@@ -473,7 +473,7 @@ try {
 		logger.info(`Logged in as ${client.user!.tag}!`);
 	});
 
-	client.login(process.env.TOKEN);
+	client.login(Bun.env.TOKEN);
 } catch (e) {
 	logger.error("client", e);
 }

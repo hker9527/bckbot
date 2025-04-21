@@ -23,7 +23,7 @@ export const scam: StealthModule = {
 				}
 			};
 
-			const response = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${process.env.safebrowsing_key}`, {
+			const response = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${Bun.env.safebrowsing_key}`, {
 				method: "POST",
 				headers: {
 					"Accept": "application/json",

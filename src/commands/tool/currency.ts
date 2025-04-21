@@ -10,7 +10,7 @@ import { Logger } from "tslog";
 
 const logger = new Logger({
 	name: "currency",
-	minLevel: process.env.DEV === "true" ? 0 : 3
+	minLevel: Bun.env.DEV === "true" ? 0 : 3
 });
 
 const currencies = [
@@ -34,7 +34,7 @@ const worker = async () => {
 	});
 
 	try {
-		if (process.env.DEV === "true") {
+		if (Bun.env.DEV === "true") {
 			logger.debug("Using mock data");
 			quotes = {
 				"TWDHKD": 0.25,
@@ -68,7 +68,7 @@ const worker = async () => {
 			const currency = currencies[i];
 			const otherCurrencies = currencies.filter(c => c !== currency);
 
-			const response = await fetch(`http://api.exchangerate.host/live?access_key=${process.env.exchangerate_key}&source=${currency}&currencies=${currencies.join(",")}`)
+			const response = await fetch(`http://api.exchangerate.host/live?access_key=${Bun.env.exchangerate_key}&source=${currency}&currencies=${currencies.join(",")}`)
 				.then(res => res.json());
 			
 			sublogger.trace(response);
