@@ -140,11 +140,11 @@ export const twitter: StealthModule = {
 			if (vanilla) {
 				// Vanilla twitter can't display videos
 				const result = {
-					content: json.url.replace("twitter.com", "fxtwitter.com"),
+					content: json.url.replace("twitter.com", "fxtwitter.com").replace("x.com", "fixupx.com"),
 					components
 				};
 
-				logger.debug("Accepted");
+				logger.debug("Accepted (Video)");
 				logger.trace(result);
 
 				return {
