@@ -2,7 +2,7 @@ import type { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
 import assert from "assert-ts";
 import type { ApplicationCommandType, InteractionReplyOptions, Message, MessageEditOptions, TextChannel } from "discord.js";
-import { Client, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { ActivityType, Client, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
 import { commands } from "./commands";
 import { modules } from "./modules";
@@ -469,6 +469,18 @@ try {
 				}
 			});
 		}
+
+		// Set status per 15 min
+		const updateStatus = () => {
+			const guildCount = client.guilds.cache.size;
+			const userCount = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount ?? 0), 0);
+			client.user!.setActivity({
+				name: `👥 ${userCount} | 🏠 ${guildCount}`,
+				type: ActivityType.Watching
+			});
+		};
+		setInterval(updateStatus, 15 * 60 * 1000);
+		updateStatus();
 
 		logger.info(`Logged in as ${client.user!.tag}!`);
 	});
