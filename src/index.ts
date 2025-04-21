@@ -413,10 +413,12 @@ try {
 				for (const module of modules.filter(module => module.event === event)) {
 					let matches;
 
+					// Remove spoilers from message
+					const regex = /(\|\|)(.*?)(\|\|)/g;
+					message.content = message.content.replace(regex, "");
+
 					if (module.pattern) {
-						// Remove spoilers from message
-						const regex = /(\|\|)(.*?)(\|\|)/g;
-						matches = message.content.replace(regex, "").match(module.pattern) ?? undefined;
+						matches = message.content.match(module.pattern) ?? undefined;
 						if (!matches) continue;
 					}
 
