@@ -20,6 +20,10 @@ const BaseTweetSchema = z.object({
 	replying_to_status: z.string().nullable(),
 	color: z.null(),
 	media: z.object({
+		all: z.array(z.object({
+			type: z.string(),
+			url: z.string()
+		})).optional(),
 		photos: z.array(z.object({
 			url: z.string()
 		})).optional(),

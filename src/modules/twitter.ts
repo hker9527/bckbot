@@ -136,7 +136,11 @@ export const twitter: StealthModule = {
 		] as LActionRowData[];
 
 		// Workaround for showing videos
-		if (videos.length > 0) {
+		if (
+			json.media?.all ?
+				json.media?.all[0]?.type === "video"
+				: videos.length > 0
+		) {
 			if (vanilla) {
 				// Vanilla twitter can't display videos
 				const result = {
