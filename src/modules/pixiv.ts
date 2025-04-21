@@ -19,7 +19,7 @@ const logger = new Logger({
 const client = new PrismaClient();
 let pixivClient = await Pixiv.of(process.env.pixiv_refresh_token!);
 
-const proxy = (url: string) => url.replace("i.pximg.net", "i.pixiv.cat"); // DO NOT ABUSE THIS
+const proxy = (url: string) => url.replace("i.pximg.net", "i.yuki.sh");
 
 class Illust {
 	protected sublogger: Logger<any>;
