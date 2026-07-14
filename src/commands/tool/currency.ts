@@ -1,4 +1,4 @@
-import { arr2obj, round } from "@app/utils";
+import { round } from "@app/utils";
 import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
@@ -16,6 +16,14 @@ const logger = createLogger({
 
 const currencies = [
 	"TWD", "HKD", "JPY", "USD", "EUR"
+];
+
+// fawazahmed0/exchange-api: no key, no rate limit, CDN-hosted JSON.
+// Cross rates computed from a single USD-based fetch.
+const base = "USD";
+const cdnUrls = [
+	`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${base.toLowerCase()}.json`,
+	`https://latest.currency-api.pages.dev/v1/currencies/${base.toLowerCase()}.json`
 ];
 
 let lastUpdated = new Date(0);
@@ -63,28 +71,40 @@ const worker = async () => {
 			return true;
 		}
 
+		let response: unknown;
+		for (const url of cdnUrls) {
+			try {
+				response = await fetch(url).then(res => res.json());
+				break;
+			} catch (e) {
+				sublogger.warn(`Fetch failed: ${url}`, e);
+			}
+		}
+
+		sublogger.trace(response);
+
+		// { date, usd: { twd: 30.1, hkd: 7.8, ... } }
+		const Z = new Zod(z.object({
+			[base.toLowerCase()]: z.record(z.string(), z.number())
+		}));
+		assert(Z.check(response));
+
+		const rates = response[base.toLowerCase()];
+
+		// 1 source = rates[target] / rates[source] target
 		quotes = {};
+		for (const source of currencies) {
+			for (const target of currencies) {
+				if (source === target) {
+					continue;
+				}
 
-		for (let i = 0; i < currencies.length - 1; i++) {
-			const currency = currencies[i];
-			const otherCurrencies = currencies.filter(c => c !== currency);
+				const sRate = rates[source.toLowerCase()];
+				const tRate = rates[target.toLowerCase()];
+				assert(typeof sRate === "number" && typeof tRate === "number");
 
-			const response = await fetch(`http://api.exchangerate.host/live?access_key=${Bun.env.exchangerate_key}&source=${currency}&currencies=${currencies.join(",")}`)
-				.then(res => res.json());
-			
-			sublogger.trace(response);
-
-			const Z = new Zod(z.object({
-				success: z.literal(true),
-				source: z.literal(currency),
-				quotes: z.object(arr2obj(otherCurrencies.map(oc => currency + oc), otherCurrencies.map(_ => z.number())))
-			}));
-			assert(Z.check(response));
-
-			quotes = {
-				...quotes,
-				...response.quotes
-			};
+				quotes[source + target] = tRate / sRate;
+			}
 		}
 
 		lastUpdated = new Date();
@@ -97,7 +117,7 @@ const worker = async () => {
 }
 
 worker();
-setInterval(worker, 86400 * 2 * 1000);
+setInterval(worker, 86400 * 1000);
 
 class Command extends SlashApplicationCommand {
 	public options: LApplicationCommandOptionData[] = [
