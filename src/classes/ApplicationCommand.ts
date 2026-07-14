@@ -1,8 +1,6 @@
 import { getDescription, getName } from "@app/Localizations";
 
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import type { LBaseMessageOptions } from "@localizer/MessageOptions";
-import type { ApplicationCommandDataResolvable, ButtonInteraction, ChatInputCommandInteraction, Message, MessageComponentInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
+import type { ApplicationCommandDataResolvable, BaseMessageOptions, ButtonInteraction, ChatInputCommandInteraction, InteractionReplyOptions, Message, MessageComponentInteraction, MessageContextMenuCommandInteraction, StringSelectMenuInteraction, UserContextMenuCommandInteraction } from "discord.js";
 import { ApplicationCommandType } from "discord.js";
 import type { LApplicationCommandOptionData } from "./ApplicationCommandOptionData";
 import { ApplicationCommandOption } from "./ApplicationCommandOptionData";
@@ -85,10 +83,10 @@ export abstract class BaseApplicationCommand<T extends ApplicationCommandType> e
 	}
 	
 	// Events
-	public async onButton?(interaction: ButtonInteraction): Promise<LInteractionReplyOptions>;
-	public async onMessageComponent?(interaction: MessageComponentInteraction): Promise<LInteractionReplyOptions>;
-	public async onSelectMenu?(interaction: StringSelectMenuInteraction): Promise<LInteractionReplyOptions>;
-	public async onTimeout?(message: Message): Promise<LBaseMessageOptions>;
+	public async onButton?(interaction: ButtonInteraction): Promise<InteractionReplyOptions>;
+	public async onMessageComponent?(interaction: MessageComponentInteraction): Promise<InteractionReplyOptions>;
+	public async onSelectMenu?(interaction: StringSelectMenuInteraction): Promise<InteractionReplyOptions>;
+	public async onTimeout?(message: Message): Promise<BaseMessageOptions>;
 }
 
 export abstract class SlashApplicationCommand extends BaseApplicationCommand<ApplicationCommandType.ChatInput> {
@@ -105,7 +103,7 @@ export abstract class SlashApplicationCommand extends BaseApplicationCommand<App
 		});
 	}
 
-	public abstract onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions>;
+	public abstract onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions>;
 }
 
 export abstract class MessageContextMenuCommand extends BaseApplicationCommand<ApplicationCommandType.Message> {
@@ -120,7 +118,7 @@ export abstract class MessageContextMenuCommand extends BaseApplicationCommand<A
 		});
 	}
 
-	public abstract onContextMenu(interaction: MessageContextMenuCommandInteraction): Promise<LInteractionReplyOptions>;
+	public abstract onContextMenu(interaction: MessageContextMenuCommandInteraction): Promise<InteractionReplyOptions>;
 }
 
 export abstract class UserContextMenuCommand extends BaseApplicationCommand<ApplicationCommandType.User> {
@@ -135,5 +133,5 @@ export abstract class UserContextMenuCommand extends BaseApplicationCommand<Appl
 		});
 	}
 	
-	public abstract onContextMenu(interaction: UserContextMenuCommandInteraction): Promise<LInteractionReplyOptions>;
+	public abstract onContextMenu(interaction: UserContextMenuCommandInteraction): Promise<InteractionReplyOptions>;
 }

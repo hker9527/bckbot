@@ -1,12 +1,11 @@
 import type { Frames, PixivIllustItem } from "@book000/pixivts";
 import { Pixiv } from "@book000/pixivts";
-import type { LBaseMessageOptions } from "@localizer/MessageOptions";
-import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import { t } from "@app/i18n/token";
 import { PrismaClient } from "@prisma/client";
 import type { StealthModule } from "@type/StealthModule";
 import { ZAPIImgur } from "@type/api/Imgur";
 import assert from "assert-ts";
-import type { TextChannel } from "discord.js";
+import type { APIEmbed, BaseMessageOptions, TextChannel } from "discord.js";
 import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
 import { Logger } from "tslog";
@@ -32,7 +31,7 @@ class Illust {
 		this.item = item;
 	}
 
-	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<BaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});
@@ -46,7 +45,7 @@ class Illust {
 			
 			sublogger.debug("imageUrls", imageUrls);
 
-			let embeds: LAPIEmbed[];
+			let embeds: APIEmbed[];
 
 			// Try to hint the CDN to cache our files
 			for (const imageUrl of [proxy(this.item.user.profile_image_urls.medium), ...imageUrls]) {
@@ -78,42 +77,31 @@ class Illust {
 				...embeds[0],
 				...{
 					author: {
-						name: this.item.title ? `${prefix} ${this.item.title} ${suffix}` : {
-							key: `${prefix} $t(pixiv.titlePlaceholder) ${suffix}`
-						},
-						iconURL: proxy(this.item.user.profile_image_urls.medium),
+						name: this.item.title ? `${prefix} ${this.item.title} ${suffix}` : t(`${prefix} $t(pixiv.titlePlaceholder) ${suffix}`),
+						icon_url: proxy(this.item.user.profile_image_urls.medium),
 						url: `https://www.pixiv.net/artworks/${this.item.id}`
 					},
 					color: this.item.x_restrict > 0 ? 0xd37a52 : 0x3D92F5,
 					footer: {
 						text: `❤️ ${this.item.total_bookmarks} | 👁️ ${this.item.total_view} | 🗨️ ${this.item.total_comments}`,
-						iconURL: "https://s.pximg.net/www/images/pixiv_logo.gif"
+						icon_url: "https://s.pximg.net/www/images/pixiv_logo.gif"
 					},
 					timestamp: new Date(this.item.create_date).toISOString(),
 					fields: [{
-						name: {
-							key: "pixiv.sauceHeader"
-						},
-						value: {
-							key: "pixiv.sauceContent",
-							data: { 
-								illust_id: this.item.id, 
-								author: this.item.user.name, 
-								author_id: this.item.user.id
-							}
-						}
+						name: t("pixiv.sauceHeader"),
+						value: t("pixiv.sauceContent", {
+							illust_id: this.item.id,
+							author: this.item.user.name,
+							author_id: this.item.user.id
+						})
 					}, {
-						name: {
-							key: "pixiv.descriptionHeader"
-						},
+						name: t("pixiv.descriptionHeader"),
 						value: htmlToText(this.item.caption, {
 							limits: {
 								maxInputLength: 1500
 							},
 							tags: { "a": { format: "anchor", options: { ignoreHref: true } } }
-						}).substring(0, 1020) || {
-							key: "pixiv.descriptionPlaceholder"
-						}
+						}).substring(0, 1020) || t("pixiv.descriptionPlaceholder")
 					}],
 					url: `https://www.pixiv.net/artworks/${this.item.id}`
 				}
@@ -163,7 +151,7 @@ class Ugoira extends Illust {
 		}
 	}
 
-	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<BaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});
@@ -327,7 +315,7 @@ export class IllustMessageFactory {
 		return this.item?.type ?? null;
 	}
 
-	public async toMessage(allowNSFW: boolean): Promise<LBaseMessageOptions | null> {
+	public async toMessage(allowNSFW: boolean): Promise<BaseMessageOptions | null> {
 		const sublogger = this.sublogger.getSubLogger({
 			name: "toMessage"
 		});

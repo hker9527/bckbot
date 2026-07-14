@@ -55,7 +55,10 @@
     "_source_description": "來源貨幣",
     "_source_name": "來源",
     "_target_description": "預設為全部",
-    "_target_name": "目標"
+    "_target_name": "目標",
+    "all": "全部",
+    "title": "轉換",
+    "updatedAt": "更新於"
   },
   "delete": {
     "_name": "刪除機器人訊息",
@@ -110,8 +113,10 @@
   },
   "moebooru": {
     "dimensions": "大小",
+    "postHeader": "貼文",
     "searchResult": "搜尋結果",
-    "sourceHeader": "來源"
+    "sourceHeader": "來源",
+    "unknownSource": "（未知）"
   },
   "language": {
     "_name": "更改語言",
@@ -160,6 +165,7 @@
     "name": "抓圖源",
     "noSauce": "找不到圖源！",
     "postNotFound": "找不到{{url}}的圖源！",
+    "unknownSauce": "不明圖源",
     "unknown": "不懂這是蝦米碗糕...\n```json\n{{json}}```",
     "whichImage": "想搜尋哪一張圖片？"
   },

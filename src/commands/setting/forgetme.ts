@@ -1,12 +1,12 @@
 import { SlashApplicationCommand } from "@app/classes/ApplicationCommand";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import { t } from "@app/i18n/token";
 import { PrismaClient } from "@prisma/client";
-import type { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction, InteractionReplyOptions } from "discord.js";
 
 const client = new PrismaClient();
 
 class Command extends SlashApplicationCommand {
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		await client.language.deleteMany({
 			where: {
 				id: interaction.user.id,
@@ -15,9 +15,7 @@ class Command extends SlashApplicationCommand {
 		});
 
 		return {
-			content: {
-				key: "forgetme.success"
-			}
+			content: t("forgetme.success")
 		};
 	}
 }

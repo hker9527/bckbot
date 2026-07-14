@@ -1,8 +1,9 @@
 import { SlashApplicationCommand } from "@app/classes/ApplicationCommand";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
 import { random } from "@app/utils";
+import { t } from "@app/i18n/token";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
 
 const map = {
@@ -22,7 +23,7 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const result = random(0, 19);
 		const type = result < 10 ? "Good" : (result < 15 ? "Fair" : "Bad");
 
@@ -32,9 +33,7 @@ class Command extends SlashApplicationCommand {
 			embeds: [{
 				color: map[type],
 				footer: {
-					text: {
-						key: `🤔\t$t(ask.answer${result})`
-					}
+					text: t(`🤔\t$t(ask.answer${result})`)
 				},
 				author: {
 					name: `${interaction.options.getString("question", true)}`

@@ -55,7 +55,10 @@
     "_source_description": "From what currency",
     "_source_name": "source",
     "_target_description": "To what currency, defaults to all",
-    "_target_name": "target"
+    "_target_name": "target",
+    "all": "All",
+    "title": "Convert",
+    "updatedAt": "Updated at"
   },
   "delete": {
     "_name": "Delete bot message",
@@ -111,8 +114,10 @@
   },
   "moebooru": {
     "dimensions": "Dimensions",
+    "postHeader": "Post",
     "searchResult": "Search Result",
-    "sourceHeader": "Source"
+    "sourceHeader": "Source",
+    "unknownSource": "(Unknown)"
   },
   "language": {
     "_name": "language",
@@ -161,6 +166,7 @@
     "name": "Get sauce",
     "noSauce": "No sauce found!",
     "postNotFound": "The related post {{url}} is not found!",
+    "unknownSauce": "Unknown sauce",
     "unknown": "The sauce is unfamiliar to me... Here are some of the ingredients.\n```json\n{{json}}```",
     "whichImage": "Which image do you want to check?"
   },

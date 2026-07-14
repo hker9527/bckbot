@@ -1,8 +1,8 @@
 import { SlashApplicationCommand } from "@app/classes/ApplicationCommand";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 
 class Command extends SlashApplicationCommand {
-	public async onCommand(): Promise<LInteractionReplyOptions> {
+	public async onCommand(): Promise<InteractionReplyOptions> {
 		return {
 			content: "uwu"
 		};

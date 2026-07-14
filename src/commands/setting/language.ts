@@ -1,6 +1,7 @@
 import { SlashApplicationCommand } from "@app/classes/ApplicationCommand";
+import { t } from "@app/i18n/token";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import { PrismaClient } from "@prisma/client";
 import type { ChatInputCommandInteraction } from "discord.js";
 
@@ -28,7 +29,7 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const language = interaction.options.getString("language");
 		if (language) {
 			switch (language) {
@@ -41,9 +42,7 @@ class Command extends SlashApplicationCommand {
 					});
 
 					return {
-						content: {
-							key: "language.resetSuccess"
-						},
+						content: t("language.resetSuccess"),
 						ephemeral: true
 					};
 				default:
@@ -65,12 +64,9 @@ class Command extends SlashApplicationCommand {
 					});
 
 					return {
-						content: {
-							key: "language.setSuccess",
-							data: {
-								language: `$t(language.${language})`
-							}
-						},
+						content: t("language.setSuccess", {
+							language: `$t(language.${language})`
+						}),
 						ephemeral: true
 					};
 			}
@@ -83,21 +79,16 @@ class Command extends SlashApplicationCommand {
 			});
 			if (languageItem) {
 				return {
-					content: {
-						key: "language.current",
-						data: {
-							language: `$t(language.${languageItem.language})`,
-							override: languageItem.override ? "🔒" : "🔓"
-						}
-					},
+					content: t("language.current", {
+						language: `$t(language.${languageItem.language})`,
+						override: languageItem.override ? "🔒" : "🔓"
+					}),
 					ephemeral: true
 				}
 			}
 
 			return {
-				content: {
-					key: "language.notFound"
-				},
+				content: t("language.notFound"),
 				ephemeral: true
 			}
 		}

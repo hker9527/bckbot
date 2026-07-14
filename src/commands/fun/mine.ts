@@ -1,7 +1,8 @@
 import { random } from "@app/utils";
+import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { sample } from "underscore";
 
@@ -30,7 +31,7 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const _h = random(3, 15);
 		const _w = random(3, 15);
 
@@ -76,19 +77,16 @@ class Command extends SlashApplicationCommand {
 		}
 
 		return {
-			content: {
-				key: "mine.mine",
-				data: {
-					h, w, mineCount,
-					mineField: field.map((a, i) => a.map((b, j) =>
-						// Show the 4 corners
-						i === 0 && j === 0
-							|| i === 0 && j === w - 1
-							|| i === h - 1 && j === 0
-							|| i === h - 1 && j === w - 1 ? b : `||${b}||`
-					).join("")).join("\n")
-				}
-			}
+			content: t("mine.mine", {
+				h, w, mineCount,
+				mineField: field.map((a, i) => a.map((b, j) =>
+					// Show the 4 corners
+					i === 0 && j === 0
+						|| i === 0 && j === w - 1
+						|| i === h - 1 && j === 0
+						|| i === h - 1 && j === w - 1 ? b : `||${b}||`
+				).join("")).join("\n")
+			})
 		};
 	}
 };

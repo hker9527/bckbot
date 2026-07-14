@@ -1,7 +1,8 @@
 import { random } from "@app/utils";
+import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
 class Command extends SlashApplicationCommand {
@@ -25,7 +26,7 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const n = interaction.options.getInteger("n", true);
 		const faces = interaction.options.getInteger("faces", true);
 		const offset = interaction.options.getInteger("offset") ?? 0;
@@ -37,15 +38,12 @@ class Command extends SlashApplicationCommand {
 		result += offset;
 
 		return {
-			content: {
-				key: "dice.roll",
-				data: { 
-					n,
-					faces,
-					offset: offset > 0 ? `+${offset}` : offset === 0 ? "" : offset,
-					result
-				}
-			}
+			content: t("dice.roll", {
+				n,
+				faces,
+				offset: offset > 0 ? `+${offset}` : offset === 0 ? "" : offset,
+				result
+			})
 		};
 	}
 };

@@ -1,4 +1,5 @@
-import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import { t } from "@app/i18n/token";
+import type { APIEmbed } from "discord.js";
 import type { APIDanbooru } from "@type/api/Danbooru";
 import type { APIKonachan } from "@type/api/Konachan";
 import type { APISankaku } from "@type/api/Sankaku";
@@ -92,12 +93,10 @@ export const fetchList = async (provider: keyof typeof ApiPortal, tags: string[]
 };
 
 export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObject, showImage = false, nsfw = false) => {
-	const embed: LAPIEmbed = {
+	const embed: APIEmbed = {
 		author: {
-			name: {
-				key: "moebooru.searchResult"
-			},
-			iconURL: `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`
+			name: t("moebooru.searchResult"),
+			icon_url: `https://cdn4.iconfinder.com/data/icons/alphabet-3/500/ABC_alphabet_letter_font_graphic_language_text_${provider[0].toUpperCase()}-64.png`
 		},
 		color: ({
 			s: 0x7df28b,
@@ -105,7 +104,7 @@ export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObj
 			e: 0xd37a52
 		})[imageObject.rating],
 		fields: [{
-			name: "Post",
+			name: t("moebooru.postHeader"),
 			value: `[${imageObject.id}](${({
 				kon: `https://konachan.com/post/show/${imageObject.id}`,
 				yan: `https://yande.re/post/show/${imageObject.id}`,
@@ -114,16 +113,12 @@ export const genEmbed = (provider: keyof typeof ApiPortal, imageObject: ImageObj
 			})[provider]})`,
 			inline: true
 		}, {
-			name: {
-				key: "moebooru.dimensions"
-			},
+			name: t("moebooru.dimensions"),
 			value: `${imageObject.width} x ${imageObject.height}`,
 			inline: true
 		}, {
-			name: {
-				key: "moebooru.sourceHeader"
-			},
-			value: (imageObject.source?.length ? imageObject.source : undefined) ?? "(未知)"
+			name: t("moebooru.sourceHeader"),
+			value: (imageObject.source?.length ? imageObject.source : undefined) ?? t("moebooru.unknownSource")
 		}],
 		timestamp: imageObject.created_at.toISOString()
 	};
