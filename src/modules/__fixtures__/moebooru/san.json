@@ -1,0 +1,16 @@
+{
+  "meta": { "next": null },
+  "data": [
+    {
+      "id": 400001,
+      "rating": "q",
+      "source": null,
+      "file_url": null,
+      "sample_url": "https://sankaku.example/sample.jpg",
+      "preview_url": "https://sankaku.example/preview.jpg",
+      "created_at": { "json_class": "Time", "s": 1700000000, "n": 0 },
+      "width": 800,
+      "height": 600
+    }
+  ]
+}

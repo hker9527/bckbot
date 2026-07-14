@@ -1,0 +1,98 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "url": "https://x.com/BarackObama/status/266031293945503744",
+    "id": "266031293945503744",
+    "text": "Four more years. http://t.co/bAJE6Vom",
+    "raw_text": {
+      "text": "Four more years. http://t.co/bAJE6Vom",
+      "display_text_range": [
+        0,
+        37
+      ],
+      "facets": [
+        {
+          "type": "media",
+          "indices": [
+            17,
+            37
+          ],
+          "id": "266031293949698048",
+          "display": "pic.x.com/bAJE6Vom",
+          "original": "http://t.co/bAJE6Vom",
+          "replacement": "https://x.com/BarackObama/status/266031293945503744/photo/1"
+        }
+      ]
+    },
+    "author": {
+      "screen_name": "BarackObama",
+      "url": "https://x.com/BarackObama",
+      "id": "813286",
+      "followers": 119205101,
+      "following": 501539,
+      "likes": 51,
+      "media_count": 2836,
+      "name": "Barack Obama",
+      "description": "Dad, husband, President, citizen.",
+      "raw_description": {
+        "text": "Dad, husband, President, citizen.",
+        "facets": []
+      },
+      "location": "Washington, DC",
+      "banner_url": "https://pbs.twimg.com/profile_banners/813286/1712782825",
+      "avatar_url": "https://pbs.twimg.com/profile_images/1329647526807543809/2SGvnHYV_200x200.jpg",
+      "joined": "Mon Mar 05 22:08:25 +0000 2007",
+      "protected": false,
+      "website": {
+        "url": "http://barackobamabooks.com",
+        "display_url": "barackobamabooks.com"
+      },
+      "verification": {
+        "verified": true,
+        "verified_at": null,
+        "type": "individual"
+      },
+      "avatar_color": null
+    },
+    "replies": 46941,
+    "retweets": 690041,
+    "likes": 459357,
+    "bookmarks": 534,
+    "quotes": 16614,
+    "created_at": "Wed Nov 07 04:16:18 +0000 2012",
+    "created_timestamp": 1352261778,
+    "possibly_sensitive": false,
+    "views": null,
+    "is_note_tweet": false,
+    "community_note": null,
+    "lang": "en",
+    "replying_to": null,
+    "replying_to_status": null,
+    "media": {
+      "all": [
+        {
+          "type": "photo",
+          "id": "266031293949698048",
+          "url": "https://pbs.twimg.com/media/A7EiDWcCYAAZT1D.jpg?name=orig",
+          "width": 800,
+          "height": 532
+        }
+      ],
+      "photos": [
+        {
+          "type": "photo",
+          "id": "266031293949698048",
+          "url": "https://pbs.twimg.com/media/A7EiDWcCYAAZT1D.jpg?name=orig",
+          "width": 800,
+          "height": 532
+        }
+      ]
+    },
+    "source": "Twitter Web Client",
+    "twitter_card": "summary_large_image",
+    "color": null,
+    "provider": "twitter",
+    "reposted_by": null
+  }
+}
