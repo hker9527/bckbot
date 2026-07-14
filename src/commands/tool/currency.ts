@@ -1,7 +1,8 @@
 import { arr2obj, round } from "@app/utils";
+import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import { Zod } from "@type/Zod";
 import assert from "assert-ts";
 import type { ChatInputCommandInteraction } from "discord.js";
@@ -124,32 +125,28 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const source = interaction.options.getString("source", true);
 		const amount = interaction.options.getNumber("amount") ?? 1;
 		const target = interaction.options.getString("target") ?? null;
 
 		return {
 			embeds: [{
-				title: "Convert",
+				title: t("currency.title"),
 				fields: [
 					{
-						name: {
-							key: `currency._${source}_name`
-						},
+						name: t(`currency._${source}_name`),
 						value: amount.toString()
 					},
 					{
-						name: target ? {
-							key: `currency._${target}_name`
-						} : "All",
-						value: target ? 
+						name: target ? t(`currency._${target}_name`) : t("currency.all"),
+						value: target ?
 							getQuote(source, target, amount).toString() : 
 							currencies.map(currency => `${currency}: ${getQuote(source, currency, amount)}`).join("\n")
 					}
 				],
 				footer: {
-					text: "Updated at"
+					text: t("currency.updatedAt")
 				},
 				timestamp: lastUpdated.toISOString()
 			}]

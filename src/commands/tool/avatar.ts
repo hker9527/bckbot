@@ -1,6 +1,6 @@
 import { UserContextMenuCommand } from "@class/ApplicationCommand";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import type { ImageURLOptions, UserContextMenuCommandInteraction } from "discord.js";
+import { t } from "@app/i18n/token";
+import type { ImageURLOptions, InteractionReplyOptions, UserContextMenuCommandInteraction } from "discord.js";
 
 const bestOptions: ImageURLOptions = {
 	extension: "png",
@@ -8,7 +8,7 @@ const bestOptions: ImageURLOptions = {
 };
 
 class Command extends UserContextMenuCommand {
-	public async onContextMenu(interaction: UserContextMenuCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onContextMenu(interaction: UserContextMenuCommandInteraction): Promise<InteractionReplyOptions> {
 		const user = await interaction.targetUser.fetch();
 		const member = interaction.guild?.members.cache.get(user.id);
 
@@ -20,47 +20,26 @@ class Command extends UserContextMenuCommand {
 			embeds: [{
 				fields: [
 					{
-						name: {
-							key: "avatar.user"
-						},
+						name: t("avatar.user"),
 						value: `<@${user.id}> (${user.id})`
 					},
 					{
-						name: {
-							key: "avatar.userAvatar"
-						},
-						value: {
-							key: "avatar.link",
-							data: {
-								link: userAvatarURL
-							}
-						}
+						name: t("avatar.userAvatar"),
+						value: t("avatar.link", {
+							link: userAvatarURL
+						})
 					},
 					{
-						name: {
-							key: "avatar.guildAvatar"
-						},
-						value: guildAvatarURL ? {
-							key: "avatar.link",
-							data: {
-								link: guildAvatarURL
-							}
-						} : {
-							key: "avatar.none"
-						}
+						name: t("avatar.guildAvatar"),
+						value: guildAvatarURL ? t("avatar.link", {
+							link: guildAvatarURL
+						}) : t("avatar.none")
 					},
 					{
-						name: {
-							key: "avatar.banner"
-						},
-						value: bannerURL ? {
-							key: "avatar.link",
-							data: {
-								link: bannerURL
-							}
-						} : {
-							key: "avatar.none"
-						}
+						name: t("avatar.banner"),
+						value: bannerURL ? t("avatar.link", {
+							link: bannerURL
+						}) : t("avatar.none")
 					}
 				],
 				author: {

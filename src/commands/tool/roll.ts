@@ -1,8 +1,9 @@
 import { random } from "@app/utils";
+import { t } from "@app/i18n/token";
 
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
 class Command extends SlashApplicationCommand {
@@ -17,26 +18,20 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const lower = interaction.options.getInteger("lower") ?? 0;
 		const upper = interaction.options.getInteger("upper") ?? (lower + 100);
 
 		if (lower > upper) {
 			return {
-				content: {
-					key: "roll.invalidRange",
-					data: { lower, upper }
-				}
+				content: t("roll.invalidRange", { lower, upper })
 			};
 		}
 
 		return {
-			content: {
-				key: "roll.roll",
-				data: {
-					points: random(lower, upper)
-				}
-			}
+			content: t("roll.roll", {
+				points: random(lower, upper)
+			})
 		};
 	}
 };

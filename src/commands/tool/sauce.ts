@@ -1,7 +1,8 @@
 import { error } from "@app/Reporting";
+import { t } from "@app/i18n/token";
 import { MessageContextMenuCommand } from "@class/ApplicationCommand";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
-import type { LAPIEmbed } from "@localizer/data/APIEmbed";
+import type { APIEmbed, BaseMessageOptions, InteractionReplyOptions, Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from "discord.js";
+import { ComponentType } from "discord.js";
 import type { ApiPortal} from "@module/moebooru";
 import { fetchList, genEmbed as genMoebooruEmbed } from "@module/moebooru";
 import type { APISaucenao } from "@type/api/Saucenao";
@@ -10,14 +11,12 @@ import { ZAPISaucenaoEHentai } from "@type/api/saucenao/EHentai";
 import { ZAPISaucenaoMoebooru } from "@type/api/saucenao/Moebooru";
 import { ZAPISaucenaoPixiv } from "@type/api/saucenao/Pixiv";
 import { ZAPISaucenaoTwitter } from "@type/api/saucenao/Twitter";
-import type { Message, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from "discord.js";
 import { IllustMessageFactory } from "../../modules/pixiv";
 import { findImagesFromMessage } from "../_lib";
-import type { LBaseMessageOptions } from "@localizer/MessageOptions";
 
 type Results = APISaucenao["results"];
 
-const turn2thumbnail = (embed: LAPIEmbed) => {
+const turn2thumbnail = (embed: APIEmbed) => {
 	embed.thumbnail = embed.image;
 	delete embed.image;
 
@@ -39,7 +38,7 @@ const genPixivEmbed = async (pixiv_id: number | string, nsfw: boolean) => {
 	return null;
 };
 
-const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LAPIEmbed> => {
+const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<APIEmbed> => {
 	if (ZAPISaucenaoPixiv.check(result.data)) {
 		const pixiv_id = result.data.pixiv_id ?? null;
 		if (pixiv_id !== null) {
@@ -110,7 +109,7 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LAPIEmbed>
 
 	if (ZAPISaucenaoBase.check(result.data)) {
 		return {
-			title: "Unknown sauce",
+			title: t("sauce.unknownSauce"),
 			description: result.data.ext_urls.join("\n"),
 			footer: {
 				text: result.header.index_name
@@ -119,7 +118,7 @@ const genEmbed = async (result: Results["0"], nsfw: boolean): Promise<LAPIEmbed>
 	}
 
 	return {
-		title: "Unknown sauce",
+		title: t("sauce.unknownSauce"),
 		description: JSON.stringify(result.data, null, 2),
 		footer: {
 			text: result.header.index_name
@@ -134,16 +133,14 @@ const PREFERENCE = [
 	41 // Twitter
 ];
 
-const query = async (id: string, url: string, nsfw: boolean): Promise<LInteractionReplyOptions> => {
+const query = async (id: string, url: string, nsfw: boolean): Promise<InteractionReplyOptions> => {
 	try {
 		const res: APISaucenao = await fetch(`https://saucenao.com/search.php?api_key=${Bun.env.saucenao_key}&db=999&output_type=2&numres=10&url=${encodeURIComponent(url)}`)
 			.then(res => res.json());
 
 		if (res.results === null) {
 			return {
-				content: {
-					key: "sauce.noSauce"
-				}
+				content: t("sauce.noSauce")
 			};
 		}
 
@@ -178,21 +175,16 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<LInteracti
 
 			if (embed) {
 				return {
-					content: {
-						key: "sauce.confidenceLevel",
-						data: { similarity }
-					},
+					content: t("sauce.confidenceLevel", { similarity }),
 					embeds: [embed],
 					components: [
 						{
-							type: "ActionRow",
+							type: ComponentType.ActionRow,
 							components: [
 								{
 									customId: "checkOtherSauces",
-									type: "StringSelect",
-									placeholder: {
-										key: "sauce.another"
-									},
+									type: ComponentType.StringSelect,
+									placeholder: t("sauce.another"),
 									options: results.map((result, i) => {
 										const _similarity = parseFloat(result.header.similarity);
 										return {
@@ -212,9 +204,7 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<LInteracti
 	} catch (e) {
 		error("sauce", e);
 		return {
-			content: {
-				key: "sauce.noSauce"
-			}
+			content: t("sauce.noSauce")
 		};
 	}
 };
@@ -222,7 +212,7 @@ const query = async (id: string, url: string, nsfw: boolean): Promise<LInteracti
 const interactionResults: Record<string, Results> = {};
 
 class Command extends MessageContextMenuCommand {
-	public async onContextMenu(interaction: MessageContextMenuCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onContextMenu(interaction: MessageContextMenuCommandInteraction): Promise<InteractionReplyOptions> {
 		const message = interaction.targetMessage;
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 
@@ -232,22 +222,18 @@ class Command extends MessageContextMenuCommand {
 
 		if (!urls.length) {
 			return {
-				content: {
-					key: "sauce.invalidUrl"
-				}
+				content: t("sauce.invalidUrl")
 			};
 		} else if (urls.length > 1) {
 			return {
-				content: {
-					key: "sauce.whichImage"
-				},
+				content: t("sauce.whichImage"),
 				components: [
 					{
-						type: "ActionRow",
+						type: ComponentType.ActionRow,
 						components: [
 							{
 								customId: "pickURL",
-								type: "StringSelect",
+								type: ComponentType.StringSelect,
 								options: urls.map((url, i) => ({
 									label: `${i + 1}. ${url}`,
 									value: url
@@ -264,7 +250,7 @@ class Command extends MessageContextMenuCommand {
 		return await query(interaction.id, url, nsfw);
 	}
 
-	public async onSelectMenu(interaction: StringSelectMenuInteraction): Promise<LInteractionReplyOptions> {
+	public async onSelectMenu(interaction: StringSelectMenuInteraction): Promise<InteractionReplyOptions> {
 		const nsfw = interaction.channel ? ("nsfw" in interaction.channel ? interaction.channel.nsfw : false) : false;
 
 		switch (interaction.customId) {
@@ -279,23 +265,18 @@ class Command extends MessageContextMenuCommand {
 
 				if (embed) {
 					return {
-						content: {
-							key: "sauce.confidenceLevel",
-							data: { 
-								similarity: parseFloat(result.header.similarity)
-							}
-						},
+						content: t("sauce.confidenceLevel", {
+							similarity: parseFloat(result.header.similarity)
+						}),
 						embeds: [embed],
 						components: [
 							{
-								type: "ActionRow",
+								type: ComponentType.ActionRow,
 								components: [
 									{
 										customId: "checkOtherSauces",
-										type: "StringSelect",
-										placeholder: {
-											key: "sauce.another"
-										},
+										type: ComponentType.StringSelect,
+										placeholder: t("sauce.another"),
 										options: results.map((result, _i) => {
 											const _similarity = parseFloat(result.header.similarity);
 											return {
@@ -319,7 +300,7 @@ class Command extends MessageContextMenuCommand {
 		};
 	}
 
-	public async onTimeout(message: Message): Promise<LBaseMessageOptions> {
+	public async onTimeout(message: Message): Promise<BaseMessageOptions> {
 		// Remove string select
 		const { content, embeds } = message;
 		return {

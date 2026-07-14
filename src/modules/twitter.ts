@@ -1,8 +1,9 @@
 import { num2str } from "@app/utils";
-import type { LAPIEmbed } from "@localizer/data/APIEmbed";
-import type { LActionRowData } from "@localizer/data/ActionRowData";
+import { t } from "@app/i18n/token";
 import type { StealthModule } from "@type/StealthModule";
 import { ZAPIFXTwitter } from "@type/api/FXTwitter";
+import type { APIEmbed, ActionRowData, MessageActionRowComponentData } from "discord.js";
+import { ButtonStyle, ComponentType } from "discord.js";
 import { find } from "linkifyjs";
 import { Logger } from "tslog";
 
@@ -119,21 +120,19 @@ export const twitter: StealthModule = {
 			return false;
 		}
 
-		const components = [
+		const components: ActionRowData<MessageActionRowComponentData>[] = [
 			{
-				type: "ActionRow",
+				type: ComponentType.ActionRow,
 				components: [
 					{
-						type: "Button",
-						label: {
-							key: "twitter.originalTweetButton"
-						},
-						style: "Link",
+						type: ComponentType.Button,
+						label: t("twitter.originalTweetButton"),
+						style: ButtonStyle.Link,
 						url: json.url
 					}
 				]
 			}
-		] as LActionRowData[];
+		];
 
 		// Workaround for showing videos
 		if (
@@ -161,18 +160,18 @@ export const twitter: StealthModule = {
 			}
 		}
 
-		let embeds: LAPIEmbed[] = [
+		let embeds: APIEmbed[] = [
 			{
 				author: {
 					name: `${json.author.name} (@${json.author.screen_name})`,
-					iconURL: json.author.avatar_url,
+					icon_url: json.author.avatar_url,
 					url: json.author.url
 				},
 				color: 0x1DA1F2,
 				description: json.text + (json.quote ? `\n>>> **${json.quote.author.name} (@${json.quote.author.screen_name})**\n${json.quote.text}` : ""),
 				footer: {
 					text: `❤️ ${num2str(json.likes)} 🔁 ${num2str(json.retweets)} 🗨️ ${num2str(json.replies)}${json.views ? " 👀 " + num2str(json.views) : ""}`,
-					iconURL: "https://cdn-icons-png.flaticon.com/512/179/179342.png"
+					icon_url: "https://cdn-icons-png.flaticon.com/512/179/179342.png"
 				},
 				timestamp: new Date(json.created_timestamp * 1000).toISOString(),
 				url: json.url

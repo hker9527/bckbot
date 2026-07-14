@@ -1,7 +1,8 @@
 import { arr2obj, random } from "@app/utils";
+import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import assert from "assert-ts";
 import Decimal from "decimal.js";
 import type { ChatInputCommandInteraction } from "discord.js";
@@ -48,28 +49,25 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		return {
-			content: {
-				key: "slap.slap",
-				data: {
-					slapper: interaction.member!.toString(),
-					victim: interaction.options.getString("victim", true),
-					// TODO: Fix emoji that cannot display (message.react?)
-					tool: (interaction.options.getString("tool") ?? emoji().emoji),
-					damage: urandom(
-						arr2obj(
-							[
-								random(50, 100),
-								random(100, 300),
-								random(300, 600),
-								random(600, 1000)
-							],
-							[0.1, 0.6, 0.2, 0.1]
-						)
+			content: t("slap.slap", {
+				slapper: interaction.member!.toString(),
+				victim: interaction.options.getString("victim", true),
+				// TODO: Fix emoji that cannot display (message.react?)
+				tool: (interaction.options.getString("tool") ?? emoji().emoji),
+				damage: urandom(
+					arr2obj(
+						[
+							random(50, 100),
+							random(100, 300),
+							random(300, 600),
+							random(600, 1000)
+						],
+						[0.1, 0.6, 0.2, 0.1]
 					)
-				}
-			}
+				)
+			})
 		}
 	}
 };

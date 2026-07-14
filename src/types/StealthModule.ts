@@ -1,5 +1,4 @@
-import type { LBaseMessageOptions } from "@localizer/MessageOptions"
-import type { Message } from "discord.js"
+import type { BaseMessageOptions, Message } from "discord.js"
 
 export interface StealthModuleActionArgument {
 	message: Message,
@@ -12,7 +11,7 @@ export interface StealthModule {
 	pattern?: RegExp,
 	action: (obj: StealthModuleActionArgument) => Promise<boolean | {
 		type: "reply" | "send",
-		result: LBaseMessageOptions
+		result: BaseMessageOptions
 	}>,
-	onTimeout?: (message: Message) => Promise<LBaseMessageOptions>
+	onTimeout?: (message: Message) => Promise<BaseMessageOptions>
 };

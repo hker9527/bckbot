@@ -1,15 +1,14 @@
 import type { BaseApplicationCommand } from "@class/ApplicationCommand";
-import { LocalizableInteractionReplyOptionsAdapter } from "@localizer/InteractionReplyOptions";
+import { localize } from "@app/i18n/resolve";
+import { t } from "@app/i18n/token";
 import assert from "assert-ts";
-import type { ApplicationCommandType, InteractionReplyOptions, Message, MessageEditOptions, TextChannel } from "discord.js";
-import { ActivityType, Client, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import type { ActionRowData, ApplicationCommandType, InteractionReplyOptions, MessageActionRowComponentData, Message, MessageEditOptions, TextChannel } from "discord.js";
+import { ActivityType, ButtonStyle, Client, ComponentType, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
 import { commands } from "./commands";
 import { modules } from "./modules";
 import { injectPrototype } from "./prototype";
 import { random } from "./utils";
-import { LActionRowDataLocalizer } from "@localizer/data/ActionRowData";
-import { LocalizableBaseMessageOptionsAdapter } from "@localizer/MessageOptions";
 import { PrismaClient } from "@prisma/client";
 import { Logger } from "tslog";
 
@@ -128,17 +127,17 @@ try {
 			}
 		}
 
-		const createDeleteButton = (locale: Locale) => new LActionRowDataLocalizer({
-			type: "ActionRow",
+		const createDeleteButton = (): ActionRowData<MessageActionRowComponentData> => ({
+			type: ComponentType.ActionRow,
 			components: [{
 				customId: "delete",
-				type: "Button",
-				style: "Danger",
+				type: ComponentType.Button,
+				style: ButtonStyle.Danger,
 				emoji: {
 					name: random(0, 10) === 0 ? "🚮" : "🗑️"
 				}
 			}]
-		}).localize(locale);
+		});
 
 		// A mapping from the source message's author id that triggered stealth modules to the replied message
 		const sources: Record<string, string> = {};
@@ -175,7 +174,7 @@ try {
 				}
 			} catch (e) { }
 
-			const deleteButton = createDeleteButton(locale);
+			const deleteButton = createDeleteButton();
 
 			const reply = async (response: InteractionReplyOptions, onTimeout?: BaseApplicationCommand<ApplicationCommandType>["onTimeout"]) => {
 				if (response.ephemeral) {
@@ -209,7 +208,7 @@ try {
 							const { components, ...x } = response;
 							const msg = await interaction.editReply({ components: _components ?? [], ...x });
 							if (onTimeout) {
-								const reply = new LocalizableInteractionReplyOptionsAdapter(await onTimeout(msg)).build(locale);
+								const reply = localize(await onTimeout(msg), locale);
 								await interaction.editReply(reply);
 							}
 							delete timeouts[id];
@@ -227,11 +226,9 @@ try {
 				}
 			};
 
-			const generalErrorReply = new LocalizableInteractionReplyOptionsAdapter({
-				content: {
-					key: "index.error"
-				}
-			}).build(locale);
+			const generalErrorReply = localize<InteractionReplyOptions>({
+				content: t("index.error")
+			}, locale);
 
 			try {
 				// Delete function
@@ -251,12 +248,10 @@ try {
 
 						if (sourceMessage.author.id !== interaction.client.user!.id) {
 							return await reply(
-								new LocalizableInteractionReplyOptionsAdapter({
-									content: {
-										key: "delete.notMyMessage"
-									},
+								localize<InteractionReplyOptions>({
+									content: t("delete.notMyMessage"),
 									ephemeral: true
-								}).build(locale)
+								}, locale)
 							);
 						}
 
@@ -268,31 +263,25 @@ try {
 						) {
 							await sourceMessage.delete();
 							return await reply(
-								new LocalizableInteractionReplyOptionsAdapter({
-									content: {
-										key: "delete.deleted"
-									},
+								localize<InteractionReplyOptions>({
+									content: t("delete.deleted"),
 									ephemeral: true
-								}).build(locale)
+								}, locale)
 							);
 						} else {
 							return await reply(
-								new LocalizableInteractionReplyOptionsAdapter({
-									content: {
-										key: "delete.deletingOthersMessage"
-									},
+								localize<InteractionReplyOptions>({
+									content: t("delete.deletingOthersMessage"),
 									ephemeral: true
-								}).build(locale)
+								}, locale)
 							);
 						}
 					} else {
 						return await reply(
-							new LocalizableInteractionReplyOptionsAdapter({
-								content: {
-									key: "delete.noPermission"
-								},
+							localize<InteractionReplyOptions>({
+								content: t("delete.noPermission"),
 								ephemeral: true
-							}).build(locale)
+							}, locale)
 						);
 					}
 				} else if (interaction.isChatInputCommand()) {
@@ -307,9 +296,10 @@ try {
 					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
-						response = new LocalizableInteractionReplyOptionsAdapter(
-							await command.onCommand(interaction)
-						).build(locale);
+						response = localize(
+							await command.onCommand(interaction),
+							locale
+						);
 					} catch (e) {
 						handleError(`commands/${command.name}.onCommand`, e);
 					}
@@ -328,9 +318,10 @@ try {
 					let response: InteractionReplyOptions = generalErrorReply;
 
 					try {
-						response = new LocalizableInteractionReplyOptionsAdapter(
-							await command.onContextMenu(interaction)
-						).build(locale);
+						response = localize(
+							await command.onContextMenu(interaction),
+							locale
+						);
 					} catch (e) {
 						handleError(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -348,9 +339,10 @@ try {
 					// TODO: wtf is this
 					let response: InteractionReplyOptions = generalErrorReply;
 					try {
-						response = new LocalizableInteractionReplyOptionsAdapter(
-							await command.onContextMenu(interaction)
-						).build(locale);
+						response = localize(
+							await command.onContextMenu(interaction),
+							locale
+						);
 					} catch (e) {
 						handleError(`commands/${command.name}.onContextMenu`, e);
 					}
@@ -371,13 +363,15 @@ try {
 
 					try {
 						if (interaction.isButton() && command.onButton) {
-							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onButton(interaction)
-							).build(locale);
+							response = localize(
+								await command.onButton(interaction),
+								locale
+							);
 						} else if (interaction.isStringSelectMenu() && command.onSelectMenu) {
-							response = new LocalizableInteractionReplyOptionsAdapter(
-								await command.onSelectMenu(interaction)
-							).build(locale);
+							response = localize(
+								await command.onSelectMenu(interaction),
+								locale
+							);
 						} else {
 							// TODO: Handle unknown interaction
 						}
@@ -429,11 +423,12 @@ try {
 						});
 
 						if (typeof _result === "object") {
-							const deleteButton = createDeleteButton(locale);
+							const deleteButton = createDeleteButton();
 
-							const result = new LocalizableBaseMessageOptionsAdapter(
-								_result.result
-							).build(locale);
+							const result = localize(
+								_result.result,
+								locale
+							);
 
 							const _components = result.components?.slice() ?? [];
 
@@ -453,9 +448,10 @@ try {
 									} as MessageEditOptions);
 
 									if (module.onTimeout) {
-										const reply = new LocalizableBaseMessageOptionsAdapter(
-											await module.onTimeout(edited)
-										).build(locale);
+										const reply = localize(
+											await module.onTimeout(edited),
+											locale
+										);
 										await edited.edit(reply);
 									}
 								} catch (e) { }

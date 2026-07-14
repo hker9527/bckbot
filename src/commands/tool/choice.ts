@@ -1,7 +1,8 @@
 import { random, round } from "@app/utils";
+import { t } from "@app/i18n/token";
 import { SlashApplicationCommand } from "@class/ApplicationCommand";
 import type { LApplicationCommandOptionData } from "@class/ApplicationCommandOptionData";
-import type { LInteractionReplyOptions } from "@localizer/InteractionReplyOptions";
+import type { InteractionReplyOptions } from "discord.js";
 import type { ChatInputCommandInteraction } from "discord.js";
 
 export const shuffleArray = (array: any[]) => {
@@ -20,14 +21,12 @@ class Command extends SlashApplicationCommand {
 		}
 	];
 
-	public async onCommand(interaction: ChatInputCommandInteraction): Promise<LInteractionReplyOptions> {
+	public async onCommand(interaction: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
 		const argv = interaction.options.getString("choices", true).split(" ").filter((v: string, i: number, a: string[]) => a.indexOf(v) === i);
 
 		if (argv.length < 2) {
 			return {
-				content: {
-					key: "choice.notEnoughChoices"
-				}
+				content: t("choice.notEnoughChoices")
 			};
 		}
 
@@ -50,16 +49,13 @@ class Command extends SlashApplicationCommand {
 		o.push({ name: last, p: pMax });
 
 		return {
-			content: {
-				key: "choice.result",
-				data: {
-					result: o.sort((a: Option, b: Option) => {
-						return b.p - a.p;
-					}).map((a: Option) => {
-						return a.name + " (" + round(a.p * 100, 3) + "%)";
-					}).join(" ")
-				}
-			}
+			content: t("choice.result", {
+				result: o.sort((a: Option, b: Option) => {
+					return b.p - a.p;
+				}).map((a: Option) => {
+					return a.name + " (" + round(a.p * 100, 3) + "%)";
+				}).join(" ")
+			})
 		};
 	}
 };

@@ -1,4 +1,3 @@
-import type { LocalizerItem } from "@type/Localizer";
 import type { LocaleString, LocalizationMap } from "discord-api-types/v10";
 import { readdirSync } from "fs";
 import i18next from "i18next";
@@ -12,13 +11,11 @@ for (const file of readdirSync("./res/i18n/")) {
 	resources[locale] = { translation: res };
 }
 
-i18next.init({
+await i18next.init({
 	resources
 });
 
 export const getString = (key: string, locale: LocaleString, options?: Record<string, string | number>) => {
-	while (!i18next.isInitialized);
-
 	// Locale fallback
 	switch (locale) {
 		case "en-GB":
@@ -47,14 +44,6 @@ export const getString = (key: string, locale: LocaleString, options?: Record<st
 		...options
 	});
 };
-
-export const Localizer = (localizable: LocalizerItem, locale: LocaleString) => {
-	if (typeof localizable === "string") {
-		return localizable;
-	}
-
-	return getString(localizable.key, locale, localizable.data);
-}
 
 const getLocalizationMap = (key: string) => {
 	const map: LocalizationMap = {};
