@@ -16,11 +16,20 @@ const logger = new Logger({
 });
 
 const client = new PrismaClient();
-let pixivClient = await Pixiv.of(Bun.env.pixiv_refresh_token!);
+
+// Lazy-init: importing this module must NOT authenticate to Pixiv (needs token +
+// network). The client is created on first use and refreshed by worker() below.
+let pixivClient: Pixiv | null = null;
+const getPixivClient = async (): Promise<Pixiv> => {
+	if (!pixivClient) {
+		pixivClient = await Pixiv.of(Bun.env.pixiv_refresh_token!);
+	}
+	return pixivClient;
+};
 
 const proxy = (url: string) => url.replace("i.pximg.net", "i.yuki.sh");
 
-class Illust {
+export class Illust {
 	protected sublogger: Logger<any>;
 	protected item: PixivIllustItem;
 
@@ -135,7 +144,7 @@ class Ugoira extends Illust {
 		});
 
 		try {
-			const res = await pixivClient.ugoiraMetadata({
+			const res = await (await getPixivClient()).ugoiraMetadata({
 				illustId: this.item.id
 			});
 			
@@ -298,7 +307,7 @@ export class IllustMessageFactory {
 		});
 
 		try {
-			const res = await pixivClient.illustDetail({
+			const res = await (await getPixivClient()).illustDetail({
 				illustId: this.id
 			});
 			sublogger.debug(res.data);
@@ -366,7 +375,11 @@ const worker = async () => {
 		return;
 	}
 };
-setInterval(worker, 3000 * 1000);
+// Don't spawn the refresh timer under test — keeps the test runner free of a
+// dangling interval and avoids background auth attempts.
+if (Bun.env.NODE_ENV !== "test") {
+	setInterval(worker, 3000 * 1000);
+}
 
 export const pixiv: StealthModule = {
 	name: "pixiv",

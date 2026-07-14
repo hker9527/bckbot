@@ -34,6 +34,8 @@
   "license": "MIT",
   "scripts": {
     "start": "bun run src/index.ts",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "test": "NODE_ENV=production bun test",
+    "test:live": "NODE_ENV=production LIVE=1 bun test"
   }
 }

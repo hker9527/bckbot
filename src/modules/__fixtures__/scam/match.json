@@ -1,0 +1,11 @@
+{
+  "matches": [
+    {
+      "threatType": "SOCIAL_ENGINEERING",
+      "platformType": "ALL_PLATFORMS",
+      "threat": { "url": "http://malware.testing.google.test/testing/malware/" },
+      "cacheDuration": "300s",
+      "threatEntryType": "URL"
+    }
+  ]
+}
