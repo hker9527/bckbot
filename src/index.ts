@@ -80,7 +80,7 @@ const shouldIgnoreUser = async (id: string) => {
 try {
 	injectPrototype();
 
-	client.once("ready", async () => {
+	client.once("clientReady", async () => {
 		// Error reporting
 		const errorChannel = await client.channels.fetch(Bun.env.error_chid!) as TextChannel;
 		const handleError = async (tag: string, e: unknown) => {
