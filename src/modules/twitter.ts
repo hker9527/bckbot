@@ -66,20 +66,23 @@ export const twitter: StealthModule = {
 		const vanilla = /^(www\.)?(twitter|x)\.com$/.test(url.hostname);
 
 		// Fetch response in background
-		const [hasImageEmbed, json] = await Promise.all([
-			new Promise<boolean>(async (resolve) => {
+		const [imageEmbedCount, json] = await Promise.all([
+			new Promise<number>(async (resolve) => {
 				// Wait for embed to populate
 				await Bun.sleep(2000);
 
 				// Fetch newest version message (Reload embeds)
 				obj.message = await obj.message.channel.messages.fetch(obj.message.id);
 
-				resolve(obj.message.embeds.some((embed) => (embed.image?.width ?? 0) > 0 && (embed.image?.height ?? 0) > 0));
+				// Count how many images the source link already rendered
+				resolve(obj.message.embeds.filter((embed) => (embed.image?.width ?? 0) > 0 && (embed.image?.height ?? 0) > 0).length);
 			}),
 			fetchTweet(url)
 		]);
 
-		logger.debug("hasImageEmbed", hasImageEmbed);
+		const hasImageEmbed = imageEmbedCount > 0;
+
+		logger.debug("imageEmbedCount", imageEmbedCount);
 
 		if (!json) {
 			logger.debug("Failed to get tweet data");
@@ -103,8 +106,8 @@ export const twitter: StealthModule = {
 					logger.debug("Rejected: Vanilla twitter with only 1 image");
 					return false;
 				}
-				if (images.length === 0) {
-					logger.debug("Rejected: Vanilla twitter with no images and quotes");
+				if (images.length === 0 && videos.length === 0) {
+					logger.debug("Rejected: Vanilla twitter with no images, videos and quotes");
 					return false;
 				}
 			}
@@ -112,6 +115,13 @@ export const twitter: StealthModule = {
 
 		if (images.length < 2 && !vanilla) {
 			logger.debug("Rejected: Fixup sites with less than 2 images");
+			return false;
+		}
+
+		// Some fixup sites now render every image correctly on their own. If the
+		// source link already produced an image embed per photo, don't override it.
+		if (!vanilla && images.length > 0 && imageEmbedCount >= images.length) {
+			logger.debug("Rejected: Fixup site already displays all images", imageEmbedCount, images.length);
 			return false;
 		}
 
