@@ -5,9 +5,9 @@ import { ZAPIFXTwitter } from "@type/api/FXTwitter";
 import type { APIEmbed, ActionRowData, MessageActionRowComponentData } from "discord.js";
 import { ButtonStyle, ComponentType } from "discord.js";
 import { find } from "linkifyjs";
-import { Logger } from "tslog";
+import { createLogger } from "@app/sentry";
 
-const logger = new Logger({
+const logger = createLogger({
 	name: "twitter",
 	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });

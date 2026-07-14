@@ -2,7 +2,7 @@ import type { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { localize } from "@app/i18n/resolve";
 import { t } from "@app/i18n/token";
 import assert from "assert-ts";
-import type { ActionRowData, ApplicationCommandType, InteractionReplyOptions, MessageActionRowComponentData, Message, MessageEditOptions, TextChannel } from "discord.js";
+import type { ActionRowData, ApplicationCommandType, InteractionReplyOptions, MessageActionRowComponentData, Message, MessageEditOptions } from "discord.js";
 import { ActivityType, ButtonStyle, Client, ComponentType, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
 import { commands } from "./commands";
@@ -10,9 +10,12 @@ import { modules } from "./modules";
 import { injectPrototype } from "./prototype";
 import { random } from "./utils";
 import { PrismaClient } from "@prisma/client";
-import { Logger } from "tslog";
+import * as Sentry from "@sentry/bun";
+import { createLogger, initSentry } from "@app/sentry";
 
-const logger = new Logger({
+initSentry();
+
+const logger = createLogger({
 	name: "index",
 	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });
@@ -81,23 +84,14 @@ try {
 	injectPrototype();
 
 	client.once("clientReady", async () => {
-		// Error reporting
-		const errorChannel = await client.channels.fetch(Bun.env.error_chid!) as TextChannel;
-		const handleError = async (tag: string, e: unknown) => {
-			const errorObj = logger.error(tag, e);
-			// Encode the content into an attachment
-			const attachment = Buffer.from(JSON.stringify({
-				time: new Date().toISOString(),
-				errorObj
-			}, null, 4));
-
-			await errorChannel.send({
-				content: `Error occurred in \`${tag}\``,
-				files: [{
-					name: `${tag}.json`,
-					attachment
-				}]
-			});
+		// Error reporting -> Sentry (tagged by call site)
+		const handleError = (tag: string, e: unknown) => {
+			console.error(`[${tag}]`, e);
+			if (e instanceof Error) {
+				Sentry.captureException(e, { tags: { source: tag } });
+			} else {
+				Sentry.captureMessage(`[${tag}] ${e}`, { level: "error", tags: { source: tag } });
+			}
 		};
 
 		client.on("error", async (e) => {
@@ -149,6 +143,18 @@ try {
 			if (!interaction.isRepliable()) {
 				return;
 			}
+
+			Sentry.setUser({ id: interaction.user.id, username: interaction.user.tag });
+			Sentry.addBreadcrumb({
+				category: "interaction",
+				level: "info",
+				message: interaction.isChatInputCommand() ? `/${interaction.commandName}` : interaction.type.toString(),
+				data: {
+					type: interaction.type,
+					guild: interaction.guildId ?? "dm",
+					channel: interaction.channelId
+				}
+			});
 
 			const locale = (await fetchUserLocale(interaction.user.id, true)) ?? interaction.locale;
 
@@ -396,6 +402,14 @@ try {
 					return;
 				}
 
+				Sentry.setUser({ id: message.author.id, username: message.author.tag });
+				Sentry.addBreadcrumb({
+					category: "message",
+					level: "info",
+					message: event,
+					data: { guild: message.guildId ?? "dm", channel: message.channelId }
+				});
+
 				// Check if message's channel lets us to send message
 				const botAsMember = await message.guild?.members.fetch(client.user!.id);
 				if ("permissionsFor" in message.channel && !message.channel.permissionsFor(botAsMember!)?.has(PermissionsBitField.Flags.SendMessages)) {
@@ -483,5 +497,6 @@ try {
 
 	client.login(Bun.env.TOKEN);
 } catch (e) {
-	logger.error("client", e);
+	logger.error("client", e); // transport forwards to Sentry
+	await Sentry.flush(2000);
 }

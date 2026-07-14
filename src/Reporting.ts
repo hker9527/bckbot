@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/bun";
+
 const flag = Bun.env.NODE_ENV !== "production";
 
 const getPrefix = () => {
@@ -19,4 +21,9 @@ export const debug = (tag: string, e: unknown) => {
 
 export const error = (tag: string, e: unknown) => {
 	console.error(`${getPrefix()} [${tag}] ${e}`);
+	if (e instanceof Error) {
+		Sentry.captureException(e, { tags: { source: tag } });
+	} else {
+		Sentry.captureMessage(`[${tag}] ${e}`, { level: "error", tags: { source: tag } });
+	}
 };

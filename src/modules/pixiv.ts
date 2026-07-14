@@ -8,9 +8,10 @@ import assert from "assert-ts";
 import type { APIEmbed, BaseMessageOptions, TextChannel } from "discord.js";
 import { mkdir, rm } from "fs/promises";
 import { htmlToText } from "html-to-text";
-import { Logger } from "tslog";
+import type { Logger } from "tslog";
+import { createLogger } from "@app/sentry";
 
-const logger = new Logger({
+const logger = createLogger({
 	name: "pixiv",
 	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });

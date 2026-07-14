@@ -7,9 +7,9 @@ import { Zod } from "@type/Zod";
 import assert from "assert-ts";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { z } from "zod";
-import { Logger } from "tslog";
+import { createLogger } from "@app/sentry";
 
-const logger = new Logger({
+const logger = createLogger({
 	name: "currency",
 	minLevel: Bun.env.DEV === "true" ? 0 : 3
 });
