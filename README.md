@@ -7,6 +7,7 @@
 * Context menu support
 * Reverse image search
 * Better pixiv preview (Multi image support)
+* Better embeds for Twitter, Facebook and Bilibili links
 * Currency conversion
 * Scam URL detection
 * Utilities, e.g. choices, magicball
@@ -40,3 +41,5 @@ yarn start
 |[exchangerate.host](https://exchangerate.host/)|Currency conversion|
 |[Google Safebrowsing](https://safebrowsing.google.com/)|Detect malicious URLs|
 |[FXTwitter](https://github.com/FixTweet/FixTweet)|Generate embeds from Twitter links|
+|[facebed](https://facebed.com/)|Generate embeds from Facebook links|
+|[vxbilibili](https://www.vxbilibili.com/)|Generate embeds from Bilibili links|
