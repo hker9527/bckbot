@@ -200,5 +200,8 @@
   },
   "twitter": {
     "originalTweetButton": "原始推文"
+  },
+  "bilibili": {
+    "originalVideoButton": "原始影片"
   }
 }

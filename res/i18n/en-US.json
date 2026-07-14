@@ -201,5 +201,8 @@
   },
   "twitter": {
     "originalTweetButton": "Original tweet"
+  },
+  "bilibili": {
+    "originalVideoButton": "Original video"
   }
 }
