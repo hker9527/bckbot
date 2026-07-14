@@ -203,5 +203,8 @@
   },
   "bilibili": {
     "originalVideoButton": "原始影片"
+  },
+  "facebook": {
+    "originalPostButton": "原始貼文"
   }
 }

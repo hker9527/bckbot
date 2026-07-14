@@ -204,5 +204,8 @@
   },
   "bilibili": {
     "originalVideoButton": "Original video"
+  },
+  "facebook": {
+    "originalPostButton": "Original post"
   }
 }
