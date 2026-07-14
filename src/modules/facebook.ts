@@ -1,4 +1,5 @@
 import { t } from "@app/i18n/token";
+import { extractOgUrl } from "@app/utils";
 import type { StealthModule } from "@type/StealthModule";
 import type { ActionRowData, MessageActionRowComponentData } from "discord.js";
 import { ButtonStyle, ComponentType } from "discord.js";
@@ -105,7 +106,21 @@ export const facebook: StealthModule = {
 			return false;
 		}
 
-		/* 
+		// Facebed's og:url is the canonical, tracking-free facebook link (fbclid /
+		// mibextid / share params dropped). Prefer it for the button and the posted
+		// facebed link; fall back to the raw rewrite if it is missing.
+		const canonical = extractOgUrl(html);
+		let originalUrl = url.href;
+		if (canonical) {
+			originalUrl = canonical;
+			try {
+				const cleanProxy = new URL(canonical);
+				cleanProxy.hostname = "facebed.com";
+				facebedUrl.href = cleanProxy.href;
+			} catch { /* keep the raw facebedUrl */ }
+		}
+
+		/*
 			<meta property="og:title" content="方吉君速報-我笑故我在"/>
 			<meta property="og:description" content="你幹嘛用這麼萌的姿勢在等著我呢!!??"/>
 			<meta property="og:site_name" content="facebed by pi.kt
@@ -163,9 +178,9 @@ export const facebook: StealthModule = {
 				components: [
 					{
 						type: ComponentType.Button,
-						label: t("facebook.originalPostButton"), // Make sure to add this key to localization if needed, or use string
+						label: t("facebook.originalPostButton"),
 						style: ButtonStyle.Link,
-						url: url.href
+						url: originalUrl
 					}
 				]
 			}

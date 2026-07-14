@@ -23,6 +23,17 @@ export const enumStringKeys = <T extends object>(e: T) => {
 	return Object.keys(e).filter(value => isNaN(Number(value))) as (keyof T)[];
 };
 
+// Pull the canonical `og:url` out of an HTML document. Embed proxies (facebed,
+// vxbilibili) resolve links to a tracking-free canonical URL and expose it here,
+// so this is how we recover the "clean" original link. Handles both attribute
+// orders (`property` before or after `content`). Returns null if absent.
+export const extractOgUrl = (html: string): string | null => {
+	const match =
+		/<meta[^>]*\bproperty=["']?og:url["']?[^>]*\bcontent=["']([^"']+)["']/i.exec(html) ??
+		/<meta[^>]*\bcontent=["']([^"']+)["'][^>]*\bproperty=["']?og:url["']?/i.exec(html);
+	return match ? match[1] : null;
+};
+
 // Use k, m, ... suffixes for numbers
 export const num2str = (num: number) => {
 	if (num < 1000) return num.toString();

@@ -1,4 +1,5 @@
 import { t } from "@app/i18n/token";
+import { extractOgUrl } from "@app/utils";
 import type { StealthModule } from "@type/StealthModule";
 import type { ActionRowData, MessageActionRowComponentData } from "discord.js";
 import { ButtonStyle, ComponentType } from "discord.js";
@@ -78,7 +79,7 @@ export const bilibili: StealthModule = {
 		// vxbilibili returns 200 with og metadata for real content, and 4xx
 		// ("Video not found" / "Invalid video ID" / "Not found") otherwise.
 		// Reject before replacing so dead links keep Discord's default behaviour.
-		let exists: boolean;
+		let html: string;
 		try {
 			// vxbilibili only serves the og/404 path to bot user-agents; other UAs
 			// get a 307 redirect to bilibili.com, which hides the existence signal.
@@ -87,15 +88,32 @@ export const bilibili: StealthModule = {
 					"User-Agent": "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)"
 				}
 			});
-			exists = res.ok;
+			if (!res.ok) {
+				logger.debug("Rejected: vxbilibili reports link does not exist", fixedUrl.href);
+				return false;
+			}
+			html = await res.text();
 		} catch (e) {
 			logger.error("Failed to check validity", e);
 			return false;
 		}
 
-		if (!exists) {
-			logger.debug("Rejected: vxbilibili reports link does not exist", fixedUrl.href);
-			return false;
+		// vxbilibili's og:url is the canonical, tracking-free bilibili link (short
+		// links resolved, share/buvid params dropped). Prefer it for the button and
+		// the posted proxy link; fall back to the raw rewrite if it is missing.
+		const canonical = extractOgUrl(html);
+		let content = fixedUrl.href;
+		let originalUrl = url.href;
+		if (canonical) {
+			originalUrl = canonical;
+			try {
+				const cleanProxy = new URL(canonical);
+				const cleanHostname = rewriteHostname(cleanProxy.hostname);
+				if (cleanHostname) {
+					cleanProxy.hostname = cleanHostname;
+					content = cleanProxy.href;
+				}
+			} catch { /* keep fixedUrl.href */ }
 		}
 
 		const components: ActionRowData<MessageActionRowComponentData>[] = [
@@ -106,7 +124,7 @@ export const bilibili: StealthModule = {
 						type: ComponentType.Button,
 						label: t("bilibili.originalVideoButton"),
 						style: ButtonStyle.Link,
-						url: url.href
+						url: originalUrl
 					}
 				]
 			}
@@ -118,12 +136,12 @@ export const bilibili: StealthModule = {
 			logger.error("Failed to suppress embeds", e);
 		}
 
-		logger.debug("Accepted", fixedUrl.href);
+		logger.debug("Accepted", content);
 
 		return {
 			type: "reply",
 			result: {
-				content: fixedUrl.href,
+				content,
 				components
 			}
 		};

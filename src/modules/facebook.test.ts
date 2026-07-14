@@ -52,6 +52,9 @@ describe("facebook.action", () => {
 		if (result === false) throw new Error("expected reply");
 		expect(result.type).toBe("reply");
 		expect(result.result.content).toBe("https://facebed.com/reel/123");
+		// button links to facebed's canonical (tracking-free) og:url
+		const button = (result.result.components?.[0] as any).components[0];
+		expect(button.url).toBe("https://www.facebook.com/reel/123");
 		expect(msg.suppressEmbeds).toHaveBeenCalled();
 	});
 

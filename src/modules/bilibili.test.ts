@@ -15,9 +15,10 @@ const makeMessage = (content: string): Message => {
 
 const run = (msg: Message) => bilibili.action({ message: msg });
 
-// action probes the rewritten URL for existence via fetch(url).ok
-const stubFetch = (ok: boolean) =>
-	spyOn(globalThis, "fetch").mockResolvedValue({ ok } as Response);
+// action probes the rewritten URL: checks fetch(url).ok, then reads the body to
+// pull the canonical og:url. Default body has no og:url -> raw-rewrite fallback.
+const stubFetch = (ok: boolean, html = "") =>
+	spyOn(globalThis, "fetch").mockResolvedValue({ ok, text: async () => html } as Response);
 
 afterEach(() => mock.restore());
 
@@ -78,5 +79,24 @@ describe("bilibili.action", () => {
 		const result = await run(makeMessage("https://www.bilibili.com/opus/987654321"));
 		if (result === false) throw new Error("expected reply");
 		expect(result.result.content).toBe("https://www.vxbilibili.com/opus/987654321");
+	});
+
+	it("uses vxbilibili's canonical og:url to strip tracking params", async () => {
+		// b23.tv short link carrying tracking; vxbilibili resolves it to a clean
+		// canonical video URL in og:url.
+		stubFetch(
+			true,
+			'<meta content="https://www.bilibili.com/video/BV12nMn6ZEd6?p=1"property=og:url>'
+		);
+		const result = await run(
+			makeMessage("https://b23.tv/R9v1RBj?share_source=copy_web&buvid=XY")
+		);
+		if (result === false) throw new Error("expected reply");
+
+		// posted proxy link is the clean canonical, rewritten to vxbilibili
+		expect(result.result.content).toBe("https://www.vxbilibili.com/video/BV12nMn6ZEd6?p=1");
+		// button points at the untracked original
+		const button = (result.result.components?.[0] as any).components[0];
+		expect(button.url).toBe("https://www.bilibili.com/video/BV12nMn6ZEd6?p=1");
 	});
 });
