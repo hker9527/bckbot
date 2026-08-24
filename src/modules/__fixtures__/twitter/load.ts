@@ -1,7 +1,14 @@
 // Fixture loader for twitter tests.
 //
-// text-vanilla.json  — real fxtwitter response, @jack/status/20 (first tweet, text only)
-// photo-vanilla.json — real fxtwitter response, Obama "Four more years" (single photo)
+// text-vanilla.json   — real fxtwitter response, @jack/status/20 (first tweet, text only)
+// photo-vanilla.json  — real fxtwitter response, Obama "Four more years" (single photo)
+// video-vanilla.json  — real fxtwitter response, SpaceX launch (video only)
+// video-sensitive.json — real fxtwitter response, possibly_sensitive video tweet.
+//                       NSFW media urls; used for schema shape and the NSFW gate only.
+// photo-sensitive.json — real fxtwitter response, possibly_sensitive single-photo
+//                       tweet. The exact case the placeholder embed breaks: X
+//                       unfurls the placeholder, the single-photo gate then skips
+//                       the tweet and the user sees only grey. NSFW media url.
 //
 // Raw fixtures are captured live ONCE and committed, so tests exercise real API
 // shape without depending on those tweets staying up. Variant helpers below clone
@@ -16,6 +23,13 @@ export type Envelope = {
 };
 
 export const loadFixture = async (name: string): Promise<Envelope> =>
+	Bun.file(`${dir}/${name}.json`).json();
+
+// embed-sensitive-placeholder.json — real Discord embed captured from a message
+// linking a sensitive tweet. X serves a generic open graph image instead of the
+// media, and it has real dimensions, so it counts as a rendered photo unless
+// filtered by url.
+export const loadEmbed = async (name: string): Promise<Record<string, any>> =>
 	Bun.file(`${dir}/${name}.json`).json();
 
 const clone = (fx: Envelope): Envelope => structuredClone(fx);

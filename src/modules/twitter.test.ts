@@ -1,6 +1,6 @@
 import { describe, it, expect, mock, spyOn, afterEach } from "bun:test";
-import { fetchTweet } from "@module/twitter";
-import { loadFixture } from "./__fixtures__/twitter/load";
+import { fetchTweet, isSensitivePlaceholder } from "@module/twitter";
+import { loadEmbed, loadFixture } from "./__fixtures__/twitter/load";
 
 // Stub global fetch to return a Response-like with .text().
 const stubFetch = (body: unknown) =>
@@ -10,6 +10,27 @@ const stubFetch = (body: unknown) =>
 
 afterEach(() => {
 	mock.restore();
+});
+
+describe("isSensitivePlaceholder", () => {
+	it("matches the real captured placeholder embed", async () => {
+		const embed = await loadEmbed("embed-sensitive-placeholder");
+
+		// The placeholder carries real dimensions, so the width/height filter alone
+		// counts it as a rendered photo — that is why the url check exists.
+		expect(embed.image.width).toBeGreaterThan(0);
+		expect(embed.image.height).toBeGreaterThan(0);
+		expect(isSensitivePlaceholder(embed.image.url)).toBe(true);
+	});
+
+	it("tolerates a query string", () => {
+		expect(isSensitivePlaceholder("https://abs.twimg.com/rweb/ssr/default/v2/og/image.png?format=png")).toBe(true);
+	});
+
+	it("does not match real media or a missing url", () => {
+		expect(isSensitivePlaceholder("https://pbs.twimg.com/media/p0.jpg")).toBe(false);
+		expect(isSensitivePlaceholder(undefined)).toBe(false);
+	});
 });
 
 describe("fetchTweet", () => {
@@ -22,6 +43,18 @@ describe("fetchTweet", () => {
 		expect(tweet).not.toBeNull();
 		expect(tweet?.text).toBe("just setting up my twttr");
 		expect(tweet?.author.screen_name).toBe("jack");
+	});
+
+	it("parses a real FXTwitter response (sensitive video tweet)", async () => {
+		stubFetch(await loadFixture("video-sensitive"));
+
+		const tweet = await fetchTweet(new URL("https://x.com/CosplayerBunbun/status/2091473283229376570"));
+
+		expect(tweet).not.toBeNull();
+		expect(tweet?.possibly_sensitive).toBe(true);
+		// Sensitive tweets are not redacted by the API — only the Discord embed is
+		expect(tweet?.author.screen_name).toBe("CosplayerBunbun");
+		expect(tweet?.media?.videos?.length).toBe(1);
 	});
 
 	it("parses a real FXTwitter response (photo tweet)", async () => {

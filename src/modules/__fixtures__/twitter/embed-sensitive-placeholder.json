@@ -1,0 +1,26 @@
+{
+	"type": "rich",
+	"url": "https://twitter.com/CosplayerBunbun/status/2091473283229376570",
+	"description": "Post",
+	"color": 1942002,
+	"timestamp": "2026-08-23T10:31:03.073000+00:00",
+	"author": {
+		"name": "Post",
+		"url": "https://x.com/i"
+	},
+	"image": {
+		"url": "https://abs.twimg.com/rweb/ssr/default/v2/og/image.png",
+		"proxy_url": "https://images-ext-1.discordapp.net/external/MYAi6648nXT8SCRSSg3uMdnz1zcVJunGHw7FjNLH8sk/https/abs.twimg.com/rweb/ssr/default/v2/og/image.png",
+		"width": 1202,
+		"height": 634,
+		"content_type": "image/png",
+		"placeholder": "CggGBICLdGM6dF+62jjyoycfSQ==",
+		"placeholder_version": 1,
+		"flags": 0
+	},
+	"footer": {
+		"text": "X",
+		"icon_url": "https://abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png",
+		"proxy_icon_url": "https://images-ext-1.discordapp.net/external/PTMEN2KUDPVc1f15BqpREEpYn-iIisxHLwkH_jLnaPo/https/abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png"
+	}
+}

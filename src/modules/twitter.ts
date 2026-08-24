@@ -12,6 +12,13 @@ const logger = createLogger({
 	minLevel: Bun.env.NODE_ENV === "production" ? 3 : 0
 });
 
+// X serves this generic open graph image in place of the real media when a
+// tweet is marked sensitive.
+const SENSITIVE_PLACEHOLDER_URL = "https://abs.twimg.com/rweb/ssr/default/v2/og/image.png";
+
+export const isSensitivePlaceholder = (imageUrl?: string) =>
+	imageUrl?.split("?")[0] === SENSITIVE_PLACEHOLDER_URL;
+
 export const fetchTweet = async (url: URL) => {
 	const sublogger = logger.getSubLogger({
 		name: "fetchTweet"
@@ -74,8 +81,14 @@ export const twitter: StealthModule = {
 				// Fetch newest version message (Reload embeds)
 				obj.message = await obj.message.channel.messages.fetch(obj.message.id);
 
-				// Count how many images the source link already rendered
-				resolve(obj.message.embeds.filter((embed) => (embed.image?.width ?? 0) > 0 && (embed.image?.height ?? 0) > 0).length);
+				// Count how many images the source link already rendered. Sensitive
+				// tweets embed a placeholder instead of the real media, which tells
+				// us nothing about what the user can actually see.
+				resolve(obj.message.embeds.filter((embed) =>
+					(embed.image?.width ?? 0) > 0 &&
+					(embed.image?.height ?? 0) > 0 &&
+					!isSensitivePlaceholder(embed.image?.url)
+				).length);
 			}),
 			fetchTweet(url)
 		]);
