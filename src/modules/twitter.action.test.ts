@@ -1,14 +1,17 @@
 import { describe, it, expect, mock, spyOn, beforeEach, afterEach } from "bun:test";
 import { twitter } from "@module/twitter";
 import type { Message } from "discord.js";
-import { loadFixture, setPhotos, setSensitive } from "./__fixtures__/twitter/load";
+import { loadEmbed, loadFixture, setPhotos, setSensitive } from "./__fixtures__/twitter/load";
 
 // ---- mock Discord Message ----
 
 interface MockOpts {
-	embeds?: Array<{ image?: { width: number; height: number } }>;
+	embeds?: Array<{ image?: { width: number; height: number; url?: string } }>;
 	nsfw?: boolean;
 }
+
+// Real captured embed X renders in place of the media on a sensitive tweet.
+let placeholderEmbed: Record<string, any>;
 
 const makeMessage = (content: string, { embeds = [], nsfw = true }: MockOpts = {}): Message => {
 	const msg = {
@@ -39,6 +42,7 @@ let base: Awaited<ReturnType<typeof loadFixture>>;
 
 beforeEach(async () => {
 	base = await loadFixture("photo-vanilla");
+	placeholderEmbed = await loadEmbed("embed-sensitive-placeholder");
 	// action awaits Bun.sleep(2000) before refetching embeds — skip the wait
 	spyOn(Bun, "sleep").mockResolvedValue(undefined as never);
 });
@@ -109,6 +113,57 @@ describe("twitter.action", () => {
 
 		if (result === false) throw new Error("expected reply");
 		expect(result.result.embeds).toHaveLength(3);
+	});
+
+	it("overrides vanilla single-photo tweet when source only shows the sensitive placeholder", async () => {
+		stubFetch(setSensitive(setPhotos(base, 1)));
+
+		// Placeholder embed must not count as the photo being rendered
+		const result = await run(
+			makeMessage("https://x.com/jane/status/123", { embeds: [placeholderEmbed] })
+		);
+
+		if (result === false) throw new Error("expected reply");
+		expect(result.result.embeds).toHaveLength(1);
+	});
+
+	it("overrides fixup site whose image embeds are all sensitive placeholders", async () => {
+		stubFetch(setSensitive(setPhotos(base, 2)));
+
+		const embeds = [placeholderEmbed, placeholderEmbed];
+		const result = await run(makeMessage("https://fxtwitter.com/jane/status/123", { embeds }));
+
+		if (result === false) throw new Error("expected reply");
+		expect(result.result.embeds).toHaveLength(2);
+	});
+
+	it("rejects the real sensitive tweet in a SFW channel", async () => {
+		stubFetch(await loadFixture("video-sensitive"));
+
+		const result = await run(
+			makeMessage("https://x.com/CosplayerBunbun/status/2091473283229376570", {
+				embeds: [placeholderEmbed],
+				nsfw: false
+			})
+		);
+
+		expect(result).toBe(false);
+	});
+
+	it("rewrites the real sensitive video tweet in a NSFW channel", async () => {
+		stubFetch(await loadFixture("video-sensitive"));
+
+		// This is the message the placeholder embed was captured from. It takes the
+		// video path, so the placeholder never reaches an image gate — the url
+		// filter matters for sensitive *photo* tweets.
+		const result = await run(
+			makeMessage("https://x.com/CosplayerBunbun/status/2091473283229376570", {
+				embeds: [placeholderEmbed]
+			})
+		);
+
+		if (result === false) throw new Error("expected reply");
+		expect(result.result.content).toBe("https://fixupx.com/CosplayerBunbun/status/2091473283229376570");
 	});
 
 	it("rewrites vanilla video tweet to fixupx link (real SpaceX fixture)", async () => {

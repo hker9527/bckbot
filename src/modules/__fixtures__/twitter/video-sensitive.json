@@ -1,0 +1,240 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "url": "https://x.com/CosplayerBunbun/status/2091473283229376570",
+    "id": "2091473283229376570",
+    "text": "💚🤍",
+    "raw_text": {
+      "text": "💚🤍 https://t.co/tuj1YsTbL5",
+      "display_text_range": [
+        0,
+        2
+      ],
+      "facets": [
+        {
+          "type": "media",
+          "indices": [
+            3,
+            26
+          ],
+          "id": "2091386788502003712",
+          "display": "pic.x.com/tuj1YsTbL5",
+          "original": "https://t.co/tuj1YsTbL5",
+          "replacement": "https://x.com/CosplayerBunbun/status/2091473283229376570/video/1"
+        }
+      ]
+    },
+    "author": {
+      "screen_name": "CosplayerBunbun",
+      "url": "https://x.com/CosplayerBunbun",
+      "id": "1763823767074353152",
+      "followers": 439285,
+      "following": 232,
+      "likes": 7694,
+      "media_count": 399,
+      "name": "ぶんちゃん🔞@ぶんコス",
+      "description": "可愛いとエロが融合したえっちな動画を作ります💙 fantia(https://x.gd/zyTwk) Fansly(https://fansly.com/CosplayBunBun) もっとぶんを知りたい人向け(サブ垢)@CosplayBunChan",
+      "raw_description": {
+        "text": "可愛いとエロが融合したえっちな動画を作ります💙 fantia(https://t.co/H9WxdWKM1W) Fansly(https://t.co/xyQvSBsaRl) もっとぶんを知りたい人向け(サブ垢)@CosplayBunChan",
+        "facets": [
+          {
+            "type": "url",
+            "indices": [
+              31,
+              54
+            ],
+            "original": "https://t.co/H9WxdWKM1W",
+            "replacement": "https://x.gd/zyTwk",
+            "display": "x.gd/zyTwk"
+          },
+          {
+            "type": "url",
+            "indices": [
+              63,
+              86
+            ],
+            "original": "https://t.co/xyQvSBsaRl",
+            "replacement": "https://fansly.com/CosplayBunBun",
+            "display": "fansly.com/CosplayBunBun"
+          }
+        ]
+      },
+      "location": "",
+      "banner_url": "",
+      "avatar_url": "https://pbs.twimg.com/profile_images/2008482393834090497/EAf6vZ6N_200x200.jpg",
+      "joined": "Sat Mar 02 07:09:07 +0000 2024",
+      "protected": false,
+      "website": {
+        "url": "https://lit.link/CosplayerBunbun",
+        "display_url": "lit.link/CosplayerBunbun"
+      },
+      "verification": {
+        "verified": true,
+        "verified_at": null,
+        "type": "individual"
+      },
+      "avatar_color": null
+    },
+    "replies": 14,
+    "retweets": 2441,
+    "likes": 42223,
+    "bookmarks": 23024,
+    "quotes": 12,
+    "created_at": "Sun Aug 23 10:31:03 +0000 2026",
+    "created_timestamp": 1787481063,
+    "possibly_sensitive": true,
+    "views": 461258,
+    "is_note_tweet": false,
+    "community_note": null,
+    "lang": null,
+    "replying_to": null,
+    "replying_to_status": null,
+    "media": {
+      "all": [
+        {
+          "id": "2091386788502003712",
+          "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+          "thumbnail_url": "https://pbs.twimg.com/amplify_video_thumb/2091386788502003712/img/tu9-L1X3CnCzPwMw.jpg",
+          "duration": 28.181,
+          "width": 1080,
+          "height": 1920,
+          "format": "video/mp4",
+          "type": "video",
+          "formats": [
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/pl/0JZw_2KB4qCJLHUW.m3u8?tag=29",
+              "container": "m3u8"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/320x568/sjPsvh0uqupWPSeN.mp4?tag=29",
+              "bitrate": 632000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/480x852/jJ8Wa6qEtRlbE4LL.mp4?tag=29",
+              "bitrate": 950000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/720x1280/Iw7kHRzNX08EJUeE.mp4?tag=29",
+              "bitrate": 2176000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+              "bitrate": 10368000,
+              "container": "mp4",
+              "codec": "h264"
+            }
+          ],
+          "publisher": null,
+          "variants": [
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/pl/0JZw_2KB4qCJLHUW.m3u8?tag=29",
+              "bitrate": 0,
+              "content_type": "application/x-mpegURL"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/320x568/sjPsvh0uqupWPSeN.mp4?tag=29",
+              "bitrate": 632000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/480x852/jJ8Wa6qEtRlbE4LL.mp4?tag=29",
+              "bitrate": 950000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/720x1280/Iw7kHRzNX08EJUeE.mp4?tag=29",
+              "bitrate": 2176000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+              "bitrate": 10368000,
+              "content_type": "video/mp4"
+            }
+          ]
+        }
+      ],
+      "videos": [
+        {
+          "id": "2091386788502003712",
+          "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+          "thumbnail_url": "https://pbs.twimg.com/amplify_video_thumb/2091386788502003712/img/tu9-L1X3CnCzPwMw.jpg",
+          "duration": 28.181,
+          "width": 1080,
+          "height": 1920,
+          "format": "video/mp4",
+          "type": "video",
+          "formats": [
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/pl/0JZw_2KB4qCJLHUW.m3u8?tag=29",
+              "container": "m3u8"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/320x568/sjPsvh0uqupWPSeN.mp4?tag=29",
+              "bitrate": 632000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/480x852/jJ8Wa6qEtRlbE4LL.mp4?tag=29",
+              "bitrate": 950000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/720x1280/Iw7kHRzNX08EJUeE.mp4?tag=29",
+              "bitrate": 2176000,
+              "container": "mp4",
+              "codec": "h264"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+              "bitrate": 10368000,
+              "container": "mp4",
+              "codec": "h264"
+            }
+          ],
+          "publisher": null,
+          "variants": [
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/pl/0JZw_2KB4qCJLHUW.m3u8?tag=29",
+              "bitrate": 0,
+              "content_type": "application/x-mpegURL"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/320x568/sjPsvh0uqupWPSeN.mp4?tag=29",
+              "bitrate": 632000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/480x852/jJ8Wa6qEtRlbE4LL.mp4?tag=29",
+              "bitrate": 950000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/720x1280/Iw7kHRzNX08EJUeE.mp4?tag=29",
+              "bitrate": 2176000,
+              "content_type": "video/mp4"
+            },
+            {
+              "url": "https://video.twimg.com/amplify_video/2091386788502003712/vid/avc1/1080x1920/Z0YlFuuWnsWTyeis.mp4?tag=29",
+              "bitrate": 10368000,
+              "content_type": "video/mp4"
+            }
+          ]
+        }
+      ]
+    },
+    "twitter_card": "player",
+    "color": null,
+    "provider": "twitter",
+    "reposted_by": null
+  }
+}
