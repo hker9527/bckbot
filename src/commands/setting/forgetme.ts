@@ -14,6 +14,13 @@ class Command extends SlashApplicationCommand {
 			}
 		});
 
+		await client.ignore.deleteMany({
+			where: {
+				id: interaction.user.id,
+				type: "u"
+			}
+		});
+
 		return {
 			content: t("forgetme.success")
 		};
