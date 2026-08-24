@@ -5,8 +5,12 @@ import type { PixivIllustItem } from "@book000/pixivts";
 const dir = `${import.meta.dir}/__fixtures__/pixiv`;
 const loadItem = () => Bun.file(`${dir}/illust-single.json`).json();
 
-// toMessage does HEAD fetches to warm the CDN — stub them.
-const stubFetch = () => spyOn(globalThis, "fetch").mockResolvedValue({} as Response);
+// Pin the proxy list so a developer's local .env can't change what we assert.
+Bun.env.pixiv_proxy_hosts = "i.pixiv.cat";
+
+// toMessage HEAD-probes the proxy to pick a host and warm the CDN — stub it.
+// The probe treats a non-ok response as a dead host, so ok must be true.
+const stubFetch = () => spyOn(globalThis, "fetch").mockResolvedValue({ ok: true } as Response);
 
 afterEach(() => mock.restore());
 
@@ -36,9 +40,9 @@ describe("pixiv Illust.toMessage (embed building)", () => {
 		if (!msg?.embeds) throw new Error("expected embeds");
 		expect(msg.embeds).toHaveLength(1);
 		const embed = msg.embeds[0] as any;
-		// i.pximg.net proxied to i.yuki.sh
+		// i.pximg.net proxied to the first reachable host
 		expect(embed.image.url).toBe(
-			"https://i.yuki.sh/img-original/img/2024/01/01/00/00/00/123456_p0.png"
+			"https://i.pixiv.cat/img-original/img/2024/01/01/00/00/00/123456_p0.png"
 		);
 		expect(embed.color).toBe(0x3D92F5);
 		expect(embed.footer.text).toContain("100"); // total_bookmarks
@@ -78,5 +82,47 @@ describe("pixiv Illust.toMessage (embed building)", () => {
 
 		const msg = await new Illust(item as PixivIllustItem).toMessage(true);
 		expect((msg?.embeds?.[0] as any).image).toBeDefined();
+	});
+});
+
+describe("pixiv proxy failover", () => {
+	// Each test uses fresh host names — the cooldown map is module-scoped and
+	// would otherwise leak a disabled host into the next test.
+	const stubHosts = (deadHost: string) =>
+		spyOn(globalThis, "fetch").mockImplementation(async (input: any) =>
+			(input as string).includes(deadHost) ?
+				Promise.reject(new Error("ECONNREFUSED")) :
+				({ ok: true } as Response)
+		);
+
+	afterEach(() => { Bun.env.pixiv_proxy_hosts = "i.pixiv.cat"; });
+
+	it("falls through to the next host when the first is unreachable", async () => {
+		Bun.env.pixiv_proxy_hosts = "dead-1.test,alive-1.test";
+		stubHosts("dead-1.test");
+
+		const msg = await new Illust((await loadItem()) as PixivIllustItem).toMessage(false);
+
+		expect((msg?.embeds?.[0] as any).image.url).toBe(
+			"https://alive-1.test/img-original/img/2024/01/01/00/00/00/123456_p0.png"
+		);
+	});
+
+	it("skips a host that answers with a non-OK status", async () => {
+		Bun.env.pixiv_proxy_hosts = "dead-2.test,alive-2.test";
+		spyOn(globalThis, "fetch").mockImplementation(async (input: any) =>
+			({ ok: !(input as string).includes("dead-2.test") } as Response)
+		);
+
+		const msg = await new Illust((await loadItem()) as PixivIllustItem).toMessage(false);
+
+		expect((msg?.embeds?.[0] as any).image.url).toContain("https://alive-2.test/");
+	});
+
+	it("returns null when every host is down", async () => {
+		Bun.env.pixiv_proxy_hosts = "dead-3.test,dead-4.test";
+		spyOn(globalThis, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+		expect(await new Illust((await loadItem()) as PixivIllustItem).toMessage(false)).toBeNull();
 	});
 });
