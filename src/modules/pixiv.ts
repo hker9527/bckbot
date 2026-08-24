@@ -28,7 +28,51 @@ const getPixivClient = async (): Promise<Pixiv> => {
 	return pixivClient;
 };
 
-const proxy = (url: string) => url.replace("i.pximg.net", "i.yuki.sh");
+// i.pximg.net rejects hotlinking, so images are served through a reverse proxy
+// that re-sends the request with a pixiv.net Referer. Public proxies disappear
+// without warning (i.yuki.sh did), so the host list is configurable and we fail
+// over in order rather than trusting a single one.
+const DEFAULT_PROXY_HOST = "i.pixiv.cat";
+const PROXY_COOLDOWN_MS = 5 * 60 * 1000;
+
+// Read lazily so tests can set the env var after import.
+const proxyHosts = () => (Bun.env.pixiv_proxy_hosts ?? DEFAULT_PROXY_HOST)
+	.split(",")
+	.map((host) => host.trim())
+	.filter(Boolean);
+
+const disabledUntil = new Map<string, number>();
+
+const proxy = (url: string, host: string) => url.replace("i.pximg.net", host);
+
+// Returns the first host serving every URL, or null if all of them are down.
+// The probe doubles as the CDN cache warm-up, so this costs no extra requests.
+const pickHost = async (urls: string[]): Promise<string | null> => {
+	const sublogger = logger.getSubLogger({ name: "pickHost" });
+	const now = Date.now();
+
+	for (const host of proxyHosts()) {
+		if ((disabledUntil.get(host) ?? 0) > now) {
+			continue;
+		}
+
+		try {
+			const responses = await Promise.all(
+				urls.map((url) => fetch(proxy(url, host), { method: "HEAD" }))
+			);
+			if (responses.every((res) => res.ok)) {
+				return host;
+			}
+			sublogger.warn(`${host} returned a non-OK status, trying next host`);
+		} catch (e) {
+			sublogger.warn(`${host} is unreachable, trying next host`, e);
+		}
+
+		disabledUntil.set(host, now + PROXY_COOLDOWN_MS);
+	}
+
+	return null;
+};
 
 export class Illust {
 	protected sublogger: Logger<any>;
@@ -47,22 +91,24 @@ export class Illust {
 		});
 
 		try {
-			const imageUrls = (this.item.page_count === 1 ?
+			const rawImageUrls = (this.item.page_count === 1 ?
 				[this.item.meta_single_page.original_image_url!] :
 				this.item.meta_pages.map((page) => page.image_urls.original))
-				.slice(0, 10) // Discord API Limit
-				.map(proxy);
-			
+				.slice(0, 10); // Discord API Limit
+			const rawIconUrl = this.item.user.profile_image_urls.medium;
+
+			const host = await pickHost([rawIconUrl, ...rawImageUrls]);
+			if (!host) {
+				sublogger.error("Every pixiv image proxy is unreachable");
+				return null;
+			}
+
+			const imageUrls = rawImageUrls.map((url) => proxy(url, host));
+			const iconUrl = proxy(rawIconUrl, host);
+
 			sublogger.debug("imageUrls", imageUrls);
 
 			let embeds: APIEmbed[];
-
-			// Try to hint the CDN to cache our files
-			for (const imageUrl of [proxy(this.item.user.profile_image_urls.medium), ...imageUrls]) {
-				await fetch(imageUrl, {
-					method: "HEAD"
-				});
-			}
 
 			embeds = imageUrls.map((url) => ({
 				image: {
@@ -88,7 +134,7 @@ export class Illust {
 				...{
 					author: {
 						name: this.item.title ? `${prefix} ${this.item.title} ${suffix}` : t(`${prefix} $t(pixiv.titlePlaceholder) ${suffix}`),
-						icon_url: proxy(this.item.user.profile_image_urls.medium),
+						icon_url: iconUrl,
 						url: `https://www.pixiv.net/artworks/${this.item.id}`
 					},
 					color: this.item.x_restrict > 0 ? 0xd37a52 : 0x3D92F5,
