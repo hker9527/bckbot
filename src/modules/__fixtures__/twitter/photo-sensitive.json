@@ -1,0 +1,105 @@
+{
+  "code": 200,
+  "message": "OK",
+  "tweet": {
+    "url": "https://x.com/mNk_DiSuKyamaDa/status/2091470306557018144",
+    "id": "2091470306557018144",
+    "text": "",
+    "raw_text": {
+      "text": "https://t.co/jUL7Wlb6xD",
+      "display_text_range": [
+        0,
+        0
+      ],
+      "facets": [
+        {
+          "type": "media",
+          "indices": [
+            0,
+            23
+          ],
+          "id": "2091470301477646337",
+          "display": "pic.x.com/jUL7Wlb6xD",
+          "original": "https://t.co/jUL7Wlb6xD",
+          "replacement": "https://x.com/mNk_DiSuKyamaDa/status/2091470306557018144/photo/1"
+        }
+      ]
+    },
+    "author": {
+      "screen_name": "mNk_DiSuKyamaDa",
+      "url": "https://x.com/mNk_DiSuKyamaDa",
+      "id": "1497112404513406976",
+      "followers": 116914,
+      "following": 5279,
+      "likes": 66897,
+      "media_count": 395,
+      "name": "レインボーゴレイヌ",
+      "description": "避難用@rainbow_GOREIn 【pixiv】https://www.pixiv.net/users/113154299",
+      "raw_description": {
+        "text": "避難用@rainbow_GOREIn 【pixiv】https://t.co/551kU1d0bj",
+        "facets": [
+          {
+            "type": "url",
+            "indices": [
+              26,
+              49
+            ],
+            "original": "https://t.co/551kU1d0bj",
+            "replacement": "https://www.pixiv.net/users/113154299",
+            "display": "pixiv.net/users/113154299"
+          }
+        ]
+      },
+      "location": "",
+      "banner_url": "https://pbs.twimg.com/profile_banners/1497112404513406976/1729480528",
+      "avatar_url": "https://pbs.twimg.com/profile_images/1871773203120713729/_aLA0Tfa_200x200.jpg",
+      "joined": "Fri Feb 25 07:33:20 +0000 2022",
+      "protected": false,
+      "website": null,
+      "verification": {
+        "verified": true,
+        "verified_at": null,
+        "type": "individual"
+      },
+      "avatar_color": null
+    },
+    "replies": 18,
+    "retweets": 2029,
+    "likes": 21428,
+    "bookmarks": 5631,
+    "quotes": 7,
+    "created_at": "Sun Aug 23 10:19:13 +0000 2026",
+    "created_timestamp": 1787480353,
+    "possibly_sensitive": true,
+    "views": 193052,
+    "is_note_tweet": false,
+    "community_note": null,
+    "lang": null,
+    "replying_to": null,
+    "replying_to_status": null,
+    "media": {
+      "all": [
+        {
+          "type": "photo",
+          "id": "2091470301477646337",
+          "url": "https://pbs.twimg.com/media/HQZlKHnasAETrUV.jpg?name=orig",
+          "width": 1429,
+          "height": 2048
+        }
+      ],
+      "photos": [
+        {
+          "type": "photo",
+          "id": "2091470301477646337",
+          "url": "https://pbs.twimg.com/media/HQZlKHnasAETrUV.jpg?name=orig",
+          "width": 1429,
+          "height": 2048
+        }
+      ]
+    },
+    "twitter_card": "summary_large_image",
+    "color": null,
+    "provider": "twitter",
+    "reposted_by": null
+  }
+}

@@ -115,6 +115,39 @@ describe("twitter.action", () => {
 		expect(result.result.embeds).toHaveLength(3);
 	});
 
+	// The bug, on the real fixture it was reported from: a sensitive single-photo
+	// tweet linked with a vanilla url. X unfurls the placeholder, the placeholder
+	// counted as a rendered photo, the single-photo gate skipped the tweet, and
+	// the user was left with grey.
+	it("overrides the real sensitive single-photo tweet behind a placeholder embed", async () => {
+		stubFetch(await loadFixture("photo-sensitive"));
+
+		const result = await run(
+			makeMessage("https://x.com/mnk_disukyamada/status/2091470306557018144?s=12", {
+				embeds: [placeholderEmbed]
+			})
+		);
+
+		if (result === false) throw new Error("expected reply");
+		expect(result.result.embeds).toHaveLength(1);
+		expect(result.result.embeds![0].image?.url).toBe(
+			"https://pbs.twimg.com/media/HQZlKHnasAETrUV.jpg?name=orig"
+		);
+	});
+
+	// Guard the other direction: the single-photo gate must still fire when the
+	// source link really did render the photo.
+	it("still skips a vanilla single-photo tweet whose photo actually rendered", async () => {
+		stubFetch(await loadFixture("photo-sensitive"));
+
+		const embeds = [{ image: { width: 1429, height: 2048, url: "https://pbs.twimg.com/media/HQZlKHnasAETrUV.jpg" } }];
+		const result = await run(
+			makeMessage("https://x.com/mnk_disukyamada/status/2091470306557018144", { embeds })
+		);
+
+		expect(result).toBe(false);
+	});
+
 	it("overrides vanilla single-photo tweet when source only shows the sensitive placeholder", async () => {
 		stubFetch(setSensitive(setPhotos(base, 1)));
 

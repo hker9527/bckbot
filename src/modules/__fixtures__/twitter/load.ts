@@ -5,6 +5,10 @@
 // video-vanilla.json  — real fxtwitter response, SpaceX launch (video only)
 // video-sensitive.json — real fxtwitter response, possibly_sensitive video tweet.
 //                       NSFW media urls; used for schema shape and the NSFW gate only.
+// photo-sensitive.json — real fxtwitter response, possibly_sensitive single-photo
+//                       tweet. The exact case the placeholder embed breaks: X
+//                       unfurls the placeholder, the single-photo gate then skips
+//                       the tweet and the user sees only grey. NSFW media url.
 //
 // Raw fixtures are captured live ONCE and committed, so tests exercise real API
 // shape without depending on those tweets staying up. Variant helpers below clone
