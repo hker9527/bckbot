@@ -9,6 +9,9 @@
 //                       tweet. The exact case the placeholder embed breaks: X
 //                       unfurls the placeholder, the single-photo gate then skips
 //                       the tweet and the user sees only grey. NSFW media url.
+// photos20-vanilla.json — real fxtwitter response, 20 photos of mixed sizes.
+// photos20-split.json  — real fxtwitter response, one photo cut into 20 strips
+//                       of 75x1000 that join side by side into 1500x1000.
 //
 // Raw fixtures are captured live ONCE and committed, so tests exercise real API
 // shape without depending on those tweets staying up. Variant helpers below clone

@@ -2,10 +2,11 @@ import { num2str } from "@app/utils";
 import { t } from "@app/i18n/token";
 import type { StealthModule } from "@type/StealthModule";
 import { ZAPIFXTwitter } from "@type/api/FXTwitter";
-import type { APIEmbed, ActionRowData, MessageActionRowComponentData } from "discord.js";
+import type { APIEmbed, ActionRowData, BaseMessageOptions, MessageActionRowComponentData } from "discord.js";
 import { ButtonStyle, ComponentType } from "discord.js";
 import { find } from "linkifyjs";
 import { createLogger } from "@app/sentry";
+import sharp from "sharp";
 
 const logger = createLogger({
 	name: "twitter",
@@ -43,6 +44,196 @@ export const fetchTweet = async (url: URL) => {
 
 		return null;
 	}
+};
+
+type Tweet = NonNullable<Awaited<ReturnType<typeof fetchTweet>>>;
+type Photo = NonNullable<NonNullable<Tweet["media"]>["photos"]>[number];
+
+// The Discord client merges embeds sharing a url into one card with all their
+// images, and a message holds at most 10 embeds.
+const IMAGES_PER_PAGE = 10;
+const PAGE_PREFIX = "twitter:page:";
+
+const STRIP_MIN_RATIO = 3;
+const STITCHED_MAX_SIZE = 4096;
+// Webp keeps the gaps and corners transparent, so the strips still look split
+const STITCHED_FILENAME = "stitched.webp";
+// Relative to the stitched image's long side, so they stay visible once Discord
+// scales the image down
+const STRIP_GAP_RATIO = 0.006;
+const STRIP_RADIUS_RATIO = 0.012;
+
+// Some tweets cut one picture into same-sized tall strips, one per photo slot,
+// meant to be joined back side by side.
+export const isStrips = (photos: Photo[]) => {
+	if (photos.length < 2) {
+		return false;
+	}
+
+	const { width, height } = photos[0];
+
+	return !!width && !!height &&
+		photos.every((photo) => photo.width === width && photo.height === height) &&
+		height / width >= STRIP_MIN_RATIO;
+};
+
+export const stitchStrips = async (photos: Photo[]) => {
+	const width = photos[0].width!;
+	const height = photos[0].height!;
+
+	const tiles = await Promise.all(photos.map(async (photo) => {
+		const response = await fetch(photo.url);
+
+		if (!response.ok) {
+			throw new Error(`Failed to download ${photo.url}: ${response.status}`);
+		}
+
+		return Buffer.from(await response.arrayBuffer());
+	}));
+
+	const longSide = Math.max(width * tiles.length, height);
+	const gap = Math.max(2, Math.round(longSide * STRIP_GAP_RATIO));
+	const radius = Math.min(Math.max(2, Math.round(longSide * STRIP_RADIUS_RATIO)), Math.floor(width / 2));
+	const mask = Buffer.from(`<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius}" ry="${radius}"/></svg>`);
+
+	const roundedTiles = await Promise.all(tiles.map((tile) =>
+		sharp(tile)
+			.resize(width, height, { fit: "cover" })
+			.ensureAlpha()
+			.composite([{ input: mask, blend: "dest-in" }])
+			.png()
+			.toBuffer()
+	));
+
+	const stride = width + gap;
+
+	const { data, info } = await sharp({
+		create: {
+			width: stride * tiles.length - gap,
+			height,
+			channels: 4,
+			background: { r: 0, g: 0, b: 0, alpha: 0 }
+		}
+	})
+		.composite(roundedTiles.map((input, i) => ({
+			input,
+			left: i * stride,
+			top: 0
+		})))
+		.raw()
+		.toBuffer({ resolveWithObject: true });
+
+	return sharp(data, { raw: info })
+		.resize(STITCHED_MAX_SIZE, STITCHED_MAX_SIZE, { fit: "inside", withoutEnlargement: true })
+		.webp({ quality: 90 })
+		.toBuffer();
+};
+
+const getImageUrls = (json: Tweet) => [
+	...(json.media?.photos ?? []).map((image) => image.url),
+	...(json.media?.videos ?? []).map((video) => video.thumbnail_url)
+];
+
+const getPageCount = (imageCount: number) => Math.max(1, Math.ceil(imageCount / IMAGES_PER_PAGE));
+
+const buildEmbeds = (json: Tweet, imageUrls: string[], page: number): APIEmbed[] => {
+	const embeds: APIEmbed[] = [
+		{
+			author: {
+				name: `${json.author.name} (@${json.author.screen_name})`,
+				icon_url: json.author.avatar_url,
+				url: json.author.url
+			},
+			color: 0x1DA1F2,
+			description: json.text + (json.quote ? `\n>>> **${json.quote.author.name} (@${json.quote.author.screen_name})**\n${json.quote.text}` : ""),
+			footer: {
+				text: `❤️ ${num2str(json.likes)} 🔁 ${num2str(json.retweets)} 🗨️ ${num2str(json.replies)}${json.views ? " 👀 " + num2str(json.views) : ""}`,
+				icon_url: "https://cdn-icons-png.flaticon.com/512/179/179342.png"
+			},
+			timestamp: new Date(json.created_timestamp * 1000).toISOString(),
+			url: json.url
+		}
+	];
+
+	const pageImageUrls = imageUrls.slice(page * IMAGES_PER_PAGE, (page + 1) * IMAGES_PER_PAGE);
+
+	pageImageUrls.forEach((imageUrl, i) => {
+		if (i === 0) {
+			embeds[0].image = {
+				url: imageUrl
+			};
+			return;
+		}
+
+		embeds.push({
+			image: {
+				url: imageUrl
+			},
+			url: json.url
+		});
+	});
+
+	if (json.quote) {
+		if (json.quote.media?.photos) {
+			embeds[0].thumbnail = {
+				url: json.quote.media.photos[0].url
+			};
+		} else if (json.quote.media?.videos) {
+			embeds[0].thumbnail = {
+				url: json.quote.media.videos[0].thumbnail_url
+			};
+		}
+	}
+
+	return embeds;
+};
+
+const buildComponents = (
+	json: Tweet,
+	page: number,
+	pageCount: number
+): ActionRowData<MessageActionRowComponentData>[] => {
+	const buttons: MessageActionRowComponentData[] = [
+		{
+			type: ComponentType.Button,
+			label: t("twitter.originalTweetButton"),
+			style: ButtonStyle.Link,
+			url: json.url
+		}
+	];
+
+	if (pageCount > 1) {
+		buttons.push(
+			{
+				type: ComponentType.Button,
+				customId: `${PAGE_PREFIX}${page - 1}`,
+				style: ButtonStyle.Secondary,
+				emoji: { name: "◀️" },
+				disabled: page <= 0
+			},
+			{
+				type: ComponentType.Button,
+				customId: "twitter:indicator",
+				style: ButtonStyle.Secondary,
+				label: `${page + 1} / ${pageCount}`,
+				disabled: true
+			},
+			{
+				type: ComponentType.Button,
+				customId: `${PAGE_PREFIX}${page + 1}`,
+				style: ButtonStyle.Secondary,
+				emoji: { name: "▶️" },
+				disabled: page >= pageCount - 1
+			}
+		);
+	}
+
+	return [
+		{
+			type: ComponentType.ActionRow,
+			components: buttons
+		}
+	];
 };
 
 export const twitter: StealthModule = {
@@ -108,10 +299,7 @@ export const twitter: StealthModule = {
 		logger.debug("images", images.length);
 		logger.debug("videos", videos.length);
 
-		const imageUrls = [
-			...images.map((image) => image.url),
-			...videos.map((video) => video.thumbnail_url)
-		];
+		const imageUrls = getImageUrls(json);
 
 		if (vanilla) {
 			if (!json.quote) {
@@ -143,20 +331,6 @@ export const twitter: StealthModule = {
 			return false;
 		}
 
-		const components: ActionRowData<MessageActionRowComponentData>[] = [
-			{
-				type: ComponentType.ActionRow,
-				components: [
-					{
-						type: ComponentType.Button,
-						label: t("twitter.originalTweetButton"),
-						style: ButtonStyle.Link,
-						url: json.url
-					}
-				]
-			}
-		];
-
 		// Workaround for showing videos
 		if (
 			json.media?.all ?
@@ -167,7 +341,7 @@ export const twitter: StealthModule = {
 				// Vanilla twitter can't display videos
 				const result = {
 					content: json.url.replace("twitter.com", "fxtwitter.com").replace("x.com", "fixupx.com"),
-					components
+					components: buildComponents(json, 0, 1)
 				};
 
 				logger.debug("Accepted (Video)");
@@ -183,48 +357,24 @@ export const twitter: StealthModule = {
 			}
 		}
 
-		let embeds: APIEmbed[] = [
-			{
-				author: {
-					name: `${json.author.name} (@${json.author.screen_name})`,
-					icon_url: json.author.avatar_url,
-					url: json.author.url
-				},
-				color: 0x1DA1F2,
-				description: json.text + (json.quote ? `\n>>> **${json.quote.author.name} (@${json.quote.author.screen_name})**\n${json.quote.text}` : ""),
-				footer: {
-					text: `❤️ ${num2str(json.likes)} 🔁 ${num2str(json.retweets)} 🗨️ ${num2str(json.replies)}${json.views ? " 👀 " + num2str(json.views) : ""}`,
-					icon_url: "https://cdn-icons-png.flaticon.com/512/179/179342.png"
-				},
-				timestamp: new Date(json.created_timestamp * 1000).toISOString(),
-				url: json.url
-			}
-		];
+		let embedImageUrls = imageUrls;
+		let files: BaseMessageOptions["files"];
 
-		if (imageUrls.length > 0) {
-			embeds[0].image = {
-				url: imageUrls[0]
-			};
-
-			embeds = embeds.concat(imageUrls.splice(1).map((imageUrl) => ({
-				image: {
-					url: imageUrl
-				},
-				url: json.url
-			})));
-		}
-
-		if (json.quote) {
-			if (json.quote.media?.photos) {
-				embeds[0].thumbnail = {
-					url: json.quote.media.photos[0].url
-				};
-			} else if (json.quote.media?.videos) {
-				embeds[0].thumbnail = {
-					url: json.quote.media.videos[0].thumbnail_url
-				};
+		if (videos.length === 0 && isStrips(images)) {
+			try {
+				files = [{
+					attachment: await stitchStrips(images),
+					name: STITCHED_FILENAME
+				}];
+				embedImageUrls = [`attachment://${STITCHED_FILENAME}`];
+				logger.debug("Stitched strips", images.length);
+			} catch (e) {
+				logger.error("Failed to stitch strips", e);
 			}
 		}
+
+		const embeds = buildEmbeds(json, embedImageUrls, 0);
+		const components = buildComponents(json, 0, getPageCount(embedImageUrls.length));
 
 		try {
 			await obj.message.suppressEmbeds();
@@ -243,8 +393,40 @@ export const twitter: StealthModule = {
 			type: "reply",
 			result: {
 				embeds,
-				components
+				components,
+				files
 			}
+		};
+	},
+	onButton: async (interaction) => {
+		if (!interaction.customId.startsWith(PAGE_PREFIX)) {
+			return false;
+		}
+
+		const page = parseInt(interaction.customId.slice(PAGE_PREFIX.length));
+		const tweetUrl = interaction.message.embeds[0]?.url;
+
+		if (isNaN(page) || !tweetUrl) {
+			return false;
+		}
+
+		// Refetch instead of keeping state, so buttons keep working across restarts
+		const json = await fetchTweet(new URL(tweetUrl));
+
+		if (!json) {
+			return false;
+		}
+
+		const imageUrls = getImageUrls(json);
+		const pageCount = getPageCount(imageUrls.length);
+
+		if (page < 0 || page >= pageCount) {
+			return false;
+		}
+
+		return {
+			embeds: buildEmbeds(json, imageUrls, page),
+			components: buildComponents(json, page, pageCount)
 		};
 	}
 };

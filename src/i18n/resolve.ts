@@ -18,7 +18,8 @@ export const localize = <T>(node: T, locale: LocaleString): T => {
 		return node.map(child => localize(child, locale)) as unknown as T;
 	}
 
-	if (node !== null && typeof node === "object") {
+	// Only plain objects: class instances like Buffer attachments must pass through intact
+	if (node !== null && typeof node === "object" && [Object.prototype, null].includes(Object.getPrototypeOf(node))) {
 		const out: Record<string, unknown> = {};
 		for (const [k, v] of Object.entries(node)) {
 			out[k] = localize(v, locale);
