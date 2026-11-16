@@ -25,7 +25,9 @@ const BaseTweetSchema = z.object({
 			url: z.string()
 		})).optional(),
 		photos: z.array(z.object({
-			url: z.string()
+			url: z.string(),
+			width: z.number().optional(),
+			height: z.number().optional()
 		})).optional(),
 		videos: z.array(z.object({
 			thumbnail_url: z.string()

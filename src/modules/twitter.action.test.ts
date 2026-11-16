@@ -1,6 +1,7 @@
 import { describe, it, expect, mock, spyOn, beforeEach, afterEach } from "bun:test";
-import { twitter } from "@module/twitter";
-import type { Message } from "discord.js";
+import { getStripDirection, twitter } from "@module/twitter";
+import sharp from "sharp";
+import type { APIEmbed, BaseMessageOptions, ButtonInteraction, Message } from "discord.js";
 import { loadEmbed, loadFixture, setPhotos, setSensitive } from "./__fixtures__/twitter/load";
 
 // ---- mock Discord Message ----
@@ -36,6 +37,8 @@ const stubFetch = (payload: unknown) =>
 	} as Response);
 
 const run = (msg: Message) => twitter.action({ message: msg });
+
+const buttonsOf = (options: BaseMessageOptions) => (options.components?.[0] as any).components;
 
 // Real captured envelope, mutated per-case via helpers.
 let base: Awaited<ReturnType<typeof loadFixture>>;
@@ -199,6 +202,40 @@ describe("twitter.action", () => {
 		expect(result.result.content).toBe("https://fixupx.com/CosplayerBunbun/status/2091473283229376570");
 	});
 
+	it("merges 10 images into one card without paging", async () => {
+		stubFetch(setPhotos(base, 10));
+
+		const result = await run(makeMessage("https://fxtwitter.com/jane/status/123"));
+
+		if (result === false || result === true) throw new Error("expected reply");
+		const embeds = result.result.embeds as APIEmbed[];
+		const tweetUrl = base.tweet.url;
+
+		expect(embeds).toHaveLength(10);
+		expect(embeds.map(embed => embed.image?.url)).toEqual(
+			Array.from({ length: 10 }, (_, i) => `https://pbs.twimg.com/media/p${i}.jpg`)
+		);
+		expect(embeds.map(embed => embed.url)).toEqual(Array(10).fill(tweetUrl));
+		expect(buttonsOf(result.result)).toHaveLength(1);
+	});
+
+	it("pages tweets with more than 10 images", async () => {
+		stubFetch(setPhotos(base, 20));
+
+		const result = await run(makeMessage("https://fxtwitter.com/jane/status/123"));
+
+		if (result === false || result === true) throw new Error("expected reply");
+		const embeds = result.result.embeds as APIEmbed[];
+		const [, prev, indicator, next] = buttonsOf(result.result);
+
+		expect(embeds).toHaveLength(10);
+		expect(embeds[0].description).toBeDefined();
+		expect(embeds[9].image?.url).toBe("https://pbs.twimg.com/media/p9.jpg");
+		expect(prev).toMatchObject({ customId: "twitter:page:-1", disabled: true });
+		expect(indicator).toMatchObject({ label: "1 / 2", disabled: true });
+		expect(next).toMatchObject({ customId: "twitter:page:1", disabled: false });
+	});
+
 	it("rewrites vanilla video tweet to fixupx link (real SpaceX fixture)", async () => {
 		// Real vanilla video-only tweet: no photos, no quote, url on x.com.
 		// Regression guard for the twitter.ts:106 gate bug — before the fix this
@@ -209,5 +246,109 @@ describe("twitter.action", () => {
 
 		if (result === false) throw new Error("expected reply");
 		expect(result.result.content).toBe("https://fixupx.com/SpaceX/status/1732824684683784516");
+	});
+});
+
+describe("strip stitching", () => {
+	it("detects the real tweet that splits one photo into 20 strips", async () => {
+		const split = await loadFixture("photos20-split");
+		const normal = await loadFixture("photos20-vanilla");
+
+		expect(getStripDirection(split.tweet.media.photos)).toBe("horizontal");
+		expect(getStripDirection(normal.tweet.media.photos)).toBeNull();
+	});
+
+	it("ignores same-sized photos that are not strips", () => {
+		const photos = Array.from({ length: 4 }, (_, i) => ({ url: `p${i}`, width: 2048, height: 2048 }));
+
+		expect(getStripDirection(photos)).toBeNull();
+	});
+
+	it("detects strips meant to be stacked", () => {
+		const photos = Array.from({ length: 3 }, (_, i) => ({ url: `p${i}`, width: 1200, height: 300 }));
+
+		expect(getStripDirection(photos)).toBe("vertical");
+	});
+
+	it("replies with one stitched image for the real split tweet", async () => {
+		const split = await loadFixture("photos20-split");
+		const tile = await sharp({
+			create: { width: 75, height: 1000, channels: 3, background: "#3366cc" }
+		}).jpeg().toBuffer();
+
+		spyOn(globalThis, "fetch").mockImplementation((async (input: string | URL | Request) =>
+			String(input).startsWith("https://api.fxtwitter.com/")
+				? new Response(JSON.stringify(split))
+				: new Response(tile)
+		) as typeof fetch);
+
+		const result = await run(makeMessage(split.tweet.url));
+
+		if (result === false || result === true) throw new Error("expected reply");
+		const embeds = result.result.embeds as APIEmbed[];
+		const [file] = result.result.files as { attachment: Buffer, name: string }[];
+		const { data, info } = await sharp(file.attachment).raw().toBuffer({ resolveWithObject: true });
+		const alphaAt = (x: number, y: number) => data[(y * info.width + x) * info.channels + 3];
+
+		expect(embeds).toHaveLength(1);
+		expect(embeds[0].image?.url).toBe(`attachment://${file.name}`);
+		expect(buttonsOf(result.result)).toHaveLength(1);
+		// 20 strips of 75 plus 19 gaps of 9
+		expect([info.width, info.height, info.channels]).toEqual([1671, 1000, 4]);
+		// Rounded corner, strip middle, and the gap after the first strip
+		expect(alphaAt(0, 0)).toBe(0);
+		expect(alphaAt(37, 500)).toBe(255);
+		expect(alphaAt(79, 500)).toBe(0);
+	});
+
+	it("falls back to the photos when a strip fails to download", async () => {
+		const split = await loadFixture("photos20-split");
+
+		spyOn(globalThis, "fetch").mockImplementation((async (input: string | URL | Request) =>
+			String(input).startsWith("https://api.fxtwitter.com/")
+				? new Response(JSON.stringify(split))
+				: new Response(null, { status: 404 })
+		) as typeof fetch);
+
+		const result = await run(makeMessage(split.tweet.url));
+
+		if (result === false || result === true) throw new Error("expected reply");
+		expect(result.result.files).toBeUndefined();
+		expect(result.result.embeds).toHaveLength(10);
+		expect(buttonsOf(result.result)).toHaveLength(4);
+	});
+});
+
+describe("twitter.onButton", () => {
+	const makeInteraction = (customId: string) => ({
+		customId,
+		message: { embeds: [{ url: base.tweet.url }] }
+	}) as unknown as ButtonInteraction;
+
+	it("builds the requested page with its own controls", async () => {
+		stubFetch(setPhotos(base, 20));
+
+		const result = await twitter.onButton!(makeInteraction("twitter:page:1"));
+
+		if (result === false) throw new Error("expected edit");
+		const embeds = result.embeds as APIEmbed[];
+		const [link, prev, indicator, next] = buttonsOf(result);
+
+		expect(embeds).toHaveLength(10);
+		expect(embeds[0].description).toBeDefined();
+		expect(embeds.map(embed => embed.image?.url)).toEqual(
+			Array.from({ length: 10 }, (_, i) => `https://pbs.twimg.com/media/p${i + 10}.jpg`)
+		);
+		expect(link).toMatchObject({ url: base.tweet.url });
+		expect(prev).toMatchObject({ customId: "twitter:page:0", disabled: false });
+		expect(indicator).toMatchObject({ label: "2 / 2" });
+		expect(next).toMatchObject({ customId: "twitter:page:2", disabled: true });
+		expect(result.components).toHaveLength(1);
+	});
+
+	it("ignores pages out of range", async () => {
+		stubFetch(setPhotos(base, 20));
+
+		expect(await twitter.onButton!(makeInteraction("twitter:page:2"))).toBe(false);
 	});
 });

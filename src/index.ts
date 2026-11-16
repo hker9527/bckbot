@@ -2,8 +2,8 @@ import type { BaseApplicationCommand } from "@class/ApplicationCommand";
 import { localize } from "@app/i18n/resolve";
 import { t } from "@app/i18n/token";
 import assert from "assert-ts";
-import type { ActionRowData, ApplicationCommandType, InteractionReplyOptions, MessageActionRowComponentData, Message, MessageEditOptions } from "discord.js";
-import { ActivityType, ButtonStyle, Client, ComponentType, GatewayIntentBits, Locale, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import type { ActionRowData, ApplicationCommandType, BaseMessageOptions, InteractionReplyOptions, MessageActionRowComponentData, Message } from "discord.js";
+import { ActivityType, ButtonStyle, Client, ComponentType, GatewayIntentBits, Locale, MessageFlags, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { getName } from "./Localizations";
 import { commands } from "./commands";
 import { modules } from "./modules";
@@ -290,6 +290,32 @@ try {
 							}, locale)
 						);
 					}
+				} else if (interaction.isButton() && modules.some(module => module.onButton && interaction.customId.startsWith(`${module.name}:`))) {
+					const module = modules.find(module => module.onButton && interaction.customId.startsWith(`${module.name}:`))!;
+					// Clicks on the shared message get a private copy, so other viewers aren't disrupted
+					const isPrivateCopy = interaction.message.flags.has(MessageFlags.Ephemeral);
+
+					if (isPrivateCopy) {
+						await interaction.deferUpdate();
+					} else {
+						await interaction.deferReply({
+							ephemeral: true
+						});
+					}
+
+					let response: BaseMessageOptions | false = false;
+
+					try {
+						response = await module.onButton!(interaction);
+					} catch (e) {
+						handleError(`modules/${module.name}.onButton`, e);
+					}
+
+					if (response) {
+						await interaction.editReply(localize(response, locale));
+					} else if (!isPrivateCopy) {
+						await interaction.editReply({ content: generalErrorReply.content });
+					}
 				} else if (interaction.isChatInputCommand()) {
 					const command = commands.find(command => command.name === interaction.command?.name);
 					assert(command !== undefined);
@@ -454,12 +480,11 @@ try {
 
 							setTimeout(async () => {
 								try {
-									// eslint-disable-next-line @typescript-eslint/no-unused-vars
-									const { components, ...x } = result;
-									const edited = await msg.edit({
-										components: _components,
-										...x
-									} as MessageEditOptions);
+									// Only drop the delete button. Re-sending the rest would upload
+									// any attached files again.
+									const edited: Message = await msg.edit({
+										components: _components
+									});
 
 									if (module.onTimeout) {
 										const reply = localize(
