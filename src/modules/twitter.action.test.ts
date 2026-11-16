@@ -1,5 +1,5 @@
 import { describe, it, expect, mock, spyOn, beforeEach, afterEach } from "bun:test";
-import { getStripDirection, twitter } from "@module/twitter";
+import { isStrips, twitter } from "@module/twitter";
 import sharp from "sharp";
 import type { APIEmbed, BaseMessageOptions, ButtonInteraction, Message } from "discord.js";
 import { loadEmbed, loadFixture, setPhotos, setSensitive } from "./__fixtures__/twitter/load";
@@ -254,20 +254,16 @@ describe("strip stitching", () => {
 		const split = await loadFixture("photos20-split");
 		const normal = await loadFixture("photos20-vanilla");
 
-		expect(getStripDirection(split.tweet.media.photos)).toBe("horizontal");
-		expect(getStripDirection(normal.tweet.media.photos)).toBeNull();
+		expect(isStrips(split.tweet.media.photos)).toBe(true);
+		expect(isStrips(normal.tweet.media.photos)).toBe(false);
 	});
 
-	it("ignores same-sized photos that are not strips", () => {
-		const photos = Array.from({ length: 4 }, (_, i) => ({ url: `p${i}`, width: 2048, height: 2048 }));
+	it("ignores same-sized photos that are not tall strips", () => {
+		const squares = Array.from({ length: 4 }, (_, i) => ({ url: `p${i}`, width: 2048, height: 2048 }));
+		const wide = Array.from({ length: 3 }, (_, i) => ({ url: `p${i}`, width: 1200, height: 300 }));
 
-		expect(getStripDirection(photos)).toBeNull();
-	});
-
-	it("detects strips meant to be stacked", () => {
-		const photos = Array.from({ length: 3 }, (_, i) => ({ url: `p${i}`, width: 1200, height: 300 }));
-
-		expect(getStripDirection(photos)).toBe("vertical");
+		expect(isStrips(squares)).toBe(false);
+		expect(isStrips(wide)).toBe(false);
 	});
 
 	it("replies with one stitched image for the real split tweet", async () => {

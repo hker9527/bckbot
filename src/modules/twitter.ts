@@ -63,34 +63,23 @@ const STITCHED_FILENAME = "stitched.webp";
 const STRIP_GAP_RATIO = 0.006;
 const STRIP_RADIUS_RATIO = 0.012;
 
-// Some tweets cut one picture into same-sized thin strips, one per photo slot.
-// Returns which way to join them back, or null for a normal set of photos.
-export const getStripDirection = (photos: Photo[]): "horizontal" | "vertical" | null => {
+// Some tweets cut one picture into same-sized tall strips, one per photo slot,
+// meant to be joined back side by side.
+export const isStrips = (photos: Photo[]) => {
 	if (photos.length < 2) {
-		return null;
+		return false;
 	}
 
 	const { width, height } = photos[0];
 
-	if (!width || !height || !photos.every((photo) => photo.width === width && photo.height === height)) {
-		return null;
-	}
-
-	if (height / width >= STRIP_MIN_RATIO) {
-		return "horizontal";
-	}
-
-	if (width / height >= STRIP_MIN_RATIO) {
-		return "vertical";
-	}
-
-	return null;
+	return !!width && !!height &&
+		photos.every((photo) => photo.width === width && photo.height === height) &&
+		height / width >= STRIP_MIN_RATIO;
 };
 
-export const stitchStrips = async (photos: Photo[], direction: "horizontal" | "vertical") => {
+export const stitchStrips = async (photos: Photo[]) => {
 	const width = photos[0].width!;
 	const height = photos[0].height!;
-	const horizontal = direction === "horizontal";
 
 	const tiles = await Promise.all(photos.map(async (photo) => {
 		const response = await fetch(photo.url);
@@ -102,11 +91,9 @@ export const stitchStrips = async (photos: Photo[], direction: "horizontal" | "v
 		return Buffer.from(await response.arrayBuffer());
 	}));
 
-	const longSide = horizontal
-		? Math.max(width * tiles.length, height)
-		: Math.max(width, height * tiles.length);
+	const longSide = Math.max(width * tiles.length, height);
 	const gap = Math.max(2, Math.round(longSide * STRIP_GAP_RATIO));
-	const radius = Math.min(Math.max(2, Math.round(longSide * STRIP_RADIUS_RATIO)), Math.floor(Math.min(width, height) / 2));
+	const radius = Math.min(Math.max(2, Math.round(longSide * STRIP_RADIUS_RATIO)), Math.floor(width / 2));
 	const mask = Buffer.from(`<svg width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius}" ry="${radius}"/></svg>`);
 
 	const roundedTiles = await Promise.all(tiles.map((tile) =>
@@ -118,21 +105,20 @@ export const stitchStrips = async (photos: Photo[], direction: "horizontal" | "v
 			.toBuffer()
 	));
 
-	const stride = (horizontal ? width : height) + gap;
-	const length = stride * tiles.length - gap;
+	const stride = width + gap;
 
 	const { data, info } = await sharp({
 		create: {
-			width: horizontal ? length : width,
-			height: horizontal ? height : length,
+			width: stride * tiles.length - gap,
+			height,
 			channels: 4,
 			background: { r: 0, g: 0, b: 0, alpha: 0 }
 		}
 	})
 		.composite(roundedTiles.map((input, i) => ({
 			input,
-			left: horizontal ? i * stride : 0,
-			top: horizontal ? 0 : i * stride
+			left: i * stride,
+			top: 0
 		})))
 		.raw()
 		.toBuffer({ resolveWithObject: true });
@@ -374,16 +360,14 @@ export const twitter: StealthModule = {
 		let embedImageUrls = imageUrls;
 		let files: BaseMessageOptions["files"];
 
-		const stripDirection = videos.length === 0 ? getStripDirection(images) : null;
-
-		if (stripDirection) {
+		if (videos.length === 0 && isStrips(images)) {
 			try {
 				files = [{
-					attachment: await stitchStrips(images, stripDirection),
+					attachment: await stitchStrips(images),
 					name: STITCHED_FILENAME
 				}];
 				embedImageUrls = [`attachment://${STITCHED_FILENAME}`];
-				logger.debug("Stitched strips", stripDirection, images.length);
+				logger.debug("Stitched strips", images.length);
 			} catch (e) {
 				logger.error("Failed to stitch strips", e);
 			}
